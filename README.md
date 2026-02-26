@@ -1,6 +1,6 @@
-# Alma Skills Collection
+# Skills Collection
 
-Personal collection of Alma skills, now organized under a dedicated `skills/` directory.
+Personal collection of local skills, organized under a dedicated `skills/` directory.
 
 ## Project Structure
 
@@ -21,8 +21,8 @@ Personal collection of Alma skills, now organized under a dedicated `skills/` di
 ### Recommended: Clone and symlink only skill folders
 
 ```bash
-git clone https://github.com/naijoug/alma-skills.git ~/.config/alma/skills-custom
-ln -s ~/.config/alma/skills-custom/skills/* ~/.config/alma/skills/
+git clone https://github.com/naijoug/skills.git ~/.config/codex/skills-custom
+ln -s ~/.config/codex/skills-custom/skills/* ~/.config/codex/skills/
 ```
 
 This repo contains docs and metadata at the root, so symlinking `skills/*` is safer than linking the whole repository root.
@@ -62,7 +62,7 @@ What this skill is for.
 
 ## Examples
 ~~~bash
-alma command example
+codex command example
 ~~~
 EOF
 ```
