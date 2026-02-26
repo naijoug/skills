@@ -1,40 +1,71 @@
 # Alma Skills Collection
 
-Personal collection of Alma skills.
+Personal collection of Alma skills, now organized under a dedicated `skills/` directory.
+
+## Project Structure
+
+```text
+.
+├── README.md
+└── skills/
+    ├── example-skill/
+    │   └── SKILL.md
+    └── trending/
+        └── SKILL.md
+```
 
 ## Installation
 
-### Option 1: Clone and symlink
+### Recommended: Clone and symlink only skill folders
+
 ```bash
 git clone https://github.com/naijoug/alma-skills.git ~/.config/alma/skills-custom
-ln -s ~/.config/alma/skills-custom/* ~/.config/alma/skills/
+ln -s ~/.config/alma/skills-custom/skills/* ~/.config/alma/skills/
 ```
 
-### Option 2: Direct clone
-```bash
-git clone https://github.com/naijoug/alma-skills.git ~/.config/alma/skills
-```
+This repo contains docs and metadata at the root, so symlinking `skills/*` is safer than linking the whole repository root.
 
 ## Skills
 
-Each skill is a directory with a `SKILL.md` file containing instructions for Alma.
+Each skill lives in `skills/<skill-name>/SKILL.md`.
 
-## Creating a new skill
+Current skills:
 
-```bash
-mkdir -p my-skill
-cat > my-skill/SKILL.md << 'EOF'
+- `trending`: Collect and summarize daily AI trends/news/topics
+- `example-skill`: Template for creating new skills
+
+## Creating a New Skill
+
+```sh
+mkdir -p skills/my-skill
+cat > skills/my-skill/SKILL.md << 'EOF'
 ---
 name: my-skill
-description: What this skill does
-allowed-tools:
-  - Bash
-  - Read
-  - Write
+description: Use when [specific trigger conditions for this skill]
 ---
 
 # My Skill
 
-Instructions for Alma on how to use this skill...
+## Overview
+What this skill is for.
+
+## When to Use
+- Trigger 1
+- Trigger 2
+
+## Steps
+1. Do X
+2. Do Y
+
+## Examples
+~~~bash
+alma command example
+~~~
 EOF
 ```
+
+## Maintenance Notes
+
+- Keep one skill per directory
+- Prefer `name` + `description` only in frontmatter
+- Write `description` as a trigger ("Use when ..."), not a workflow summary
