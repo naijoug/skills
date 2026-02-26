@@ -8,6 +8,8 @@ Personal collection of Alma skills, now organized under a dedicated `skills/` di
 .
 ├── README.md
 └── skills/
+    ├── teaching-plan/
+    │   └── SKILL.md
     ├── example-skill/
     │   └── SKILL.md
     └── trending/
@@ -31,6 +33,7 @@ Each skill lives in `skills/<skill-name>/SKILL.md`.
 
 Current skills:
 
+- `teaching-plan`: Generate detailed Markdown teaching plans/lesson scripts from GitHub URLs or text materials
 - `trending`: Collect and summarize daily AI trends/news/topics
 - `example-skill`: Template for creating new skills
 
