@@ -1,0 +1,34 @@
+id: personal-growth-coach
+version: 1.0.0
+title: Personal Growth Coach
+summary: AI-powered growth coach using the Six-Pillar Five-Frequency Growth Matrix for full-stack programmers
+kind: prompt_only
+tags:
+  - growth
+  - learning
+  - roadmap
+  - career
+  - coaching
+  - daily-practice
+triggers:
+  keywords:
+    - growth
+    - roadmap
+    - 成长
+    - 路线图
+    - 今天练什么
+    - 本周回顾
+    - 月度深潜
+    - 季度评估
+    - 年度规划
+    - learning plan
+    - skill assessment
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity
