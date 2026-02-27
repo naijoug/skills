@@ -62,6 +62,22 @@ class CLITests(unittest.TestCase):
         self.assertIn('"skills"', out)
         self.assertIn("pr-self-review", out)
 
+    def test_run_command_executes_runtime_skill(self):
+        code, out, err = self.run_cli(
+            [
+                "run",
+                "python-runtime",
+                "--root",
+                str(FIXTURE_ROOT),
+                "--input",
+                "text=hello",
+                "--json",
+            ]
+        )
+        self.assertEqual(code, 0, err)
+        self.assertIn('"code": "RUNTIME_EXECUTED"', out)
+        self.assertIn("HELLO", out)
+
 
 if __name__ == "__main__":
     unittest.main()

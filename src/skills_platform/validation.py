@@ -38,14 +38,34 @@ def validate_skills(skills: list[SkillRecord]) -> ValidationReport:
                 )
             )
 
-        if skill.kind == "prompt_plus_runtime" and not skill.runtime.get("entrypoint"):
-            errors.append(
-                ValidationFinding(
-                    "error",
-                    skill.id,
-                    "prompt_plus_runtime skill missing runtime.entrypoint",
+        if skill.kind == "prompt_plus_runtime":
+            runtime_type = str(skill.runtime.get("type") or "").strip()
+            if not runtime_type:
+                runtime_type = "python_module" if skill.runtime.get("entrypoint") else "shell_command"
+
+            if runtime_type == "python_module" and not skill.runtime.get("entrypoint"):
+                errors.append(
+                    ValidationFinding(
+                        "error",
+                        skill.id,
+                        "python_module runtime missing runtime.entrypoint",
+                    )
                 )
-            )
+            elif runtime_type == "shell_command" and not skill.runtime.get("command"):
+                errors.append(
+                    ValidationFinding(
+                        "error",
+                        skill.id,
+                        "shell_command runtime missing runtime.command",
+                    )
+                )
+            elif runtime_type not in {"python_module", "shell_command"}:
+                errors.append(
+                    ValidationFinding(
+                        "error",
+                        skill.id,
+                        f"Unsupported runtime.type '{runtime_type}'",
+                    )
+                )
 
     return ValidationReport(errors=errors, warnings=warnings)
-

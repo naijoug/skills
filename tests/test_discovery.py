@@ -33,6 +33,16 @@ class DiscoveryTests(unittest.TestCase):
             "Expected warning for no-meta-skill missing skill.yaml",
         )
 
+    def test_validation_accepts_shell_runtime_when_command_present(self):
+        from skills_platform.discovery import discover_skills, get_skill
+        from skills_platform.validation import validate_skills
+
+        skills = discover_skills(FIXTURE_ROOT)
+        shell_skill = get_skill(skills, "shell-runtime")
+        self.assertIsNotNone(shell_skill)
+        report = validate_skills([shell_skill])
+        self.assertEqual(report.error_count, 0)
+
     def test_simple_yaml_parser_supports_nested_maps_and_lists(self):
         from skills_platform.simple_yaml import parse_simple_yaml
 

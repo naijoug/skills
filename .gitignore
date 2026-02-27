@@ -6,3 +6,21 @@
 # Temporary files
 *.tmp
 *.log
+
+# Python cache/build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+
+# Test/tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local generated outputs
+dist/
