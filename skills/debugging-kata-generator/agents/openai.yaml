@@ -1,0 +1,4 @@
+interface:
+  display_name: "Debugging Kata Generator"
+  short_description: "Help with debugging practice scenarios"
+  default_prompt: "Use $debugging-kata-generator to create a realistic debugging practice scenario with tiered hints and an answer key."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Self Review"
+  short_description: "Help with pull request self-review"
+  default_prompt: "Use $pr-self-review to inspect this diff for regression risk, test gaps, readability issues, and reviewer-facing context."

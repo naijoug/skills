@@ -1,0 +1,4 @@
+interface:
+  display_name: "Refactor Safely"
+  short_description: "Help with behavior-preserving refactors"
+  default_prompt: "Use $refactor-safely to break this cleanup into small behavior-preserving steps with verification checkpoints."

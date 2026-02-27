@@ -1,0 +1,4 @@
+interface:
+  display_name: "Weekly Coding Retro"
+  short_description: "Help with weekly coding retrospectives"
+  default_prompt: "Use $weekly-coding-retro to summarize this week coding patterns, mistakes, and 1-3 improvement experiments."

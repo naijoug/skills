@@ -1,0 +1,4 @@
+interface:
+  display_name: "Performance Thinking Coach"
+  short_description: "Help with performance analysis planning"
+  default_prompt: "Use $performance-thinking-coach to build a measurement-first performance analysis and optimization plan for this slow path."

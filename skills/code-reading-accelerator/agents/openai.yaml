@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Reading Accelerator"
+  short_description: "Help with fast codebase understanding"
+  default_prompt: "Use $code-reading-accelerator to map the module structure and trace one end-to-end execution flow in this codebase."
