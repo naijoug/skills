@@ -1,0 +1,4 @@
+interface:
+  display_name: "Algorithm Kata Coach"
+  short_description: "Help with guided algorithm practice"
+  default_prompt: "Use $algorithm-kata-coach to coach me through this algorithm problem with progressive hints instead of a full solution."

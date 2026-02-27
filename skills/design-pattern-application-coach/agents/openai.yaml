@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design Pattern Application Coach"
+  short_description: "Help with pattern choice trade-offs"
+  default_prompt: "Use $design-pattern-application-coach to compare pattern options, trade-offs, and the no-pattern alternative for this design problem."

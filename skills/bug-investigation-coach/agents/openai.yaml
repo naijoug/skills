@@ -1,0 +1,4 @@
+interface:
+  display_name: "Bug Investigation Coach"
+  short_description: "Help with structured bug investigation"
+  default_prompt: "Use $bug-investigation-coach to structure reproduction, hypotheses, experiments, and root-cause analysis for this bug."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Test Case Designer"
+  short_description: "Help with systematic test case design"
+  default_prompt: "Use $test-case-designer to create a prioritized test matrix with happy-path, boundary, and invalid cases."
