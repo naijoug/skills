@@ -1,0 +1,17 @@
+id: pr-self-review
+version: 1.0.0
+title: PR Self Review
+summary: Systematic self-review checklist for pull requests
+kind: prompt_plus_runtime
+tags:
+  - review
+  - pull-request
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+runtime:
+  entrypoint: skills.pr_self_review.runtime:run
+  timeout: 30
+

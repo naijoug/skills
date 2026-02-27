@@ -1,0 +1,27 @@
+id: pr-self-review
+version: 1.0.0
+title: PR Self Review
+summary: Systematic self-review checklist for regressions, test gaps, readability, and operational risk
+kind: prompt_plus_runtime
+tags:
+  - review
+  - pull-request
+  - quality
+triggers:
+  keywords:
+    - self-review
+    - pull request
+    - PR review
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity
+runtime:
+  entrypoint: skills.pr_self_review.runtime:run
+  timeout: 30
+
