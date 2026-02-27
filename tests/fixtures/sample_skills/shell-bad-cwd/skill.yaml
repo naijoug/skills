@@ -1,0 +1,9 @@
+id: shell-bad-cwd
+version: 1.0.0
+title: Shell Bad CWD
+summary: Runtime fixture with invalid cwd
+kind: prompt_plus_runtime
+runtime:
+  type: shell_command
+  command: echo
+  cwd: ../

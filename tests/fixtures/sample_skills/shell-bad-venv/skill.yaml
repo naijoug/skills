@@ -1,0 +1,9 @@
+id: shell-bad-venv
+version: 1.0.0
+title: Shell Bad Venv
+summary: Runtime fixture with invalid venv path
+kind: prompt_plus_runtime
+runtime:
+  type: shell_command
+  command: echo
+  venv: ../outside

@@ -1,0 +1,11 @@
+id: shell-runtime
+version: 1.0.0
+title: Shell Runtime
+summary: Runtime fixture executing shell command
+kind: prompt_plus_runtime
+runtime:
+  type: shell_command
+  command: echo
+  args:
+    - hello
+    - "{name}"

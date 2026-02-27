@@ -62,6 +62,25 @@ class MCPServerTests(unittest.TestCase):
         self.assertIn("result", validate_res)
         self.assertEqual(validate_res["result"]["error_count"], 0)
 
+    def test_run_route_executes_runtime_skill(self):
+        from skills_platform.mcp_server import handle_request
+
+        run_res = handle_request(
+            {
+                "jsonrpc": "2.0",
+                "id": 5,
+                "method": "skills.run",
+                "params": {
+                    "root": str(FIXTURE_ROOT),
+                    "skill_id": "python-runtime",
+                    "inputs": {"text": "world"},
+                },
+            }
+        )
+        self.assertIn("result", run_res)
+        self.assertEqual(run_res["result"]["code"], "RUNTIME_EXECUTED")
+        self.assertEqual(run_res["result"]["details"]["result"]["output"], "WORLD")
+
 
 if __name__ == "__main__":
     unittest.main()

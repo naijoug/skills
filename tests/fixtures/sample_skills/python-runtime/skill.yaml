@@ -1,0 +1,8 @@
+id: python-runtime
+version: 1.0.0
+title: Python Runtime
+summary: Runtime fixture executing python module
+kind: prompt_plus_runtime
+runtime:
+  type: python_module
+  entrypoint: tests.runtime_plugins:run
