@@ -7,20 +7,13 @@
 *.tmp
 *.log
 
-# Python cache/build artifacts
+# Python cache (trigger eval scripts)
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
 
 # Virtual environments
 .venv/
 venv/
 
-# Test/tooling caches
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-
-# Local generated outputs
-dist/
+# Local tool settings
+.claude/settings.local.json

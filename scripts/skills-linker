@@ -1,0 +1,721 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DEFAULT_SKILLS_ROOT="$ROOT_DIR/skills"
+DEFAULT_PROJECT_ROOT="$PWD"
+MANIFEST_FILENAME=".skills-linker-manifest.tsv"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  skills-linker tools
+  skills-linker list [--skills-root DIR]
+  skills-linker install|uninstall|status [options] [skill ...]
+  skills-linker tui [options]
+
+Options:
+  --skills-root DIR      Skills root (default: repo ./skills)
+  --tool NAME            codex|claude|amp|custom (default: codex)
+  --scope SCOPE          global|project (default: global)
+  --project-root DIR     Project root for project scope (default: current directory)
+  --target-dir DIR       Explicit target skills directory
+  --mode MODE            symlink|copy (install only, default: symlink)
+  --force                Replace/remove conflicting targets
+  --json                 JSON output (list/status/install/uninstall)
+
+Requires: fzf (for tui command)
+EOF
+}
+
+die() {
+  echo "error: $*" >&2
+  exit 1
+}
+
+ensure_fzf() {
+  command -v fzf >/dev/null 2>&1 && return 0
+  echo "fzf not found. Installing via Homebrew..." >&2
+  if ! command -v brew >/dev/null 2>&1; then
+    die "fzf not found and Homebrew is not installed. Please install fzf: https://github.com/junegunn/fzf#installation"
+  fi
+  brew install fzf || die "failed to install fzf"
+}
+
+array_contains() {
+  local needle="$1"
+  shift
+  local item
+  for item in "$@"; do
+    if [[ "$item" == "$needle" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+resolve_target_dir() {
+  local tool="$1"
+  local scope="$2"
+  local project_root="$3"
+  local override="${4:-}"
+  if [[ -n "$override" ]]; then
+    echo "$override"
+    return 0
+  fi
+
+  case "$tool" in
+    codex)
+      if [[ "$scope" == "global" ]]; then
+        echo "$HOME/.codex/skills"
+      else
+        echo "$project_root/.codex/skills"
+      fi
+      ;;
+    claude|claude-code)
+      if [[ "$scope" == "global" ]]; then
+        echo "$HOME/.claude/skills"
+      else
+        echo "$project_root/.claude/skills"
+      fi
+      ;;
+    amp)
+      if [[ "$scope" == "global" ]]; then
+        echo "$HOME/.agents/skills"
+      else
+        echo "$project_root/.agents/skills"
+      fi
+      ;;
+    custom)
+      die "tool=custom requires --target-dir"
+      ;;
+    *)
+      die "unsupported tool: $tool"
+      ;;
+  esac
+}
+
+discover_skills() {
+  local skills_root="$1"
+  [[ -d "$skills_root" ]] || return 0
+  local dir
+  while IFS= read -r dir; do
+    if [[ -f "$dir/SKILL.md" ]]; then
+      basename "$dir"
+    fi
+  done < <(find "$skills_root" -mindepth 1 -maxdepth 1 -type d | sort)
+}
+
+manifest_path() {
+  local target_dir="$1"
+  echo "$target_dir/$MANIFEST_FILENAME"
+}
+
+manifest_get_mode() {
+  local target_dir="$1"
+  local skill_id="$2"
+  local file
+  file="$(manifest_path "$target_dir")"
+  [[ -f "$file" ]] || return 0
+  awk -F '\t' -v skill="$skill_id" '$1 == skill {print $2}' "$file" | tail -n1
+}
+
+manifest_upsert() {
+  local target_dir="$1"
+  local skill_id="$2"
+  local mode="$3"
+  local source="$4"
+  local file tmp
+  file="$(manifest_path "$target_dir")"
+  mkdir -p "$target_dir"
+  tmp="$(mktemp)"
+  if [[ -f "$file" ]]; then
+    awk -F '\t' -v skill="$skill_id" '$1 != skill {print $0}' "$file" >"$tmp"
+  fi
+  printf "%s\t%s\t%s\t%s\n" "$skill_id" "$mode" "$source" "$(date -u +%FT%TZ)" >>"$tmp"
+  mv "$tmp" "$file"
+}
+
+manifest_remove() {
+  local target_dir="$1"
+  local skill_id="$2"
+  local file tmp
+  file="$(manifest_path "$target_dir")"
+  [[ -f "$file" ]] || return 0
+  tmp="$(mktemp)"
+  awk -F '\t' -v skill="$skill_id" '$1 != skill {print $0}' "$file" >"$tmp"
+  if [[ -s "$tmp" ]]; then
+    mv "$tmp" "$file"
+  else
+    rm -f "$tmp" "$file"
+  fi
+}
+
+print_json_results() {
+  local action="$1"
+  local skills_root="$2"
+  local target_dir="$3"
+  local result_lines="$4"
+  json_escape() {
+    printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e $'s/\t/\\\\t/g' -e $'s/\r/\\\\r/g' | tr '\n' ' '
+  }
+
+  printf '{\n'
+  printf '  "action": "%s",\n' "$(json_escape "$action")"
+  printf '  "skills_root": "%s",\n' "$(json_escape "$skills_root")"
+  printf '  "target_dir": "%s",\n' "$(json_escape "$target_dir")"
+  printf '  "results": [\n'
+  local first=1
+  local skill status reason
+  while IFS=$'\t' read -r skill status reason; do
+    [[ -n "$skill" ]] || continue
+    if [[ "$first" -eq 0 ]]; then
+      printf ',\n'
+    fi
+    first=0
+    printf '    {"skill":"%s","status":"%s"' "$(json_escape "$skill")" "$(json_escape "$status")"
+    if [[ -n "${reason:-}" ]]; then
+      printf ',"reason":"%s"' "$(json_escape "$reason")"
+    fi
+    printf '}'
+  done <<<"$result_lines"
+  printf '\n'
+  printf '  ]\n'
+  printf '}\n'
+}
+
+run_install() {
+  local skills_root="$1"
+  local target_dir="$2"
+  local mode="$3"
+  local force="$4"
+  local as_json="$5"
+  shift 5
+  local selected=("$@")
+
+  mkdir -p "$target_dir"
+  local out=()
+  local skill source dest
+  for skill in "${selected[@]}"; do
+    source="$skills_root/$skill"
+    dest="$target_dir/$skill"
+    if [[ ! -d "$source" || ! -f "$source/SKILL.md" ]]; then
+      out+=("$skill"$'\t'"error"$'\t'"skill not found")
+      continue
+    fi
+
+    if [[ -e "$dest" || -L "$dest" ]]; then
+      if [[ "$force" == "1" ]]; then
+        rm -rf "$dest"
+      else
+        out+=("$skill"$'\t'"skip"$'\t'"path exists")
+        continue
+      fi
+    fi
+
+    if [[ "$mode" == "symlink" ]]; then
+      ln -s "$source" "$dest"
+    else
+      cp -R "$source" "$dest"
+    fi
+    manifest_upsert "$target_dir" "$skill" "$mode" "$source"
+    out+=("$skill"$'\t'"installed")
+  done
+
+  local lines
+  lines="$(printf "%s\n" "${out[@]}")"
+  if [[ "$as_json" == "1" ]]; then
+    print_json_results "install" "$skills_root" "$target_dir" "$lines"
+  else
+    echo "target: $target_dir"
+    echo "mode: $mode"
+    local line
+    while IFS=$'\t' read -r skill status reason; do
+      [[ -n "$skill" ]] || continue
+      if [[ -n "${reason:-}" ]]; then
+        echo "$skill: $status ($reason)"
+      else
+        echo "$skill: $status"
+      fi
+    done <<<"$lines"
+  fi
+}
+
+run_uninstall() {
+  local skills_root="$1"
+  local target_dir="$2"
+  local force="$3"
+  local as_json="$4"
+  shift 4
+  local selected=("$@")
+
+  local out=()
+  local skill dest mode_from_manifest
+  for skill in "${selected[@]}"; do
+    dest="$target_dir/$skill"
+    if [[ ! -e "$dest" && ! -L "$dest" ]]; then
+      manifest_remove "$target_dir" "$skill"
+      out+=("$skill"$'\t'"missing")
+      continue
+    fi
+
+    mode_from_manifest="$(manifest_get_mode "$target_dir" "$skill")"
+    if [[ "$force" == "1" || -n "$mode_from_manifest" ]]; then
+      rm -rf "$dest"
+      manifest_remove "$target_dir" "$skill"
+      out+=("$skill"$'\t'"removed")
+    else
+      out+=("$skill"$'\t'"skip"$'\t'"not managed by linker (use --force)")
+    fi
+  done
+
+  local lines
+  lines="$(printf "%s\n" "${out[@]}")"
+  if [[ "$as_json" == "1" ]]; then
+    print_json_results "uninstall" "$skills_root" "$target_dir" "$lines"
+  else
+    echo "target: $target_dir"
+    local line
+    while IFS=$'\t' read -r skill status reason; do
+      [[ -n "$skill" ]] || continue
+      if [[ -n "${reason:-}" ]]; then
+        echo "$skill: $status ($reason)"
+      else
+        echo "$skill: $status"
+      fi
+    done <<<"$lines"
+  fi
+}
+
+run_status() {
+  local skills_root="$1"
+  local target_dir="$2"
+  local as_json="$3"
+  shift 3
+  local selected=("$@")
+  local out=()
+  local skill dest state managed
+  for skill in "${selected[@]}"; do
+    dest="$target_dir/$skill"
+    if [[ -L "$dest" ]]; then
+      state="symlink"
+    elif [[ -d "$dest" ]]; then
+      state="directory"
+    elif [[ -e "$dest" ]]; then
+      state="file"
+    else
+      state="missing"
+    fi
+    if [[ -n "$(manifest_get_mode "$target_dir" "$skill")" ]]; then
+      managed="true"
+    else
+      managed="false"
+    fi
+    out+=("$skill"$'\t'"$state"$'\t'"managed=$managed")
+  done
+
+  local lines
+  lines="$(printf "%s\n" "${out[@]}")"
+  if [[ "$as_json" == "1" ]]; then
+    print_json_results "status" "$skills_root" "$target_dir" "$lines"
+  else
+    echo "target: $target_dir"
+    local line
+    while IFS=$'\t' read -r skill status reason; do
+      [[ -n "$skill" ]] || continue
+      echo "$skill: $status ($reason)"
+    done <<<"$lines"
+  fi
+}
+
+select_with_fzf() {
+  local prompt="$1"
+  shift
+  printf "%s\n" "$@" | fzf --prompt="$prompt " --height=45% --layout=reverse --border --info=inline
+}
+
+choose_target_profile() {
+  local project_root="$1"
+  local choice
+  choice="$(
+    select_with_fzf "target>" \
+      "codex/global (recommended)" \
+      "codex/project" \
+      "claude/global" \
+      "claude/project" \
+      "amp/global" \
+      "amp/project" \
+      "custom/path"
+  )" || return 1
+
+  local tool scope target_dir
+  case "$choice" in
+    "codex/global (recommended)") tool="codex"; scope="global"; target_dir="" ;;
+    "codex/project") tool="codex"; scope="project"; target_dir="" ;;
+    "claude/global") tool="claude"; scope="global"; target_dir="" ;;
+    "claude/project") tool="claude"; scope="project"; target_dir="" ;;
+    "amp/global") tool="amp"; scope="global"; target_dir="" ;;
+    "amp/project") tool="amp"; scope="project"; target_dir="" ;;
+    "custom/path")
+      tool="custom"
+      scope="global"
+      read -r -p "target dir> " target_dir
+      [[ -n "$target_dir" ]] || die "target dir is required for custom/path"
+      ;;
+    *)
+      die "invalid target profile: $choice"
+      ;;
+  esac
+  printf "%s|%s|%s\n" "$tool" "$scope" "$target_dir"
+}
+
+choose_install_policy() {
+  local policy
+  policy="$(
+    select_with_fzf "install-policy>" \
+      "safe-symlink (recommended)" \
+      "safe-copy" \
+      "force-symlink" \
+      "force-copy"
+  )" || return 1
+  case "$policy" in
+    "safe-symlink (recommended)") printf "symlink|0\n" ;;
+    "safe-copy") printf "copy|0\n" ;;
+    "force-symlink") printf "symlink|1\n" ;;
+    "force-copy") printf "copy|1\n" ;;
+    *) die "invalid install policy: $policy" ;;
+  esac
+}
+
+choose_uninstall_force() {
+  local policy
+  policy="$(select_with_fzf "uninstall-policy>" "safe (managed only, recommended)" "force (remove all selected)")" || return 1
+  if [[ "$policy" == "force (remove all selected)" ]]; then
+    echo "1"
+    return 0
+  fi
+  echo "0"
+}
+
+choose_skills_multi() {
+  local skills_root="$1"
+  local default_select_all="$2"
+  shift 2
+  local all_skills=("$@")
+  local preview_cmd="cat ${skills_root}/{}/SKILL.md 2>/dev/null || echo 'No SKILL.md found'"
+  if [[ "$default_select_all" == "1" ]]; then
+    printf "%s\n" "${all_skills[@]}" \
+      | fzf --multi --bind "start:select-all" --prompt="skills> " --height=75% --layout=reverse --border --info=inline \
+          --header="Tab mark | Enter confirm | install 默认全选" \
+          --preview "$preview_cmd" --preview-window "right,60%,wrap"
+    return $?
+  fi
+  printf "%s\n" "${all_skills[@]}" \
+    | fzf --multi --prompt="skills> " --height=75% --layout=reverse --border --info=inline \
+        --header="Tab mark | Enter confirm" \
+        --preview "$preview_cmd" --preview-window "right,60%,wrap"
+}
+
+run_shell_tui() {
+  local skills_root="$1"
+  local project_root="$2"
+  local tool="$3"
+  local scope="$4"
+  local mode="$5"
+  local force="$6"
+  local target_dir_override="$7"
+
+  ensure_fzf
+
+  local all_skills=()
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && all_skills+=("$line")
+  done < <(discover_skills "$skills_root")
+  [[ "${#all_skills[@]}" -gt 0 ]] || die "no skills found under $skills_root"
+
+  local action="install"
+  local selected=("${all_skills[@]}")
+
+  while true; do
+    local target_dir
+    target_dir="$(resolve_target_dir "$tool" "$scope" "$project_root" "$target_dir_override")"
+
+    local scope_label="$tool/$scope"
+    if [[ -n "$target_dir_override" ]]; then
+      scope_label="$scope_label (custom)"
+    fi
+
+    local policy_label
+    if [[ "$action" == "install" ]]; then
+      policy_label="mode=$mode force=$force"
+    elif [[ "$action" == "uninstall" ]]; then
+      policy_label="force=$force"
+    else
+      policy_label="-"
+    fi
+
+    local header
+    header=$'Enter=select\n'
+    header+="action: $action"$'\n'
+    header+="target: $scope_label"$'\n'
+    header+="target_dir: $target_dir"$'\n'
+    header+="policy: $policy_label"$'\n'
+    header+="skills: ${#selected[@]}/${#all_skills[@]}"
+
+    local choice
+    choice="$(
+      printf "%s\n" \
+        "execute now" \
+        "change action" \
+        "change target" \
+        "change policy" \
+        "select skills" \
+        "select all skills" \
+        "clear selected skills" \
+        "quit" \
+      | fzf --prompt="tui> " --height=65% --layout=reverse --border --info=inline --header "$header"
+    )" || return 1
+
+    case "$choice" in
+      "execute now")
+        if [[ "${#selected[@]}" -eq 0 ]]; then
+          echo "No skills selected. Please select skills first."
+          read -r -p "Press Enter to continue... " _
+          continue
+        fi
+        echo ""
+        echo "action: $action"
+        echo "target: $target_dir"
+        echo "selected skills: ${#selected[@]}"
+        case "$action" in
+          install)
+            run_install "$skills_root" "$target_dir" "$mode" "$force" "0" "${selected[@]}"
+            ;;
+          uninstall)
+            run_uninstall "$skills_root" "$target_dir" "$force" "0" "${selected[@]}"
+            ;;
+          status)
+            run_status "$skills_root" "$target_dir" "0" "${selected[@]}"
+            ;;
+        esac
+        echo ""
+        read -r -p "Press Enter to continue... " _
+        ;;
+      "change action")
+        local next_action
+        next_action="$(select_with_fzf "action>" "install (recommended)" uninstall status)" || continue
+        if [[ "$next_action" == "install (recommended)" ]]; then
+          action="install"
+          if [[ "${#selected[@]}" -eq 0 ]]; then
+            selected=("${all_skills[@]}")
+          fi
+        else
+          action="$next_action"
+        fi
+        ;;
+      "change target")
+        local profile_values
+        profile_values="$(choose_target_profile "$project_root")" || continue
+        tool="$(printf '%s' "$profile_values" | cut -d'|' -f1)"
+        scope="$(printf '%s' "$profile_values" | cut -d'|' -f2)"
+        local profile_target_override
+        profile_target_override="$(printf '%s' "$profile_values" | cut -d'|' -f3-)"
+        if [[ -n "$profile_target_override" ]]; then
+          target_dir_override="$profile_target_override"
+        else
+          target_dir_override=""
+        fi
+        ;;
+      "change policy")
+        if [[ "$action" == "install" ]]; then
+          local install_policy_values
+          install_policy_values="$(choose_install_policy)" || continue
+          mode="$(printf '%s' "$install_policy_values" | cut -d'|' -f1)"
+          force="$(printf '%s' "$install_policy_values" | cut -d'|' -f2)"
+        elif [[ "$action" == "uninstall" ]]; then
+          force="$(choose_uninstall_force)" || continue
+        else
+          echo "Status action has no policy."
+          read -r -p "Press Enter to continue... " _
+        fi
+        ;;
+      "select skills")
+        local selected_text
+        if [[ "$action" == "install" && "${#selected[@]}" -eq 0 ]]; then
+          selected_text="$(choose_skills_multi "$skills_root" "1" "${all_skills[@]}")" || continue
+        else
+          selected_text="$(choose_skills_multi "$skills_root" "0" "${all_skills[@]}")" || continue
+        fi
+        selected=()
+        while IFS= read -r line; do
+          [[ -n "$line" ]] && selected+=("$line")
+        done <<<"$selected_text"
+        ;;
+      "select all skills")
+        selected=("${all_skills[@]}")
+        ;;
+      "clear selected skills")
+        selected=()
+        ;;
+      "quit")
+        return 0
+        ;;
+      *)
+        continue
+        ;;
+    esac
+  done
+}
+
+cmd="${1:-}"
+[[ -n "$cmd" ]] || {
+  usage
+  exit 2
+}
+shift || true
+
+case "$cmd" in
+  -h|--help|help)
+    usage
+    exit 0
+    ;;
+  tools)
+    cat <<'EOF'
+codex:
+  global: ~/.codex/skills
+  project: {project_root}/.codex/skills
+claude:
+  global: ~/.claude/skills
+  project: {project_root}/.claude/skills
+amp:
+  global: ~/.agents/skills
+  project: {project_root}/.agents/skills
+aliases:
+  claude-code -> claude
+EOF
+    exit 0
+    ;;
+  list|install|uninstall|status|tui)
+    ;;
+  *)
+    die "unknown command: $cmd"
+    ;;
+esac
+
+skills_root="$DEFAULT_SKILLS_ROOT"
+tool="codex"
+scope="global"
+project_root="$DEFAULT_PROJECT_ROOT"
+target_dir_override=""
+mode="symlink"
+force=0
+as_json=0
+skills=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --skills-root)
+      skills_root="$2"; shift 2 ;;
+    --tool)
+      tool="$2"; shift 2 ;;
+    --scope)
+      scope="$2"; shift 2 ;;
+    --project-root)
+      project_root="$2"; shift 2 ;;
+    --target-dir)
+      target_dir_override="$2"; shift 2 ;;
+    --mode)
+      mode="$2"; shift 2 ;;
+    --force)
+      force=1; shift ;;
+    --json)
+      as_json=1; shift ;;
+    -h|--help)
+      usage; exit 0 ;;
+    --)
+      shift
+      while [[ $# -gt 0 ]]; do
+        skills+=("$1")
+        shift
+      done
+      ;;
+    -*)
+      die "unknown option: $1" ;;
+    *)
+      skills+=("$1")
+      shift ;;
+  esac
+done
+
+skills_root="$(cd "$skills_root" 2>/dev/null && pwd -P || echo "$skills_root")"
+project_root="$(cd "$project_root" 2>/dev/null && pwd -P || echo "$project_root")"
+
+if [[ "$cmd" == "list" ]]; then
+  discovered=()
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && discovered+=("$line")
+  done < <(discover_skills "$skills_root")
+  if [[ "$as_json" == "1" ]]; then
+    printf '{\n'
+    printf '  "skills_root": "%s",\n' "$(printf '%s' "$skills_root" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
+    printf '  "skills": [\n'
+    for i in "${!discovered[@]}"; do
+      skill_escaped="$(printf '%s' "${discovered[$i]}" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
+      if [[ "$i" -gt 0 ]]; then
+        printf ',\n'
+      fi
+      printf '    "%s"' "$skill_escaped"
+    done
+    printf '\n'
+    printf '  ],\n'
+    printf '  "count": %d\n' "${#discovered[@]}"
+    printf '}\n'
+  else
+    echo "skills root: $skills_root"
+    echo "count: ${#discovered[@]}"
+    if [[ "${#discovered[@]}" -gt 0 ]]; then
+      printf "%s\n" "${discovered[@]}"
+    fi
+  fi
+  exit 0
+fi
+
+if [[ "$cmd" == "tui" ]]; then
+  run_shell_tui "$skills_root" "$project_root" "$tool" "$scope" "$mode" "$force" "$target_dir_override"
+  exit $?
+fi
+
+discovered=()
+while IFS= read -r line; do
+  [[ -n "$line" ]] && discovered+=("$line")
+done < <(discover_skills "$skills_root")
+if [[ "${#skills[@]}" -eq 0 ]]; then
+  selected=("${discovered[@]}")
+else
+  selected=("${skills[@]}")
+fi
+
+if [[ "${#selected[@]}" -eq 0 ]]; then
+  die "no skills found"
+fi
+
+for skill in "${selected[@]}"; do
+  if ! array_contains "$skill" "${discovered[@]}"; then
+    die "unknown skill id: $skill"
+  fi
+done
+
+target_dir="$(resolve_target_dir "$tool" "$scope" "$project_root" "$target_dir_override")"
+mkdir -p "$target_dir"
+
+case "$cmd" in
+  install)
+    run_install "$skills_root" "$target_dir" "$mode" "$force" "$as_json" "${selected[@]}"
+    ;;
+  uninstall)
+    run_uninstall "$skills_root" "$target_dir" "$force" "$as_json" "${selected[@]}"
+    ;;
+  status)
+    run_status "$skills_root" "$target_dir" "$as_json" "${selected[@]}"
+    ;;
+esac
