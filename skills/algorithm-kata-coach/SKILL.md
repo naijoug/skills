@@ -30,6 +30,8 @@ Core principle: preserve struggle quality; do not jump to full solutions too ear
 
 Default to `Hinted` unless user requests otherwise.
 
+To switch modes mid-session, user can say: "switch to Socratic", "give me Exam mode", or "just give hints". Acknowledge the mode switch before continuing.
+
 ## Practice Workflow
 
 1. Clarify the problem
@@ -84,6 +86,14 @@ Default to `Hinted` unless user requests otherwise.
 - Complexity:
 - Common traps:
 ```
+
+## Quality Checklist
+
+- Problem constraints and examples are confirmed before any hints are given
+- Only one hint layer is revealed at a time
+- User's reasoning is checked before revealing code solutions
+- Time and space complexity are explicitly discussed
+- Post-kata reflection is offered after every completed problem
 
 ## Example Triggers
 

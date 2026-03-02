@@ -22,6 +22,7 @@ Core principle: learn correct English expression naturally through daily AI usag
 
 - User explicitly says "直接回答", "skip", or "no translation" — skip coaching for that message only, resume on the next message
 - Input is a single word or command with no meaningful content to translate (e.g., "yes", "ok", "continue", "/help")
+- Input is a pure code block with no accompanying natural language (e.g., user pastes a function or config snippet only) — do not attempt to translate code
 
 ## Workflow
 

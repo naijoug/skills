@@ -11,7 +11,7 @@ Use this as a starter template when adding a new skill under `skills/<name>/SKIL
 
 Briefly describe what the skill helps with and the core principle behind it.
 
-## When to use
+## When to Use
 
 - Describe trigger conditions ("Use when ...")
 - List concrete symptoms or scenarios

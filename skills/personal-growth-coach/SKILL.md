@@ -83,7 +83,7 @@ Automatically match mode based on user input:
 
 **Flow:**
 
-1. Look for `growth-roadmap.md` in the project root or working directory.
+1. Look for `growth-roadmap.md` at `~/.personal-growth/growth-roadmap.md` (stable home location, independent of current project directory).
 2. If not found, guide the user through onboarding:
    a. Ask them to self-assess each of the 6 pillars on a 1-5 scale
    b. Ask for their growth goals (short-term: 3 months, long-term: 1 year)
@@ -99,7 +99,7 @@ Automatically match mode based on user input:
 
 **Flow:**
 
-1. Read `growth-roadmap.md` to get current priorities and recent practice log.
+1. Read `~/.personal-growth/growth-roadmap.md` to get current priorities and recent practice log.
 2. Select 1-2 daily practices using the Rotation Algorithm:
    - Weight toward highest-priority pillar (40%)
    - Avoid repeating yesterday's pillar
@@ -121,7 +121,7 @@ Automatically match mode based on user input:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-4. After user completes: update the Practice Log section in `growth-roadmap.md`, marking the item as done with `[x]`.
+4. After user completes: update the Practice Log section in `~/.personal-growth/growth-roadmap.md`, marking the item as done with `[x]`.
 
 ---
 
@@ -131,7 +131,7 @@ Automatically match mode based on user input:
 
 **Flow:**
 
-1. Read this week's practice log from `growth-roadmap.md`.
+1. Read this week's practice log from `~/.personal-growth/growth-roadmap.md`.
 2. Calculate and present:
    - Completion rate (completed / planned)
    - Pillar distribution (which pillars were practiced, which were neglected)
@@ -158,7 +158,7 @@ Automatically match mode based on user input:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-4. Update `growth-roadmap.md` Current Focus section with next week's plan.
+4. Update `~/.personal-growth/growth-roadmap.md` Current Focus section with next week's plan.
 
 ---
 
@@ -189,7 +189,7 @@ Automatically match mode based on user input:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-5. At month end: evaluate deliverable quality, update ability scores in matrix.
+5. At month end: evaluate deliverable quality, update ability scores in `~/.personal-growth/growth-roadmap.md` matrix.
 
 ---
 
@@ -230,7 +230,7 @@ Automatically match mode based on user input:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-4. Update all sections of `growth-roadmap.md`: matrix, focus, milestones, trajectory.
+4. Update all sections of `~/.personal-growth/growth-roadmap.md`: matrix, focus, milestones, trajectory.
 
 ---
 
@@ -283,7 +283,7 @@ Automatically match mode based on user input:
 
 | ID | Practice | Freq | Time | Description |
 |----|----------|------|------|-------------|
-| P1-D1 | algorithm-kata | Daily | 30min | Daily algorithm training with staged coaching: hints before answers. Rotate across data structures, dynamic programming, graph algorithms, etc. |
+| P1-D1 | algorithm-kata-coach | Daily | 30min | Daily algorithm training with staged coaching: hints before answers. Rotate across data structures, dynamic programming, graph algorithms, etc. |
 | P1-D2 | code-reading-15min | Daily | 15min | Read excellent open source code: React/Vue/Go/Rust/Swift/Dart/Kotlin rotation. Focus on one module, annotate design decisions. |
 | P1-W1 | weekly-coding-retro | Weekly | 1h | Weekly code quality review: identify patterns, recurring mistakes, run improvement experiments. Compare this week's code vs last week's. |
 | P1-W2 | refactor-safely | Weekly | 1h | Safe refactoring practice: pick one technique per week (extract method, replace conditional with polymorphism, etc.) with safety checklist. |

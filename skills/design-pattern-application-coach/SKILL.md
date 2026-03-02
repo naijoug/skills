@@ -78,6 +78,14 @@ Core principle: start from forces and constraints, then choose (or reject) a pat
 - Tests to add:
 ```
 
+## Quality Checklist
+
+- Design pressure (forces and constraints) is identified before any pattern is named
+- At least one "no pattern / simpler" option is always considered
+- Trade-offs are explicitly named (complexity, testability, readability, performance)
+- Recommendation includes a minimum scope to avoid framework creep
+- Overengineering risk is called out if the pattern adds more abstraction than the problem demands
+
 ## Pattern Prompts to Encourage
 
 - "What pattern, if any, fits this problem?"

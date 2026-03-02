@@ -17,3 +17,4 @@ venv/
 
 # Local tool settings
 .claude/settings.local.json
+.alma-snapshots

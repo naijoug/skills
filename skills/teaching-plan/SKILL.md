@@ -214,3 +214,7 @@ The generated Markdown should usually include:
 - "把这段 README 整理成一份可授课的 md 教案"
 - "根据这段代码生成带讲解步骤的培训材料"
 - "帮我做 onboarding 教学文档，内容基于这份设计说明"
+
+## References
+
+- Trigger examples for recall/precision testing: `references/trigger-examples.md`

@@ -15,6 +15,12 @@ Collect and organize daily AI hot topics into a concise report for quick review 
 - Want a structured summary of products, papers, and industry news
 - Need a repeatable format for historical tracking by date
 
+## When Not to Use
+
+- User asks about a specific technology's documentation or usage (use normal Q&A)
+- User wants a personal learning plan based on trends (use `personal-growth-coach`)
+- User wants to record a specific learning from today (use `til-journal`)
+
 ## Suggested Workflow
 
 1. Gather signals from multiple sources (news, communities, code, papers).
@@ -42,11 +48,25 @@ For each topic, include:
 - X/Twitter (AI researchers/builders)
 - Company blogs / release notes
 
-## Commands (Example)
+## Output Template
 
-```bash
-alma trending collect
-alma trending show <date>
+```markdown
+# AI Trends — <YYYY-MM-DD>
+
+## 🔥 Today's Highlights
+
+### 1. <Title>
+- **Category**: product / paper / tooling / industry / community
+- **Summary**: <1-3 sentence summary>
+- **Why it matters**: <impact or relevance>
+- **Source**: <link or source name>
+
+### 2. <Title>
+...
+
+## Quick Stats
+- Total items: <N>
+- By category: product(<n>), paper(<n>), tooling(<n>), industry(<n>), community(<n>)
 ```
 
 ## Quality Checklist
@@ -55,3 +75,14 @@ alma trending show <date>
 - Prefer primary sources when available
 - Separate facts from commentary
 - Record date/time of collection
+
+## Example Triggers
+
+- "今天 AI 领域有什么新动态？"
+- "Give me today's AI trend digest"
+- "What happened in AI this week?"
+- "Summarize the latest ML papers and product launches"
+
+## References
+
+- Trigger examples for recall/precision testing: `references/trigger-examples.md`

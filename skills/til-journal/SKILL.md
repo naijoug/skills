@@ -83,6 +83,8 @@ Automatically match mode based on user input:
 
 ## Auto-Capture Mode (always-on)
 
+> **Note:** The always-on behavior may also be activated via `CLAUDE.md` global instructions. If both are active, they are equivalent — do not double-record. The SKILL.md definition is the authoritative specification; CLAUDE.md just enables the trigger.
+
 **Trigger:** Runs automatically at the end of each conversation turn when knowledge is detected.
 
 **What to capture:**
@@ -103,7 +105,8 @@ Automatically match mode based on user input:
 2. If no → do nothing
 3. If yes → extract the knowledge point and follow the Capture entry format below
 4. Write the entry to today's daily file (create if not exists)
-5. Append a brief note at the end of your response: `📝 *TIL recorded: <entry title>*`
+5. Update `tags.md` index with the new entry's tags
+6. Append a brief note at the end of your response: `📝 *TIL recorded: <entry title>*`
 
 ---
 

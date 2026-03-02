@@ -49,7 +49,9 @@ Search for the skill's SKILL.md in these locations (in order):
 - `.codex/skills/<skill-name>/SKILL.md`
 - `.agents/skills/<skill-name>/SKILL.md`
 
-If the found path is a symlink, resolve it to the actual source path using `readlink` or equivalent. **Always edit the resolved source path** to ensure changes propagate everywhere.
+If the found path is a symlink, resolve it to the actual source path. **Always edit the resolved source path** to ensure changes propagate everywhere.
+- macOS: `readlink -f <path>` (requires `brew install coreutils` for GNU readlink) or use `ls -la` to read the symlink target manually
+- Linux: `readlink -f <path>`
 
 ### Step 3: Analyze Current Content
 
