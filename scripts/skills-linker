@@ -151,6 +151,137 @@ manifest_remove() {
   fi
 }
 
+is_always_on() {
+  local skill_dir="$1"
+  local yaml_file="$skill_dir/skill.yaml"
+  [[ -f "$yaml_file" ]] || return 1
+  grep -q '^activation:.*always_on' "$yaml_file" 2>/dev/null
+}
+
+resolve_instruction_file() {
+  local tool="$1"
+  local scope="$2"
+  local project_root="$3"
+  case "$tool" in
+    claude|claude-code)
+      if [[ "$scope" == "global" ]]; then
+        echo "$HOME/.claude/CLAUDE.md"
+      else
+        echo "$project_root/CLAUDE.md"
+      fi
+      ;;
+    codex)
+      if [[ "$scope" == "global" ]]; then
+        echo "$HOME/.codex/AGENTS.md"
+      else
+        echo "$project_root/AGENTS.md"
+      fi
+      ;;
+    amp)
+      if [[ "$scope" == "global" ]]; then
+        echo "$HOME/.agents/AGENTS.md"
+      else
+        echo "$project_root/AGENTS.md"
+      fi
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+inject_always_on() {
+  local skill_id="$1"
+  local skill_dir="$2"
+  local instruction_file="$3"
+  local inject_file="$skill_dir/inject.md"
+  [[ -f "$inject_file" ]] || return 0
+
+  local begin_marker="<!-- skills-linker:${skill_id}:begin -->"
+  local end_marker="<!-- skills-linker:${skill_id}:end -->"
+
+  if [[ -f "$instruction_file" ]] && grep -qF "$begin_marker" "$instruction_file" 2>/dev/null; then
+    return 1
+  fi
+
+  mkdir -p "$(dirname "$instruction_file")"
+  {
+    if [[ -f "$instruction_file" ]] && [[ -s "$instruction_file" ]]; then
+      printf '\n'
+    fi
+    printf '%s\n' "$begin_marker"
+    cat "$inject_file"
+    printf '%s\n' "$end_marker"
+  } >> "$instruction_file"
+}
+
+remove_always_on() {
+  local skill_id="$1"
+  local instruction_file="$2"
+  [[ -f "$instruction_file" ]] || return 0
+
+  local begin_marker="<!-- skills-linker:${skill_id}:begin -->"
+  local end_marker="<!-- skills-linker:${skill_id}:end -->"
+  grep -qF "$begin_marker" "$instruction_file" 2>/dev/null || return 0
+
+  local tmp
+  tmp="$(mktemp)"
+  awk -v begin="$begin_marker" -v end="$end_marker" '
+    $0 == begin { skip=1; next }
+    $0 == end   { skip=0; next }
+    !skip       { print }
+  ' "$instruction_file" > "$tmp"
+
+  # Remove trailing blank lines
+  sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' "$tmp" > "$instruction_file"
+  rm -f "$tmp"
+}
+
+handle_always_on_install() {
+  local skills_root="$1"
+  local tool="$2"
+  local scope="$3"
+  local project_root="$4"
+  shift 4
+  local skills=("$@")
+
+  local instruction_file
+  instruction_file="$(resolve_instruction_file "$tool" "$scope" "$project_root")" || return 0
+
+  local skill source
+  for skill in "${skills[@]}"; do
+    source="$skills_root/$skill"
+    if is_always_on "$source"; then
+      if inject_always_on "$skill" "$source" "$instruction_file"; then
+        echo "$skill: injected always-on instruction → $instruction_file"
+      else
+        echo "$skill: always-on instruction already present in $instruction_file"
+      fi
+    fi
+  done
+}
+
+handle_always_on_uninstall() {
+  local skills_root="$1"
+  local tool="$2"
+  local scope="$3"
+  local project_root="$4"
+  shift 4
+  local skills=("$@")
+
+  local instruction_file
+  instruction_file="$(resolve_instruction_file "$tool" "$scope" "$project_root")" || return 0
+
+  local skill source
+  for skill in "${skills[@]}"; do
+    source="$skills_root/$skill"
+    if is_always_on "$source"; then
+      remove_always_on "$skill" "$instruction_file"
+      echo "$skill: removed always-on instruction ← $instruction_file"
+    fi
+  done
+}
+
 print_json_results() {
   local action="$1"
   local skills_root="$2"
@@ -490,9 +621,11 @@ run_shell_tui() {
         case "$action" in
           install)
             run_install "$skills_root" "$target_dir" "$mode" "$force" "0" "${selected[@]}"
+            handle_always_on_install "$skills_root" "$tool" "$scope" "$project_root" "${selected[@]}"
             ;;
           uninstall)
             run_uninstall "$skills_root" "$target_dir" "$force" "0" "${selected[@]}"
+            handle_always_on_uninstall "$skills_root" "$tool" "$scope" "$project_root" "${selected[@]}"
             ;;
           status)
             run_status "$skills_root" "$target_dir" "0" "${selected[@]}"
@@ -711,9 +844,11 @@ mkdir -p "$target_dir"
 case "$cmd" in
   install)
     run_install "$skills_root" "$target_dir" "$mode" "$force" "$as_json" "${selected[@]}"
+    handle_always_on_install "$skills_root" "$tool" "$scope" "$project_root" "${selected[@]}"
     ;;
   uninstall)
     run_uninstall "$skills_root" "$target_dir" "$force" "$as_json" "${selected[@]}"
+    handle_always_on_uninstall "$skills_root" "$tool" "$scope" "$project_root" "${selected[@]}"
     ;;
   status)
     run_status "$skills_root" "$target_dir" "$as_json" "${selected[@]}"
