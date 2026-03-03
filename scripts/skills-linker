@@ -16,7 +16,7 @@ Usage:
 
 Options:
   --skills-root DIR      Skills root (default: repo ./skills)
-  --tool NAME            codex|claude|amp|custom (default: codex)
+  --tool NAME            codex|chatgpt|claude|amp|custom (default: codex)
   --scope SCOPE          global|project (default: global)
   --project-root DIR     Project root for project scope (default: current directory)
   --target-dir DIR       Explicit target skills directory
@@ -65,7 +65,7 @@ resolve_target_dir() {
   fi
 
   case "$tool" in
-    codex)
+    codex|chatgpt)
       if [[ "$scope" == "global" ]]; then
         echo "$HOME/.codex/skills"
       else
@@ -170,7 +170,7 @@ resolve_instruction_file() {
         echo "$project_root/CLAUDE.md"
       fi
       ;;
-    codex)
+    codex|chatgpt)
       if [[ "$scope" == "global" ]]; then
         echo "$HOME/.codex/AGENTS.md"
       else
@@ -179,7 +179,7 @@ resolve_instruction_file() {
       ;;
     amp)
       if [[ "$scope" == "global" ]]; then
-        echo "$HOME/.agents/AGENTS.md"
+        echo "$HOME/.config/amp/AGENTS.md"
       else
         echo "$project_root/AGENTS.md"
       fi
@@ -232,9 +232,14 @@ remove_always_on() {
     !skip       { print }
   ' "$instruction_file" > "$tmp"
 
-  # Remove trailing blank lines
-  sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' "$tmp" > "$instruction_file"
+  # Remove trailing blank lines (POSIX compatible — works on macOS BSD and GNU)
+  awk '{lines[NR]=$0} /./{last=NR} END{for(i=1;i<=last;i++)print lines[i]}' "$tmp" > "$instruction_file"
   rm -f "$tmp"
+
+  # Clean up empty instruction file
+  if [[ -f "$instruction_file" ]] && [[ ! -s "$instruction_file" ]]; then
+    rm -f "$instruction_file"
+  fi
 }
 
 handle_always_on_install() {
@@ -472,6 +477,8 @@ choose_target_profile() {
     select_with_fzf "target>" \
       "codex/global (recommended)" \
       "codex/project" \
+      "chatgpt/global" \
+      "chatgpt/project" \
       "claude/global" \
       "claude/project" \
       "amp/global" \
@@ -483,6 +490,8 @@ choose_target_profile() {
   case "$choice" in
     "codex/global (recommended)") tool="codex"; scope="global"; target_dir="" ;;
     "codex/project") tool="codex"; scope="project"; target_dir="" ;;
+    "chatgpt/global") tool="chatgpt"; scope="global"; target_dir="" ;;
+    "chatgpt/project") tool="chatgpt"; scope="project"; target_dir="" ;;
     "claude/global") tool="claude"; scope="global"; target_dir="" ;;
     "claude/project") tool="claude"; scope="project"; target_dir="" ;;
     "amp/global") tool="amp"; scope="global"; target_dir="" ;;
@@ -717,6 +726,9 @@ case "$cmd" in
 codex:
   global: ~/.codex/skills
   project: {project_root}/.codex/skills
+chatgpt:
+  global: ~/.codex/skills
+  project: {project_root}/.codex/skills
 claude:
   global: ~/.claude/skills
   project: {project_root}/.claude/skills
@@ -724,6 +736,7 @@ amp:
   global: ~/.agents/skills
   project: {project_root}/.agents/skills
 aliases:
+  chatgpt -> codex
   claude-code -> claude
 EOF
     exit 0

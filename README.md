@@ -13,7 +13,9 @@ Personal collection of AI coding skills. Each skill lives in `skills/<skill-name
     ├── pr-self-review/
     │   ├── SKILL.md
     │   ├── skill.yaml             # optional metadata
-    │   └── agents/openai.yaml     # tool-specific override
+    │   ├── inject.md              # always-on injection content (optional)
+    │   └── references/
+    │       └── trigger-examples.md
     └── ...
 ```
 
@@ -24,6 +26,7 @@ Personal collection of AI coding skills. Each skill lives in `skills/<skill-name
 | Tool | Global | Project |
 |------|--------|---------|
 | Codex | `~/.codex/skills` | `{project}/.codex/skills` |
+| ChatGPT (alias to Codex) | `~/.codex/skills` | `{project}/.codex/skills` |
 | Claude Code | `~/.claude/skills` | `{project}/.claude/skills` |
 | Amp | `~/.agents/skills` | `{project}/.agents/skills` |
 
@@ -70,7 +73,7 @@ Skills selection supports right-side `SKILL.md` preview. Install defaults to sel
 
 Options:
 
-- `--tool NAME` — codex | claude | amp | custom (default: codex)
+- `--tool NAME` — codex | chatgpt | claude | amp | custom (default: codex)
 - `--scope SCOPE` — global | project (default: global)
 - `--mode MODE` — symlink | copy (default: symlink)
 - `--force` — replace conflicting targets

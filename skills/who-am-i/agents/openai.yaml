@@ -1,0 +1,4 @@
+interface:
+  display_name: "Who Am I"
+  short_description: "Create a local personal profile from tools and AI sessions"
+  default_prompt: "Use $who-am-i to scan my local tool ecosystem and AI session history, then generate a bilingual Markdown profile and static webpages."

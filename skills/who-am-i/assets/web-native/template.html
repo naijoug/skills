@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Who Am I Profile</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="bg-layer"></div>
+  <main class="container">
+    <section class="hero card reveal">
+      <p class="eyebrow">WHO AM I / 我是谁</p>
+      <h1 id="title">Local Identity Profile</h1>
+      <p id="summary-en"></p>
+      <p id="summary-zh" class="zh"></p>
+      <div class="meta-grid" id="meta-grid"></div>
+    </section>
+
+    <section class="grid two">
+      <article class="card reveal">
+        <h2>Identity Radar</h2>
+        <canvas id="radar" width="360" height="280"></canvas>
+      </article>
+      <article class="card reveal">
+        <h2>Source River</h2>
+        <div id="river"></div>
+      </article>
+    </section>
+
+    <section class="grid two">
+      <article class="card reveal">
+        <h2>Session Heat</h2>
+        <div id="heatmap" class="heatmap"></div>
+      </article>
+      <article class="card reveal">
+        <h2>Strengths & Risks</h2>
+        <div id="strengths"></div>
+        <div id="risks"></div>
+      </article>
+    </section>
+
+    <section class="card reveal">
+      <h2>Evidence Drawer (Redacted)</h2>
+      <div id="evidence"></div>
+    </section>
+  </main>
+
+  <script>
+    window.__WHO_AM_I_PROFILE__ = __PROFILE_JSON__;
+  </script>
+  <script src="./app.js"></script>
+</body>
+</html>
