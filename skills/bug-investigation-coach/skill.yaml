@@ -1,0 +1,33 @@
+id: bug-investigation-coach
+version: 1.0.0
+title: Bug Investigation Coach
+summary: Structured debugging for bug reports, flaky issues, and production incidents — evidence first, hypotheses second, code last
+kind: prompt_only
+tags:
+  - debugging
+  - investigation
+  - bug
+  - root-cause
+  - production-incident
+  - hypothesis
+triggers:
+  keywords:
+    - bug investigation
+    - bug debugging
+    - flaky issue
+    - intermittant timeout
+    - root cause analysis
+    - rca
+    - problem investigation
+    - bug report
+    - 故障排查
+    - 缺陷分析
+    - 根因定位
+    - 故障复现
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - amp
+    - cursor
+    - trae

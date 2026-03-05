@@ -17,11 +17,22 @@ Briefly describe what the skill helps with and the core principle behind it.
 - List concrete symptoms or scenarios
 - List when NOT to use if it is commonly confused with something else
 
-## Steps
+## When Not to Use
 
-1. Gather required context
-2. Apply the workflow
-3. Produce the expected output
+- Scenario 1 where this skill is inappropriate
+- Scenario 2 where another skill should be used instead
+
+## Workflow / Steps
+
+1. **Phase 1**: Initial discovery and context gathering.
+2. **Phase 2**: Core logic or transformation.
+3. **Phase 3**: Final validation and output formatting.
+
+## Quality Checklist
+
+- [ ] Requirement 1 is met
+- [ ] Requirement 2 is met
+- [ ] Output follows the specified format
 
 ## Examples
 
@@ -36,3 +47,7 @@ Add one or two short examples:
 - Keep frontmatter minimal (`name`, `description`)
 - Prefer searchable wording in `description`
 - Keep instructions concise and reusable (not project-specific history)
+
+## References
+
+- Trigger examples for recall/precision testing: `references/trigger-examples.md`

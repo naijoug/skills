@@ -1,0 +1,32 @@
+id: trending
+version: 1.0.0
+title: Trending
+summary: Collect and organize daily AI industry trends, product launches, papers, and community discussions into a dated digest
+kind: prompt_only
+tags:
+  - trends
+  - news
+  - digest
+  - ai
+  - industry
+  - research
+triggers:
+  keywords:
+    - trending
+    - ai trends
+    - daily digest
+    - ai news
+    - product launches
+    - ml papers
+    - ai report
+    - ai 动态
+    - 行业动态
+    - 最新趋势
+    - 热点追踪
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - amp
+    - cursor
+    - trae

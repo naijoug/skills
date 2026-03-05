@@ -1,0 +1,28 @@
+id: algorithm-kata-coach
+version: 1.0.0
+title: Algorithm Kata Coach
+summary: Guided algorithm practice through staged hints and reasoning checkpoints — do not reveal full solutions immediately
+kind: prompt_only
+tags:
+  - algorithm
+  - interview
+  - leetcode
+  - practice
+  - coach
+triggers:
+  keywords:
+    - algorithm practice
+    - interview prep
+    - hints only
+    - kata coach
+    - 算法题训练
+    - 算法面试
+    - 分层提示
+    - 逐步提示
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - amp
+    - cursor
+    - trae

@@ -1,0 +1,31 @@
+id: who-am-i
+version: 1.0.0
+title: Who Am I
+summary: Generate a local-only personal technical profile from software inventory and AI session history with Markdown and web outputs
+kind: prompt_only
+tags:
+  - profile
+  - local-only
+  - identity
+  - technical-inventory
+  - session-history
+  - persona
+triggers:
+  keywords:
+    - who am i
+    - personal profile
+    - technical profile
+    - software inventory
+    - ai session history
+    - scan my tools
+    - 我的画像
+    - 我是谁
+    - 技术侧写
+    - 工具清单
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - amp
+    - cursor
+    - trae
