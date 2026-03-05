@@ -15,7 +15,7 @@ triggers:
     - bug investigation
     - bug debugging
     - flaky issue
-    - intermittant timeout
+    - intermittent timeout
     - root cause analysis
     - rca
     - problem investigation
