@@ -36,6 +36,8 @@ Requires [fzf](https://github.com/junegunn/fzf).
 
 ```bash
 ./scripts/tui
+# Or allow auto-install via Homebrew when fzf is missing
+./scripts/tui --auto-install-fzf
 ```
 
 TUI flow:
@@ -76,8 +78,14 @@ Options:
 - `--tool NAME` — codex | chatgpt | claude | amp | custom (default: codex)
 - `--scope SCOPE` — global | project (default: global)
 - `--mode MODE` — symlink | copy (default: symlink)
+- `--auto-install-fzf` — allow `tui` to install fzf via Homebrew when missing
 - `--force` — replace conflicting targets
 - `--json` — JSON output
+
+Notes:
+
+- Skills with `activation: always_on` can be installed in both `global` and `project` scope.
+- `global` is usually more convenient because you don't need to reinstall in each project.
 
 ## Creating a New Skill
 
@@ -116,6 +124,9 @@ This repo includes a trigger evaluation workflow for testing skill trigger recal
 ```bash
 # Smoke test (perfect predictor)
 ./scripts/run_trigger_eval.sh --mode perfect --no-details
+
+# Include always_on skills in dataset when needed
+python3 ./scripts/trigger_examples_tool.py --include-always-on summary
 
 # Custom predictor
 ./scripts/run_trigger_eval.sh --mode custom \

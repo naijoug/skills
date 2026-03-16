@@ -47,6 +47,20 @@ def iter_skill_dirs(skills_dir: Path) -> Iterable[Path]:
             yield child.resolve()
 
 
+def is_always_on(skill_dir: Path) -> bool:
+    yaml_path = skill_dir / "skill.yaml"
+    if not yaml_path.exists():
+        return False
+    for raw in yaml_path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if line.startswith("#"):
+            continue
+        if line.startswith("activation:"):
+            value = line.split(":", 1)[1].strip()
+            return value == "always_on"
+    return False
+
+
 def parse_trigger_examples(skill_dir: Path) -> list[Case]:
     skill_name = skill_dir.name
     ref_path = skill_dir / "references" / "trigger-examples.md"
@@ -94,15 +108,45 @@ def parse_trigger_examples(skill_dir: Path) -> list[Case]:
     return cases
 
 
-def load_all_cases(skills_dir: Path) -> list[Case]:
+def load_all_cases(
+    skills_dir: Path, *, include_always_on: bool = False
+) -> tuple[list[Case], list[str], list[str]]:
     all_cases: list[Case] = []
+    skipped_always_on: list[str] = []
+    zero_parsed_skills: list[str] = []
     for skill_dir in iter_skill_dirs(skills_dir):
-        all_cases.extend(parse_trigger_examples(skill_dir))
-    return all_cases
+        if not include_always_on and is_always_on(skill_dir):
+            skipped_always_on.append(skill_dir.name)
+            continue
+        parsed = parse_trigger_examples(skill_dir)
+        ref_path = skill_dir / "references" / "trigger-examples.md"
+        if ref_path.exists() and not parsed:
+            zero_parsed_skills.append(skill_dir.name)
+        all_cases.extend(parsed)
+    return all_cases, skipped_always_on, zero_parsed_skills
+
+
+def report_dataset_notes(skipped_always_on: list[str], zero_parsed_skills: list[str]) -> None:
+    if skipped_always_on:
+        print(
+            "Note: skipped always_on skills by default: "
+            + ", ".join(sorted(skipped_always_on)),
+            file=sys.stderr,
+        )
+    if zero_parsed_skills:
+        print(
+            "Warning: trigger-examples.md parsed to 0 cases for skills: "
+            + ", ".join(sorted(zero_parsed_skills)),
+            file=sys.stderr,
+        )
 
 
 def cmd_summary(args: argparse.Namespace) -> int:
-    cases = load_all_cases(Path(args.skills_dir))
+    cases, skipped_always_on, zero_parsed_skills = load_all_cases(
+        Path(args.skills_dir),
+        include_always_on=args.include_always_on,
+    )
+    report_dataset_notes(skipped_always_on, zero_parsed_skills)
     if not cases:
         print("No trigger example cases found.")
         return 1
@@ -123,7 +167,11 @@ def cmd_summary(args: argparse.Namespace) -> int:
 
 
 def cmd_export(args: argparse.Namespace) -> int:
-    cases = load_all_cases(Path(args.skills_dir))
+    cases, skipped_always_on, zero_parsed_skills = load_all_cases(
+        Path(args.skills_dir),
+        include_always_on=args.include_always_on,
+    )
+    report_dataset_notes(skipped_always_on, zero_parsed_skills)
     if not cases:
         print("No trigger example cases found.", file=sys.stderr)
         return 1
@@ -201,7 +249,11 @@ def _write_csv(path: Path, fieldnames: list[str], rows: list[dict]) -> None:
 
 
 def cmd_score(args: argparse.Namespace) -> int:
-    cases = load_all_cases(Path(args.skills_dir))
+    cases, skipped_always_on, zero_parsed_skills = load_all_cases(
+        Path(args.skills_dir),
+        include_always_on=args.include_always_on,
+    )
+    report_dataset_notes(skipped_always_on, zero_parsed_skills)
     if not cases:
         print("No trigger example cases found.", file=sys.stderr)
         return 1
@@ -484,6 +536,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--skills-dir",
         default=str(SKILLS_DIR),
         help="Path to skills directory (default: ./skills)",
+    )
+    parser.add_argument(
+        "--include-always-on",
+        action="store_true",
+        help="Include always_on skills in trigger evaluation dataset (default: skipped)",
     )
 
     sub = parser.add_subparsers(dest="command", required=True)

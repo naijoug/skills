@@ -1,45 +1,34 @@
-# Trigger Examples — in-english
+# Trigger Examples
 
-## Should Trigger (True Positives)
+Use these prompts to test whether `in-english` triggers correctly.
 
-### Chinese Input
+## Positive (Chinese)
 
-| Input | Reason |
-|-------|--------|
-| "帮我写一个排序函数" | Chinese input, needs English translation |
-| "这个 bug 怎么修？代码跑不起来" | Chinese technical question |
-| "用英文怎么说这个需求" | Explicit English translation request |
-| "帮我改写成英文 prompt" | Explicit rewrite request |
-| "优化一下我的 prompt 写法" | Prompt improvement request |
-| "解释一下这段代码的逻辑" | Regular Chinese input (always-on) |
-| "帮我 review 一下这个 PR" | Mixed Chinese-English input |
-| "我想学习 Rust 的所有权机制" | Learning request in Chinese |
+- 帮我写一个排序函数。 (Chinese input; should be rewritten in concise English first)
+- 这个 bug 怎么修？代码跑不起来。 (Chinese technical request)
+- 用英文怎么说这个需求？ (Explicit translation request)
+- 帮我改写成英文 prompt。 (Explicit rewrite request)
+- 优化一下我的 prompt 写法。 (Prompt expression improvement)
+- 解释一下这段代码的逻辑。 (General Chinese request should still get English rewrite)
+- 帮我 review 一下这个 PR。 (Mixed Chinese/English input)
+- 我想学习 Rust 的所有权机制。 (Learning request in Chinese)
 
-### English Input (with errors)
+## Positive (English)
 
-| Input | Reason |
-|-------|--------|
-| "I want make a function that check if number is prime" | Grammar errors: missing "to", subject-verb agreement |
-| "Help me to fix the bug, it don't work" | Grammar: "don't" → "doesn't", unnecessary "to" |
-| "Can you explain me how this code works?" | Grammar: "explain me" → "explain to me" |
-| "I need create a component for show user data" | Missing prepositions and articles |
-| "Make the code to run more faster" | Multiple grammar issues |
-| "How to make this function works correctly?" | Subject-verb agreement |
+- I want make a function that check if number is prime. (Grammar errors to fix)
+- Help me to fix the bug, it don't work. (Grammar errors to fix)
+- Can you explain me how this code works? (Natural phrasing correction needed)
+- I need create a component for show user data. (Missing articles/prepositions)
+- Make the code to run more faster. (Multiple expression issues)
+- How to make this function works correctly? (Grammar correction needed)
+- Implement a binary search algorithm that handles edge cases. (Already good English; minimal notes)
+- Refactor this function to use async/await instead of callbacks. (Already good English; minimal notes)
 
-### Already Correct English
+## Negative / Near Miss
 
-| Input | Reason |
-|-------|--------|
-| "Implement a binary search algorithm that handles edge cases" | Good English, acknowledge and proceed |
-| "Refactor this function to use async/await instead of callbacks" | Good English, minimal coaching needed |
-
-## Should Not Trigger (True Negatives)
-
-| Input | Reason |
-|-------|--------|
-| "yes" | Single-word command, no translation value |
-| "ok" | Single-word acknowledgment |
-| "continue" | Single-word command |
-| "/help" | CLI command |
-| "直接回答：帮我写一个函数" | User explicitly opted out with "直接回答" |
-| "skip — explain this error message" | User explicitly opted out with "skip" |
+- yes (Single-word acknowledgment; no translation value)
+- ok (Single-word acknowledgment; no translation value)
+- continue (Single-word command)
+- /help (CLI command)
+- 直接回答：帮我写一个函数。 (Explicit opt-out with "直接回答")
+- skip - explain this error message. (Explicit opt-out with "skip")
