@@ -88,85 +88,85 @@ The generated Markdown should usually include:
 ## Teaching Plan Template (Markdown)
 
 ```markdown
-# [主题名称] 教案
+# [Topic / 主题名称] Teaching Plan / 教案
 
-## 1. 基本信息
-- 主题：
-- 面向对象：
-- 建议时长：
-- 授课形式：（1:1 / 小组分享 / Workshop / Onboarding）
-- 材料来源：
+## 1. Basic Info / 基本信息
+- Topic / 主题：
+- Audience / 面向对象：
+- Duration / 建议时长：
+- Format / 授课形式：（1:1 / Group / Workshop / Onboarding）
+- Source Material / 材料来源：
 
-## 2. 学习目标
-- 学员完成后能够：
+## 2. Learning Objectives / 学习目标
+- After completing this session, learners will be able to / 学员完成后能够：
   - ...
   - ...
   - ...
 
-## 3. 先修知识
+## 3. Prerequisites / 先修知识
 - ...
 - ...
 
-## 4. 课程结构（时间分配）
-- 0-10 分钟：背景与问题定义
-- 10-25 分钟：核心概念讲解
-- 25-45 分钟：代码/案例拆解
-- 45-60 分钟：练习与答疑
+## 4. Session Structure / 课程结构（时间分配）
+- 0-10 min: Background & problem definition / 背景与问题定义
+- 10-25 min: Core concepts / 核心概念讲解
+- 25-45 min: Code walkthrough / 代码/案例拆解
+- 45-60 min: Exercises & Q&A / 练习与答疑
 
-## 5. 分节详解（讲解稿）
+## 5. Detailed Script / 分节详解（讲解稿）
 
-### 5.1 背景与动机
-- 讲什么：
-- 为什么重要：
-- 如何引入（举例/类比）：
-- 学员可能会问：
+### 5.1 Background & Motivation / 背景与动机
+- What to teach / 讲什么：
+- Why it matters / 为什么重要：
+- How to introduce (analogy/example) / 如何引入：
+- Likely learner questions / 学员可能会问：
 
-### 5.2 核心概念
-- 概念 A：
-  - 定义：
-  - 作用：
-  - 与其它概念关系：
-  - 示例：
-- 概念 B：
-  - 定义：
-  - 示例：
+### 5.2 Core Concepts / 核心概念
+- Concept A / 概念 A：
+  - Definition / 定义：
+  - Purpose / 作用：
+  - Relationships / 与其它概念关系：
+  - Example / 示例：
+- Concept B / 概念 B：
+  - Definition / 定义：
+  - Example / 示例：
 
-### 5.3 实战拆解（基于提供材料）
-- 先看整体结构
-- 再看关键流程
-- 最后看边界情况/错误处理
+### 5.3 Hands-on Walkthrough / 实战拆解（基于提供材料）
+- Start with overall structure / 先看整体结构
+- Then key flows / 再看关键流程
+- Finally edge cases & error handling / 最后看边界情况/错误处理
 
-## 6. 示例与演示
-- 示例 1：...
-- 示例 2：...
-- 演示步骤：...
+## 6. Demos & Examples / 示例与演示
+- Example 1 / 示例 1：...
+- Example 2 / 示例 2：...
+- Demo steps / 演示步骤：...
 
-## 7. 练习设计
-- 练习 1（基础）：
-  - 目标：
-  - 输入：
-  - 预期输出：
-- 练习 2（进阶）：
-  - 目标：
-  - 提示：
+## 7. Exercise Design / 练习设计
+- Exercise 1 (Basic) / 练习 1（基础）：
+  - Goal / 目标：
+  - Input / 输入：
+  - Expected output / 预期输出：
+- Exercise 2 (Advanced) / 练习 2（进阶）：
+  - Goal / 目标：
+  - Hints / 提示：
 
-## 8. 常见误区与纠正
-- 误区 1：
-  - 为什么错：
-  - 正确理解：
-- 误区 2：
-  - 为什么错：
-  - 正确做法：
+## 8. Common Pitfalls / 常见误区与纠正
+- Pitfall 1 / 误区 1：
+  - Why it's wrong / 为什么错：
+  - Correct understanding / 正确理解：
+- Pitfall 2 / 误区 2：
+  - Why it's wrong / 为什么错：
+  - Correct approach / 正确做法：
 
-## 9. 提问引导（用于互动）
-- 如果把 X 替换成 Y，会发生什么？
-- 为什么这里不直接用 ...？
-- 这个设计的 trade-off 是什么？
+## 9. Discussion Prompts / 提问引导（用于互动）
+- What happens if you replace X with Y? / 如果把 X 替换成 Y，会发生什么？
+- Why not use ... directly here? / 为什么这里不直接用 ...？
+- What are the trade-offs of this design? / 这个设计的 trade-off 是什么？
 
-## 10. 总结与课后建议
-- 本节核心结论：
-- 推荐延伸阅读：
-- 课后练习：
+## 10. Recap & Follow-up / 总结与课后建议
+- Key takeaways / 本节核心结论：
+- Suggested reading / 推荐延伸阅读：
+- Homework / 课后练习：
 ```
 
 ## Source-Specific Guidance

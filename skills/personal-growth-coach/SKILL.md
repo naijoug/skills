@@ -279,6 +279,8 @@ Automatically match mode based on user input:
 
 ## Practice Catalog
 
+> **Note:** Some practice names match skill names in this collection (e.g., `algorithm-kata-coach`, `weekly-coding-retro`). These are **recommended activities** — the AI should describe the practice inline, not automatically trigger the corresponding skill. Only load the matching skill if the user explicitly asks to start that practice session.
+
 ### P1: Code Craft (10 practices)
 
 | ID | Practice | Freq | Time | Description |

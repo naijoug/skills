@@ -28,20 +28,24 @@ Core principles:
 - Level 2: sensitive dirs (`Desktop`, `Downloads`, `Library`) confirmation
 - Level 3: per-tool toggles
 
-2. Run pipeline:
+2. Run pipeline (resolve `SKILL_DIR` from the installed skill's location):
 ```bash
-python3 skills/who-am-i/scripts/run_who_am_i.py --mode full
+# SKILL_DIR is the directory containing this SKILL.md (resolve symlinks first)
+SKILL_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+python3 "$SKILL_DIR/scripts/run_who_am_i.py" --mode full
 ```
 
 3. Incremental update:
 ```bash
-python3 skills/who-am-i/scripts/run_who_am_i.py --mode incremental
+python3 "$SKILL_DIR/scripts/run_who_am_i.py" --mode incremental
 ```
 
 4. Re-render only (no rescan):
 ```bash
-python3 skills/who-am-i/scripts/run_who_am_i.py --mode render-only
+python3 "$SKILL_DIR/scripts/run_who_am_i.py" --mode render-only
 ```
+
+> **Note for AI agents:** When executing these scripts, first resolve the actual path of this SKILL.md (follow symlinks), then use its parent directory as `SKILL_DIR` to locate the `scripts/` folder.
 
 ## CLI Options
 
