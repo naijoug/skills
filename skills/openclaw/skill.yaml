@@ -1,0 +1,34 @@
+id: openclaw
+version: 1.0.0
+title: OpenClaw Service Manager
+summary: Manage the local OpenClaw gateway service — start, stop, status, logs, diagnostics, config, and channel management
+kind: prompt_only
+tags:
+  - openclaw
+  - gateway
+  - service-management
+  - devops
+  - self-hosted
+triggers:
+  keywords:
+    - openclaw
+    - openclaw start
+    - openclaw stop
+    - openclaw status
+    - openclaw logs
+    - 启动 openclaw
+    - 停止 openclaw
+    - openclaw 状态
+    - openclaw 日志
+    - openclaw 诊断
+    - openclaw 配置
+    - gateway status
+    - openclaw doctor
+    - openclaw dashboard
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - amp
+    - cursor
+    - trae
