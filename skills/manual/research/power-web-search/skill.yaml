@@ -1,0 +1,30 @@
+id: power-web-search
+version: 1.0.5
+title: Power Web Search
+summary: Fan out web searches across all available search and reader tools in parallel, then synthesize a unified bilingual summary saved as Markdown
+kind: prompt_only
+tags:
+  - search
+  - web
+  - research
+  - bilingual
+  - synthesis
+triggers:
+  keywords:
+    - 搜索
+    - 查一下
+    - 帮我查
+    - search for
+    - look up
+    - research
+    - find out about
+    - web search
+    - 搜一下
+    - 帮我搜
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - amp
+    - cursor
+    - trae

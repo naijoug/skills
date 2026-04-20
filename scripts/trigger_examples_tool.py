@@ -2,7 +2,7 @@
 """
 Utilities for exporting and scoring skill trigger examples.
 
-This script reads `skills/*/references/trigger-examples.md` and can:
+This script reads `skills/**/references/trigger-examples.md` and can:
 - summarize example coverage
 - export cases to JSONL for trigger testing
 - score predictions from an external trigger runner
@@ -42,23 +42,45 @@ class Case:
 
 
 def iter_skill_dirs(skills_dir: Path) -> Iterable[Path]:
-    for child in sorted(skills_dir.iterdir()):
-        if child.is_dir() and (child / "SKILL.md").exists():
-            yield child.resolve()
+    for skill_file in sorted(skills_dir.rglob("SKILL.md")):
+        yield skill_file.parent.resolve()
 
 
-def is_always_on(skill_dir: Path) -> bool:
-    yaml_path = skill_dir / "skill.yaml"
+def read_top_level_scalar(yaml_path: Path, key: str) -> str | None:
     if not yaml_path.exists():
-        return False
+        return None
+    prefix = f"{key}:"
     for raw in yaml_path.read_text(encoding="utf-8").splitlines():
         line = raw.strip()
-        if line.startswith("#"):
+        if not line or line.startswith("#"):
             continue
-        if line.startswith("activation:"):
-            value = line.split(":", 1)[1].strip()
-            return value == "always_on"
-    return False
+        if line.startswith(prefix):
+            return line.split(":", 1)[1].strip()
+    return None
+
+
+def skill_category(skill_dir: Path) -> str:
+    try:
+        rel_parts = skill_dir.relative_to(SKILLS_DIR).parts
+    except ValueError:
+        rel_parts = ()
+    if rel_parts:
+        head = rel_parts[0]
+        if head in {"global", "cron", "auto", "manual"}:
+            return head
+
+    yaml_path = skill_dir / "skill.yaml"
+    category = read_top_level_scalar(yaml_path, "category")
+    if category:
+        return category
+    activation = read_top_level_scalar(yaml_path, "activation")
+    if activation == "always_on":
+        return "auto"
+    if activation in {"cron", "scheduled"}:
+        return "cron"
+    if activation in {"global", "auto", "manual"}:
+        return activation
+    return "manual"
 
 
 def parse_trigger_examples(skill_dir: Path) -> list[Case]:
@@ -109,28 +131,29 @@ def parse_trigger_examples(skill_dir: Path) -> list[Case]:
 
 
 def load_all_cases(
-    skills_dir: Path, *, include_always_on: bool = False
+    skills_dir: Path, *, include_non_manual: bool = False
 ) -> tuple[list[Case], list[str], list[str]]:
     all_cases: list[Case] = []
-    skipped_always_on: list[str] = []
+    skipped_non_manual: list[str] = []
     zero_parsed_skills: list[str] = []
     for skill_dir in iter_skill_dirs(skills_dir):
-        if not include_always_on and is_always_on(skill_dir):
-            skipped_always_on.append(skill_dir.name)
+        category = skill_category(skill_dir)
+        if not include_non_manual and category != "manual":
+            skipped_non_manual.append(f"{skill_dir.name}({category})")
             continue
         parsed = parse_trigger_examples(skill_dir)
         ref_path = skill_dir / "references" / "trigger-examples.md"
         if ref_path.exists() and not parsed:
             zero_parsed_skills.append(skill_dir.name)
         all_cases.extend(parsed)
-    return all_cases, skipped_always_on, zero_parsed_skills
+    return all_cases, skipped_non_manual, zero_parsed_skills
 
 
-def report_dataset_notes(skipped_always_on: list[str], zero_parsed_skills: list[str]) -> None:
-    if skipped_always_on:
+def report_dataset_notes(skipped_non_manual: list[str], zero_parsed_skills: list[str]) -> None:
+    if skipped_non_manual:
         print(
-            "Note: skipped always_on skills by default: "
-            + ", ".join(sorted(skipped_always_on)),
+            "Note: skipped non-manual skills by default: "
+            + ", ".join(sorted(skipped_non_manual)),
             file=sys.stderr,
         )
     if zero_parsed_skills:
@@ -142,11 +165,11 @@ def report_dataset_notes(skipped_always_on: list[str], zero_parsed_skills: list[
 
 
 def cmd_summary(args: argparse.Namespace) -> int:
-    cases, skipped_always_on, zero_parsed_skills = load_all_cases(
+    cases, skipped_non_manual, zero_parsed_skills = load_all_cases(
         Path(args.skills_dir),
-        include_always_on=args.include_always_on,
+        include_non_manual=args.include_non_manual or args.include_always_on,
     )
-    report_dataset_notes(skipped_always_on, zero_parsed_skills)
+    report_dataset_notes(skipped_non_manual, zero_parsed_skills)
     if not cases:
         print("No trigger example cases found.")
         return 1
@@ -167,11 +190,11 @@ def cmd_summary(args: argparse.Namespace) -> int:
 
 
 def cmd_export(args: argparse.Namespace) -> int:
-    cases, skipped_always_on, zero_parsed_skills = load_all_cases(
+    cases, skipped_non_manual, zero_parsed_skills = load_all_cases(
         Path(args.skills_dir),
-        include_always_on=args.include_always_on,
+        include_non_manual=args.include_non_manual or args.include_always_on,
     )
-    report_dataset_notes(skipped_always_on, zero_parsed_skills)
+    report_dataset_notes(skipped_non_manual, zero_parsed_skills)
     if not cases:
         print("No trigger example cases found.", file=sys.stderr)
         return 1
@@ -249,11 +272,11 @@ def _write_csv(path: Path, fieldnames: list[str], rows: list[dict]) -> None:
 
 
 def cmd_score(args: argparse.Namespace) -> int:
-    cases, skipped_always_on, zero_parsed_skills = load_all_cases(
+    cases, skipped_non_manual, zero_parsed_skills = load_all_cases(
         Path(args.skills_dir),
-        include_always_on=args.include_always_on,
+        include_non_manual=args.include_non_manual or args.include_always_on,
     )
-    report_dataset_notes(skipped_always_on, zero_parsed_skills)
+    report_dataset_notes(skipped_non_manual, zero_parsed_skills)
     if not cases:
         print("No trigger example cases found.", file=sys.stderr)
         return 1
@@ -538,9 +561,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to skills directory (default: ./skills)",
     )
     parser.add_argument(
+        "--include-non-manual",
+        action="store_true",
+        help="Include global/cron/auto skills in the trigger evaluation dataset (default: skipped)",
+    )
+    parser.add_argument(
         "--include-always-on",
         action="store_true",
-        help="Include always_on skills in trigger evaluation dataset (default: skipped)",
+        help=argparse.SUPPRESS,
     )
 
     sub = parser.add_subparsers(dest="command", required=True)

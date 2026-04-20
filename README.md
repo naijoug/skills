@@ -1,6 +1,6 @@
 # Skills Collection
 
-Personal collection of AI coding skills. Each skill lives in `skills/<skill-name>/SKILL.md`.
+Personal collection of AI coding skills. Skills are classified by directory under `skills/`.
 
 ## Project Structure
 
@@ -10,14 +10,48 @@ Personal collection of AI coding skills. Each skill lives in `skills/<skill-name
 │   ├── skills-linker              # Install/uninstall skills (CLI + fzf TUI)
 │   └── tui                        # Shortcut for `skills-linker tui`
 └── skills/
-    ├── pr-self-review/
-    │   ├── SKILL.md
-    │   ├── skill.yaml             # optional metadata
-    │   ├── inject.md              # always-on injection content (optional)
-    │   └── references/
-    │       └── trigger-examples.md
-    └── ...
+    ├── global/
+    │   └── in-english/
+    ├── cron/
+    │   └── til-journal/
+    ├── auto/
+    │   └── skill-smith/
+    └── manual/
+        ├── plan/
+        │   └── teaching-plan/
+        ├── review/
+        ├── research/
+        ├── growth/
+        ├── tooling/
+        └── meta/
 ```
+
+## Skill Categories
+
+Category comes from the directory path, not `skill.yaml`:
+
+| Category | Meaning | Typical examples |
+|----------|---------|------------------|
+| `skills/global/<skill>` | Install globally and auto-inject into agent instructions | `in-english` |
+| `skills/cron/<skill>` | Trigger from recurring automation or heartbeat jobs, not manual invocation | `til-journal` |
+| `skills/auto/<skill>` | Auto-trigger helper that activates after installation | `skill-smith` |
+| `skills/manual/<group>/<skill>` | Only runs when explicitly selected or clearly requested | most task skills |
+
+Behavior:
+
+- `global` and `auto` skills are auto-injected by `skills-linker` when they provide `inject.md`
+- `cron` skills are installed normally but are intentionally not auto-injected
+- `manual` skills are the ones exposed by `./scripts/ng`
+- manual subgroup comes from the second directory level under `skills/manual/`
+
+Recommended manual subdirectories:
+
+- `plan` for planning, mapping, and decomposition skills
+- `review` for review, critique, and safe-change skills
+- `research` for search, trends, and information synthesis
+- `growth` for practice, coaching, and retrospectives
+- `tooling` for local tools and service operations
+- `meta` for skill-authoring or self-profile skills
 
 ## Installation
 
@@ -59,6 +93,9 @@ Skills selection supports right-side `SKILL.md` preview. Install defaults to sel
 # List available skills
 ./scripts/skills-linker list
 
+# List only manual skills
+./scripts/skills-linker list --category manual
+
 # Install to Claude Code global skills
 ./scripts/skills-linker install --tool claude --scope global \
   pr-self-review personal-growth-coach
@@ -84,14 +121,34 @@ Options:
 
 Notes:
 
-- Skills with `activation: always_on` can be installed in both `global` and `project` scope.
-- `global` is usually more convenient because you don't need to reinstall in each project.
+- `global` skills are best installed in `global` scope so every agent can see them.
+- `global` and `auto` categories may inject extra instructions into `AGENTS.md` / `CLAUDE.md`.
+- `global` scope is usually more convenient because you don't need to reinstall in each project.
+
+### Manual Entry Point
+
+`manual` skills now have a dedicated helper. It groups skills by their directory under `skills/manual/`:
+
+```bash
+# Show the category plan
+./scripts/ng plan
+
+# List manual skills
+./scripts/ng list
+
+# Pick a manual skill interactively (fzf if installed)
+./scripts/ng
+
+# Show how to trigger one specific skill
+./scripts/ng pr-self-review
+```
 
 ## Creating a New Skill
 
 ```bash
 mkdir -p skills/my-skill
-cat > skills/my-skill/SKILL.md << 'EOF'
+mkdir -p skills/manual/plan/my-skill
+cat > skills/manual/plan/my-skill/SKILL.md << 'EOF'
 ---
 name: my-skill
 description: Use when [specific trigger conditions]
@@ -112,11 +169,21 @@ What this skill is for.
 EOF
 ```
 
+Suggested `skills/manual/plan/my-skill/skill.yaml`:
+
+```yaml
+id: my-skill
+version: 1.0.0
+title: My Skill
+summary: Use when [specific trigger conditions]
+kind: prompt_only
+```
+
 ## Trigger Evaluation
 
 This repo includes a trigger evaluation workflow for testing skill trigger recall/precision.
 
-- Per-skill examples: `skills/*/references/trigger-examples.md`
+- Per-skill examples: `skills/**/references/trigger-examples.md`
 - Export + scoring: `scripts/trigger_examples_tool.py`
 - Runner: `scripts/run_trigger_eval.sh`
 - HTML report: `scripts/trigger_eval_report.py`
@@ -125,8 +192,8 @@ This repo includes a trigger evaluation workflow for testing skill trigger recal
 # Smoke test (perfect predictor)
 ./scripts/run_trigger_eval.sh --mode perfect --no-details
 
-# Include always_on skills in dataset when needed
-python3 ./scripts/trigger_examples_tool.py --include-always-on summary
+# Include non-manual skills in dataset when needed
+python3 ./scripts/trigger_examples_tool.py --include-non-manual summary
 
 # Custom predictor
 ./scripts/run_trigger_eval.sh --mode custom \

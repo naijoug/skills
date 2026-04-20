@@ -1,0 +1,32 @@
+id: weekly-coding-retro
+version: 1.0.1
+title: Weekly Coding Retro
+summary: Weekly engineering retrospective to identify recurring mistakes, debugging patterns, and PR themes for next-week improvement
+kind: prompt_only
+tags:
+  - retro
+  - retrospective
+  - engineering
+  - personal-growth
+  - code-quality
+  - learning-loop
+triggers:
+  keywords:
+    - weekly retro
+    - coding retro
+    - retrospective
+    - weekly review
+    - recurring mistakes
+    - improvement experiment
+    - 周报
+    - 复盘
+    - 个人复盘
+    - 编程习惯
+    - 技术回顾
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - amp
+    - cursor
+    - trae

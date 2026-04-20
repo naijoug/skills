@@ -10,12 +10,13 @@ usage() {
   cat <<'EOF'
 Usage:
   skills-linker tools
-  skills-linker list [--skills-root DIR]
+  skills-linker list [--skills-root DIR] [--category NAME]
   skills-linker install|uninstall|status [options] [skill ...]
   skills-linker tui [options]
 
 Options:
   --skills-root DIR      Skills root (default: repo ./skills)
+  --category NAME        Filter skills by category: global|cron|auto|manual
   --tool NAME            codex|chatgpt|claude|amp|custom (default: codex)
   --scope SCOPE          global|project (default: global)
   --project-root DIR     Project root for project scope (default: current directory)
@@ -105,10 +106,116 @@ discover_skills() {
   [[ -d "$skills_root" ]] || return 0
   local dir
   while IFS= read -r dir; do
-    if [[ -f "$dir/SKILL.md" ]]; then
-      basename "$dir"
+    basename "$dir"
+  done < <(discover_skill_dirs "$skills_root")
+}
+
+discover_skill_dirs() {
+  local skills_root="$1"
+  [[ -d "$skills_root" ]] || return 0
+  find "$skills_root" -type f -name SKILL.md -print \
+    | sed 's#/SKILL\.md$##' \
+    | sort
+}
+
+resolve_skill_dir() {
+  local skills_root="$1"
+  local skill_id="$2"
+  local dir
+  while IFS= read -r dir; do
+    if [[ "$(basename "$dir")" == "$skill_id" ]]; then
+      echo "$dir"
+      return 0
     fi
-  done < <(find "$skills_root" -mindepth 1 -maxdepth 1 -type d | sort)
+  done < <(discover_skill_dirs "$skills_root")
+  return 1
+}
+
+skill_relative_path() {
+  local skills_root="$1"
+  local skill_dir="$2"
+  printf '%s\n' "${skill_dir#$skills_root/}"
+}
+
+yaml_top_level_scalar() {
+  local yaml_file="$1"
+  local key="$2"
+  [[ -f "$yaml_file" ]] || return 0
+  awk -F ':' -v key="$key" '
+    /^[[:space:]]*#/ { next }
+    $0 ~ "^[[:space:]]*" key ":[[:space:]]*" {
+      sub("^[^:]*:[[:space:]]*", "", $0)
+      print $0
+      exit
+    }
+  ' "$yaml_file"
+}
+
+skill_title() {
+  local skill_dir="$1"
+  yaml_top_level_scalar "$skill_dir/skill.yaml" "title"
+}
+
+skill_summary() {
+  local skill_dir="$1"
+  yaml_top_level_scalar "$skill_dir/skill.yaml" "summary"
+}
+
+skill_manual_group() {
+  local skills_root="$1"
+  local skill_dir="$2"
+  local rel_path first second
+  rel_path="$(skill_relative_path "$skills_root" "$skill_dir")"
+  IFS='/' read -r first second _ <<<"$rel_path"
+  if [[ "$first" == "manual" && -n "$second" ]]; then
+    echo "$second"
+    return 0
+  fi
+  yaml_top_level_scalar "$skill_dir/skill.yaml" "manual_group"
+}
+
+skill_category() {
+  local skills_root="$1"
+  local skill_dir="$2"
+  local yaml_file="$skill_dir/skill.yaml"
+  local category activation rel_path first
+  rel_path="$(skill_relative_path "$skills_root" "$skill_dir")"
+  IFS='/' read -r first _ <<<"$rel_path"
+  case "$first" in
+    global|cron|auto|manual)
+      echo "$first"
+      return 0
+      ;;
+  esac
+  category="$(yaml_top_level_scalar "$yaml_file" "category")"
+  if [[ -n "$category" ]]; then
+    echo "$category"
+    return 0
+  fi
+
+  activation="$(yaml_top_level_scalar "$yaml_file" "activation")"
+  case "$activation" in
+    always_on) echo "auto" ;;
+    cron|scheduled) echo "cron" ;;
+    global|auto|manual) echo "$activation" ;;
+    *) echo "manual" ;;
+  esac
+}
+
+validate_category() {
+  local category="${1:-}"
+  case "$category" in
+    ""|global|cron|auto|manual) return 0 ;;
+    *) die "unsupported category: $category" ;;
+  esac
+}
+
+is_auto_injected_skill() {
+  local skills_root="$1"
+  local skill_dir="$2"
+  local category
+  category="$(skill_category "$skills_root" "$skill_dir")"
+  [[ "$category" == "global" || "$category" == "auto" ]]
 }
 
 manifest_path() {
@@ -154,13 +261,6 @@ manifest_remove() {
   else
     rm -f "$tmp" "$file"
   fi
-}
-
-is_always_on() {
-  local skill_dir="$1"
-  local yaml_file="$skill_dir/skill.yaml"
-  [[ -f "$yaml_file" ]] || return 1
-  grep -q '^activation:.*always_on' "$yaml_file" 2>/dev/null
 }
 
 resolve_instruction_file() {
@@ -260,8 +360,8 @@ handle_always_on_install() {
 
   local skill source
   for skill in "${skills[@]}"; do
-    source="$skills_root/$skill"
-    if is_always_on "$source"; then
+    source="$(resolve_skill_dir "$skills_root" "$skill")" || continue
+    if is_auto_injected_skill "$skills_root" "$source"; then
       if inject_always_on "$skill" "$source" "$instruction_file"; then
         echo "$skill: injected always-on instruction → $instruction_file"
       else
@@ -284,8 +384,8 @@ handle_always_on_uninstall() {
 
   local skill source
   for skill in "${skills[@]}"; do
-    source="$skills_root/$skill"
-    if is_always_on "$source"; then
+    source="$(resolve_skill_dir "$skills_root" "$skill")" || continue
+    if is_auto_injected_skill "$skills_root" "$source"; then
       remove_always_on "$skill" "$instruction_file"
       echo "$skill: removed always-on instruction ← $instruction_file"
     fi
@@ -338,7 +438,7 @@ run_install() {
   local out=()
   local skill source dest
   for skill in "${selected[@]}"; do
-    source="$skills_root/$skill"
+    source="$(resolve_skill_dir "$skills_root" "$skill" || true)"
     dest="$target_dir/$skill"
     if [[ ! -d "$source" || ! -f "$source/SKILL.md" ]]; then
       out+=("$skill"$'\t'"error"$'\t'"skill not found")
@@ -547,7 +647,7 @@ choose_skills_multi() {
   local default_select_all="$2"
   shift 2
   local all_skills=("$@")
-  local preview_cmd="cat ${skills_root}/{}/SKILL.md 2>/dev/null || echo 'No SKILL.md found'"
+  local preview_cmd="dir=\$(find \"${skills_root}\" -type f -path \"*/{}/SKILL.md\" -print | head -n1 | sed 's#/SKILL.md\$##'); cat \"\$dir/SKILL.md\" 2>/dev/null || echo 'No SKILL.md found'"
   if [[ "$default_select_all" == "1" ]]; then
     printf "%s\n" "${all_skills[@]}" \
       | fzf --multi --bind "start:select-all" --prompt="skills> " --height=75% --layout=reverse --border --info=inline \
@@ -755,6 +855,7 @@ EOF
 esac
 
 skills_root="$DEFAULT_SKILLS_ROOT"
+category_filter=""
 tool="codex"
 scope="global"
 project_root="$DEFAULT_PROJECT_ROOT"
@@ -769,6 +870,8 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --skills-root)
       skills_root="$2"; shift 2 ;;
+    --category)
+      category_filter="$2"; shift 2 ;;
     --tool)
       tool="$2"; shift 2 ;;
     --scope)
@@ -804,15 +907,29 @@ done
 
 skills_root="$(cd "$skills_root" 2>/dev/null && pwd -P || echo "$skills_root")"
 project_root="$(cd "$project_root" 2>/dev/null && pwd -P || echo "$project_root")"
+validate_category "$category_filter"
 
 if [[ "$cmd" == "list" ]]; then
   discovered=()
   while IFS= read -r line; do
     [[ -n "$line" ]] && discovered+=("$line")
   done < <(discover_skills "$skills_root")
+  if [[ -n "$category_filter" ]]; then
+    filtered=()
+    for skill in "${discovered[@]}"; do
+      skill_dir="$(resolve_skill_dir "$skills_root" "$skill" || true)"
+      if [[ -n "$skill_dir" && "$(skill_category "$skills_root" "$skill_dir")" == "$category_filter" ]]; then
+        filtered+=("$skill")
+      fi
+    done
+    discovered=("${filtered[@]}")
+  fi
   if [[ "$as_json" == "1" ]]; then
     printf '{\n'
     printf '  "skills_root": "%s",\n' "$(printf '%s' "$skills_root" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
+    if [[ -n "$category_filter" ]]; then
+      printf '  "category_filter": "%s",\n' "$(printf '%s' "$category_filter" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
+    fi
     printf '  "skills": [\n'
     for i in "${!discovered[@]}"; do
       skill_escaped="$(printf '%s' "${discovered[$i]}" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
@@ -823,14 +940,63 @@ if [[ "$cmd" == "list" ]]; then
     done
     printf '\n'
     printf '  ],\n'
+    printf '  "items": [\n'
+    for i in "${!discovered[@]}"; do
+      skill="${discovered[$i]}"
+      skill_dir="$(resolve_skill_dir "$skills_root" "$skill")"
+      category="$(skill_category "$skills_root" "$skill_dir")"
+      title="$(skill_title "$skill_dir")"
+      summary="$(skill_summary "$skill_dir")"
+      manual_group="$(skill_manual_group "$skills_root" "$skill_dir")"
+      skill_path="$(skill_relative_path "$skills_root" "$skill_dir")"
+      skill_escaped="$(printf '%s' "$skill" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
+      skill_path_escaped="$(printf '%s' "$skill_path" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
+      category_escaped="$(printf '%s' "$category" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
+      title_escaped="$(printf '%s' "$title" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
+      summary_escaped="$(printf '%s' "$summary" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
+      manual_group_escaped="$(printf '%s' "$manual_group" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')"
+      if [[ "$i" -gt 0 ]]; then
+        printf ',\n'
+      fi
+      printf '    {"id":"%s","path":"%s","category":"%s","title":"%s","summary":"%s","manual_group":"%s"}' \
+        "$skill_escaped" "$skill_path_escaped" "$category_escaped" "$title_escaped" "$summary_escaped" "$manual_group_escaped"
+    done
+    printf '\n'
+    printf '  ],\n'
     printf '  "count": %d\n' "${#discovered[@]}"
     printf '}\n'
   else
     echo "skills root: $skills_root"
-    echo "count: ${#discovered[@]}"
-    if [[ "${#discovered[@]}" -gt 0 ]]; then
-      printf "%s\n" "${discovered[@]}"
+    if [[ -n "$category_filter" ]]; then
+      echo "category: $category_filter"
     fi
+    echo "count: ${#discovered[@]}"
+    for category in global cron auto manual; do
+      group=()
+      for skill in "${discovered[@]}"; do
+        skill_dir="$(resolve_skill_dir "$skills_root" "$skill" || true)"
+        if [[ -n "$skill_dir" && "$(skill_category "$skills_root" "$skill_dir")" == "$category" ]]; then
+          group+=("$skill")
+        fi
+      done
+      [[ "${#group[@]}" -gt 0 ]] || continue
+      echo ""
+      echo "[$category]"
+      for skill in "${group[@]}"; do
+        skill_dir="$(resolve_skill_dir "$skills_root" "$skill")"
+        title="$(skill_title "$skill_dir")"
+        manual_group="$(skill_manual_group "$skills_root" "$skill_dir")"
+        suffix=""
+        if [[ "$category" == "manual" && -n "$manual_group" ]]; then
+          suffix=" [$manual_group]"
+        fi
+        if [[ -n "$title" ]]; then
+          echo "- $skill$suffix: $title"
+        else
+          echo "- $skill$suffix"
+        fi
+      done
+    done
   fi
   exit 0
 fi
@@ -844,6 +1010,16 @@ discovered=()
 while IFS= read -r line; do
   [[ -n "$line" ]] && discovered+=("$line")
 done < <(discover_skills "$skills_root")
+if [[ -n "$category_filter" ]]; then
+  filtered=()
+  for skill in "${discovered[@]}"; do
+    skill_dir="$(resolve_skill_dir "$skills_root" "$skill" || true)"
+    if [[ -n "$skill_dir" && "$(skill_category "$skills_root" "$skill_dir")" == "$category_filter" ]]; then
+      filtered+=("$skill")
+    fi
+  done
+  discovered=("${filtered[@]}")
+fi
 if [[ "${#skills[@]}" -eq 0 ]]; then
   selected=("${discovered[@]}")
 else
