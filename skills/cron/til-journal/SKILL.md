@@ -1,21 +1,24 @@
 ---
 name: til-journal
-description: Use when recording knowledge points learned during coding sessions, reviewing daily learnings, or generating weekly/monthly/yearly knowledge summaries — an AI-powered Today I Learned diary
+description: Use when a recurring daily job sweeps the past day's AI sessions for recordable knowledge, or when the user manually asks to record/review/summarize/search their TIL diary
 ---
 
 # TIL Journal
 
 ## Overview
 
-You are an AI-powered knowledge diary assistant. During coding sessions, AI interactions, and recurring automation runs, you help the user capture knowledge points as they learn, and organize them into a structured, searchable archive with daily entries and periodic summaries.
+You are an AI-powered knowledge diary assistant. The skill runs in two complementary ways:
 
-Core principle: capture knowledge in the moment when context is fresh, then synthesize patterns over time.
+1. **Daily scheduled sweep (primary)** — fired once per day by a cron / scheduled trigger. Reads back over the past 24 hours of AI sessions and captures any non-obvious knowledge points into today's daily file.
+2. **On-demand modes** — the user explicitly asks to capture a single knowledge point, review a day/week/month/year, or search past entries.
+
+Core principle: capture knowledge in the moment when context is fresh, then synthesize patterns over time. The skill is **not** auto-injected into every conversation turn — that proved noisy. Instead it batches once per day.
 
 ## When to Use
 
-- User learned something new and wants to record it
-- User solved an interesting bug or discovered a useful technique
-- User found a helpful tool, library, or API
+- A scheduled job triggers the skill (typical schedule: once daily, e.g. `0 22 * * *`)
+- User learned something new and wants to record it on the spot
+- User solved an interesting bug or discovered a useful technique worth saving
 - User wants to review today's / this week's / this month's / this year's learnings
 - User wants to search past knowledge entries
 - User says: "TIL", "记录一下", "今日回顾", "本周总结", "本月总结", "年度总结"
@@ -66,47 +69,59 @@ Create directories as needed — do not pre-create empty directories.
 
 ## Mode Detection
 
-Automatically match mode based on user input:
+Determine the active mode using this priority:
 
-| Input Pattern | Mode |
-|---------------|------|
-| recurring automation / cron run | Scheduled Capture |
+| Trigger | Mode |
+|---------|------|
+| Cron / scheduled job fires the skill (no user prompt, or context says "scheduled run") | **Scheduled Sweep** (primary) |
 | "TIL/记录/record/learned/记一下/学到了" | Manual Capture |
 | "今日回顾/daily review/today's learnings" | Daily Review |
 | "本周总结/weekly summary/this week" | Weekly Summary |
 | "本月总结/monthly summary/this month" | Monthly Summary |
 | "年度总结/yearly summary/annual review" | Yearly Summary |
 | "搜索/search/查找/find" + keyword | Search |
-| Other knowledge-related | Smart detect, default to Capture |
+| Other knowledge-related | Smart detect, default to Manual Capture |
 
 ---
 
-## Scheduled Capture Mode (cron)
+## Scheduled Sweep Mode (primary, cron-driven)
 
-> **Note:** This mode is intended for recurring automation or heartbeat jobs. It should not be injected into every conversation turn.
+> **Suggested schedule:** once per day, e.g. `0 22 * * *` (every day at 22:00 local time, near end-of-day).
+> Use the host's scheduling primitive — Claude Code's `/cron`, a system `cron`/`launchd` job, or any equivalent that fires this skill.
 
-**Trigger:** Runs on a schedule and checks whether there is new recordable knowledge since the last capture window.
+**What the daily sweep does:**
+
+Looks back over the past ~24 hours of AI sessions on this machine and harvests recordable knowledge into today's daily file. Designed to be quiet — most days will produce zero or one entry, not a wall of trivia.
 
 **What to capture:**
 - A new technique, API, pattern, or concept the user learned
 - A tricky bug solved (root cause + fix)
 - A useful tool, library, or configuration discovered
-- A non-obvious insight from the conversation
+- A non-obvious insight from a conversation
 
 **What to skip:**
 - Routine tasks with no new knowledge (simple edits, formatting, config)
 - Pure project management or planning conversations
 - Knowledge the user clearly already knew
 - Shallow Q&A (e.g., "what's the port number?")
+- Anything already captured earlier the same day (deduplicate by title + summary)
 
 **Flow:**
 
-1. Assess the recent conversation window or provided session context: did it produce recordable knowledge?
-2. If no → do nothing
-3. If yes → extract the knowledge point and follow the Capture entry format below
-4. Write the entry to today's daily file (create if not exists)
-5. Update `tags.md` index with the new entry's tags
-6. If running interactively, append a brief note at the end of your response: `📝 *TIL recorded: <entry title>*`
+1. Determine the sweep window: from the last successful sweep timestamp (read from `<storage_path>/.last-sweep`) up to "now". If no marker exists, default to the past 24 hours.
+2. Locate session transcripts for that window. Common roots:
+   - Claude Code: `~/.claude/projects/*/*.jsonl`
+   - Codex: `~/.codex/sessions/` (if present)
+   - Other tools the user has configured
+3. For each session, decide: did it produce 0, 1, or several recordable knowledge points? Most should be 0.
+4. For each kept point, extract a concise title + 2-3 sentence summary + 1-3 tags.
+5. Read today's daily file at `<storage_path>/daily/<YYYY>/<MM>/<YYYY-MM-DD>.md`. Create with the header below if missing.
+6. Append each new entry, incrementing the entry number; skip any whose title clearly duplicates an existing entry today.
+7. Update `<storage_path>/tags.md` with the new tags.
+8. Write a fresh ISO-8601 timestamp to `<storage_path>/.last-sweep`.
+9. End with a one-line summary so the user can scan the run later: e.g. `📝 sweep done — 2 new entries from 8 sessions`.
+
+If the sweep finds nothing recordable → write nothing, but still update `.last-sweep` and report `📝 sweep done — nothing new (8 sessions scanned)`.
 
 ---
 
@@ -403,6 +418,7 @@ Found <N> entries:
 - tags.md is updated to maintain the searchable index
 - Summaries synthesize patterns, not just list entries
 - Storage path is read from config.yaml, not hardcoded
+- Scheduled sweeps update `.last-sweep` and never re-record duplicates from the same day
 
 ## Example Triggers
 

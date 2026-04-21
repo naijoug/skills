@@ -2,6 +2,13 @@
 
 Use these prompts to test whether `til-journal` triggers correctly.
 
+## Positive (Cron / Scheduled)
+
+- (no prompt) Cron job fires the skill at 22:00 daily. (Scheduled Sweep mode)
+- 跑一下今天的 TIL sweep。 (Manual one-off sweep)
+- Run today's TIL sweep now. (Manual one-off sweep)
+- Catch up on the past day's sessions and record anything useful. (Scheduled Sweep mode)
+
 ## Positive (Chinese)
 
 - TIL：Rust 的 `?` 操作符可以在 main 函数中使用。 (Capture mode)

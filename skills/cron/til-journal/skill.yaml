@@ -1,8 +1,11 @@
 id: til-journal
-version: 1.0.1
+version: 1.1.0
 title: TIL Journal
-summary: Today I Learned journal - collect knowledge points from coding sessions, archive daily, summarize weekly/monthly/yearly
+summary: Today I Learned journal — daily cron sweep harvests recordable knowledge from past sessions; manual modes capture, review, summarize, or search
 kind: prompt_only
+schedule:
+  recommended: "0 22 * * *"
+  description: Once per day, near end-of-day, to sweep the past 24 hours of AI sessions
 tags:
   - knowledge
   - TIL
@@ -10,6 +13,8 @@ tags:
   - learning
   - daily
   - summary
+  - cron
+  - scheduled
 triggers:
   keywords:
     - TIL
@@ -25,6 +30,8 @@ triggers:
     - weekly summary
     - monthly summary
     - yearly summary
+    - til sweep
+    - daily sweep
 compatibility:
   tools:
     - codex
