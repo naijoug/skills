@@ -24,6 +24,8 @@ Options:
   --mode MODE            symlink|copy (install only, default: symlink)
   --auto-install-fzf     Allow installing fzf via Homebrew for tui command
   --force                Replace/remove conflicting targets
+  --with-slash-commands  Also install slash command wrappers for manual skills
+                         (claude→~/.claude/commands, codex→~/.codex/prompts)
   --json                 JSON output (list/status/install/uninstall)
 
 Requires: fzf (for tui command)
@@ -392,6 +394,164 @@ handle_always_on_uninstall() {
   done
 }
 
+resolve_slash_command_dir() {
+  local tool="$1"
+  local scope="$2"
+  local project_root="$3"
+  case "$tool" in
+    claude|claude-code)
+      if [[ "$scope" == "global" ]]; then
+        echo "$HOME/.claude/commands"
+      else
+        echo "$project_root/.claude/commands"
+      fi
+      ;;
+    codex|chatgpt)
+      if [[ "$scope" == "global" ]]; then
+        echo "$HOME/.codex/prompts"
+      else
+        echo "$project_root/.codex/prompts"
+      fi
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+is_manual_skill() {
+  local skills_root="$1"
+  local skill_dir="$2"
+  [[ "$(skill_category "$skills_root" "$skill_dir")" == "manual" ]]
+}
+
+write_slash_command_file() {
+  local tool="$1"
+  local skill_id="$2"
+  local skill_dir="$3"
+  local skills_root="$4"
+  local file="$5"
+  local rel_path summary
+  rel_path="$(skill_relative_path "$skills_root" "$skill_dir")"
+  summary="$(skill_summary "$skill_dir")"
+  [[ -n "$summary" ]] || summary="Invoke the $skill_id skill"
+
+  case "$tool" in
+    claude|claude-code)
+      cat >"$file" <<EOF
+---
+description: ${summary}
+argument-hint: [extra context]
+---
+<!-- skills-linker:slash:${skill_id} -->
+
+Use the \`${skill_id}\` skill for this request. Read its definition at:
+skills/${rel_path}/SKILL.md
+
+\$ARGUMENTS
+EOF
+      ;;
+    codex|chatgpt)
+      cat >"$file" <<EOF
+<!-- skills-linker:slash:${skill_id} -->
+
+Use the \`${skill_id}\` skill for this request. Read its definition at:
+skills/${rel_path}/SKILL.md
+EOF
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+install_slash_command() {
+  local skills_root="$1"
+  local skill_id="$2"
+  local skill_dir="$3"
+  local slash_dir="$4"
+  local tool="$5"
+  local force="$6"
+  local file="$slash_dir/$skill_id.md"
+  local marker="<!-- skills-linker:slash:${skill_id} -->"
+
+  if [[ -e "$file" ]]; then
+    if grep -qF "$marker" "$file" 2>/dev/null; then
+      :  # already managed — safe to refresh
+    elif [[ "$force" == "1" ]]; then
+      :  # user explicitly opted to overwrite
+    else
+      return 1  # foreign file, leave alone
+    fi
+  fi
+
+  mkdir -p "$slash_dir"
+  write_slash_command_file "$tool" "$skill_id" "$skill_dir" "$skills_root" "$file"
+}
+
+remove_slash_command() {
+  local skill_id="$1"
+  local slash_dir="$2"
+  local file="$slash_dir/$skill_id.md"
+  local marker="<!-- skills-linker:slash:${skill_id} -->"
+  [[ -f "$file" ]] || return 0
+  if grep -qF "$marker" "$file" 2>/dev/null; then
+    rm -f "$file"
+    return 0
+  fi
+  return 1
+}
+
+handle_slash_install() {
+  local skills_root="$1"
+  local tool="$2"
+  local scope="$3"
+  local project_root="$4"
+  local force="$5"
+  shift 5
+  local skills=("$@")
+
+  local slash_dir
+  slash_dir="$(resolve_slash_command_dir "$tool" "$scope" "$project_root")" || {
+    echo "slash commands not supported for tool=$tool"
+    return 0
+  }
+
+  local skill source
+  for skill in "${skills[@]}"; do
+    source="$(resolve_skill_dir "$skills_root" "$skill")" || continue
+    is_manual_skill "$skills_root" "$source" || continue
+    if install_slash_command "$skills_root" "$skill" "$source" "$slash_dir" "$tool" "$force"; then
+      echo "$skill: slash command installed → $slash_dir/$skill.md"
+    else
+      echo "$skill: slash command exists at $slash_dir/$skill.md (use --force to overwrite)"
+    fi
+  done
+}
+
+handle_slash_uninstall() {
+  local skills_root="$1"
+  local tool="$2"
+  local scope="$3"
+  local project_root="$4"
+  shift 4
+  local skills=("$@")
+
+  local slash_dir
+  slash_dir="$(resolve_slash_command_dir "$tool" "$scope" "$project_root")" || return 0
+
+  local skill file
+  for skill in "${skills[@]}"; do
+    file="$slash_dir/$skill.md"
+    [[ -f "$file" ]] || continue
+    if remove_slash_command "$skill" "$slash_dir"; then
+      echo "$skill: removed slash command ← $file"
+    else
+      echo "$skill: slash command at $file is not managed by linker, leaving in place"
+    fi
+  done
+}
+
 print_json_results() {
   local action="$1"
   local skills_root="$2"
@@ -670,6 +830,7 @@ run_shell_tui() {
   local force="$6"
   local target_dir_override="$7"
   local auto_install_fzf="$8"
+  local with_slash_commands="${9:-0}"
 
   ensure_fzf "$auto_install_fzf"
 
@@ -693,7 +854,7 @@ run_shell_tui() {
 
     local policy_label
     if [[ "$action" == "install" ]]; then
-      policy_label="mode=$mode force=$force"
+      policy_label="mode=$mode force=$force slash=$with_slash_commands"
     elif [[ "$action" == "uninstall" ]]; then
       policy_label="force=$force"
     else
@@ -737,10 +898,14 @@ run_shell_tui() {
           install)
             run_install "$skills_root" "$target_dir" "$mode" "$force" "0" "${selected[@]}"
             handle_always_on_install "$skills_root" "$tool" "$scope" "$project_root" "${selected[@]}"
+            if [[ "$with_slash_commands" == "1" ]]; then
+              handle_slash_install "$skills_root" "$tool" "$scope" "$project_root" "$force" "${selected[@]}"
+            fi
             ;;
           uninstall)
             run_uninstall "$skills_root" "$target_dir" "$force" "0" "${selected[@]}"
             handle_always_on_uninstall "$skills_root" "$tool" "$scope" "$project_root" "${selected[@]}"
+            handle_slash_uninstall "$skills_root" "$tool" "$scope" "$project_root" "${selected[@]}"
             ;;
           status)
             run_status "$skills_root" "$target_dir" "0" "${selected[@]}"
@@ -780,6 +945,13 @@ run_shell_tui() {
           install_policy_values="$(choose_install_policy)" || continue
           mode="$(printf '%s' "$install_policy_values" | cut -d'|' -f1)"
           force="$(printf '%s' "$install_policy_values" | cut -d'|' -f2)"
+          local slash_choice
+          slash_choice="$(select_with_fzf "slash-commands>" "off (recommended)" "on (write /<name>.md wrappers)")" || continue
+          if [[ "$slash_choice" == "on (write /<name>.md wrappers)" ]]; then
+            with_slash_commands=1
+          else
+            with_slash_commands=0
+          fi
         elif [[ "$action" == "uninstall" ]]; then
           force="$(choose_uninstall_force)" || continue
         else
@@ -864,6 +1036,7 @@ mode="symlink"
 force=0
 as_json=0
 auto_install_fzf=0
+with_slash_commands=0
 skills=()
 
 while [[ $# -gt 0 ]]; do
@@ -886,6 +1059,8 @@ while [[ $# -gt 0 ]]; do
       auto_install_fzf=1; shift ;;
     --force)
       force=1; shift ;;
+    --with-slash-commands)
+      with_slash_commands=1; shift ;;
     --json)
       as_json=1; shift ;;
     -h|--help)
@@ -1002,7 +1177,7 @@ if [[ "$cmd" == "list" ]]; then
 fi
 
 if [[ "$cmd" == "tui" ]]; then
-  run_shell_tui "$skills_root" "$project_root" "$tool" "$scope" "$mode" "$force" "$target_dir_override" "$auto_install_fzf"
+  run_shell_tui "$skills_root" "$project_root" "$tool" "$scope" "$mode" "$force" "$target_dir_override" "$auto_install_fzf" "$with_slash_commands"
   exit $?
 fi
 
@@ -1043,10 +1218,14 @@ case "$cmd" in
   install)
     run_install "$skills_root" "$target_dir" "$mode" "$force" "$as_json" "${selected[@]}"
     handle_always_on_install "$skills_root" "$tool" "$scope" "$project_root" "${selected[@]}"
+    if [[ "$with_slash_commands" == "1" ]]; then
+      handle_slash_install "$skills_root" "$tool" "$scope" "$project_root" "$force" "${selected[@]}"
+    fi
     ;;
   uninstall)
     run_uninstall "$skills_root" "$target_dir" "$force" "$as_json" "${selected[@]}"
     handle_always_on_uninstall "$skills_root" "$tool" "$scope" "$project_root" "${selected[@]}"
+    handle_slash_uninstall "$skills_root" "$tool" "$scope" "$project_root" "${selected[@]}"
     ;;
   status)
     run_status "$skills_root" "$target_dir" "$as_json" "${selected[@]}"

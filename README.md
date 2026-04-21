@@ -130,7 +130,24 @@ Options:
 - `--mode MODE` — symlink | copy (default: symlink)
 - `--auto-install-fzf` — allow `tui` to install fzf via Homebrew when missing
 - `--force` — replace conflicting targets
+- `--with-slash-commands` — also install slash command wrappers for manual skills
 - `--json` — JSON output
+
+### Slash Commands
+
+`--with-slash-commands` writes one wrapper file per `manual` skill into the
+agent's slash command directory, so you can trigger the skill by typing
+`/<skill-name>` in the chat:
+
+| Tool | Global | Project |
+|------|--------|---------|
+| Claude Code | `~/.claude/commands/<skill>.md` | `{project}/.claude/commands/<skill>.md` |
+| Codex / ChatGPT | `~/.codex/prompts/<skill>.md` | `{project}/.codex/prompts/<skill>.md` |
+
+Each wrapper file contains a marker comment so the linker can refresh or
+remove only the files it created — pre-existing files with the same name are
+left alone unless `--force` is passed. Uninstall always cleans up matching
+managed wrappers.
 
 Notes:
 
