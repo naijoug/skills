@@ -1,0 +1,33 @@
+id: plan-review
+version: 1.0.0
+title: Plan Review
+summary: Review an existing implementation plan against the latest code — correctness, sequencing, outdated assumptions, and gaps; designed for multi-agent cross-review
+kind: prompt_only
+tags:
+  - planning
+  - plan-review
+  - cross-review
+  - multi-agent
+  - verification
+  - design-critique
+triggers:
+  keywords:
+    - plan review
+    - review plan
+    - check plan
+    - validate plan
+    - plan critique
+    - cross review plan
+    - 计划 review
+    - 审核计划
+    - 检查计划
+    - 计划对不对
+    - 方案审核
+    - 多模型交叉 review
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - amp
+    - cursor
+    - trae

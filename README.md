@@ -19,6 +19,8 @@ Personal collection of AI coding skills. Skills are classified by directory unde
     │   └── skill-smith/
     └── manual/
         ├── plan/
+        │   ├── plan-create/
+        │   ├── plan-review/
         │   ├── teaching/
         │   ├── code-reading/
         │   └── test-case/

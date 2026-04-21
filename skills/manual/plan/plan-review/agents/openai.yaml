@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plan Review"
+  short_description: "Review a plan doc against the latest code — find gaps, outdated assumptions, sequencing issues"
+  default_prompt: "Use $plan-review to validate this plan document against the current code state and report findings with severity, location, and suggestions."

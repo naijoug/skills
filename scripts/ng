@@ -8,10 +8,13 @@ LINKER="$ROOT_DIR/scripts/skills-linker"
 usage() {
   cat <<'EOF'
 Usage:
-  ng                     Pick a manual skill interactively
-  ng list                List manual skills
-  ng plan                Show the category plan
-  ng <skill-id>          Show how to trigger a specific skill
+  ng                              Pick a manual skill interactively
+  ng list                         List manual skills
+  ng plan                         Show the category plan
+  ng <skill-id> [extra...]        Show how to trigger a specific skill
+  ng <group> <verb> [extra...]    Resolve to skill "<group>-<verb>" and include extras in the suggested prompt
+                                  e.g. ng plan create "payment module rewrite"
+                                       ng plan review docs/plans/foo.md
 
 Notes:
   - `global` skills should be installed globally and auto-trigger after installation
@@ -97,12 +100,28 @@ for category in ("global", "cron", "auto", "manual"):
 '
 }
 
+skill_id_exists() {
+  local skill_id="$1"
+  load_items_json | python3 -c '
+import json, sys
+skill_id = sys.argv[1]
+data = json.load(sys.stdin)
+for item in data.get("items", []):
+    if item["id"] == skill_id:
+        raise SystemExit(0)
+raise SystemExit(1)
+' "$skill_id"
+}
+
 print_skill_plan() {
   local skill_id="$1"
+  shift
+  local extra="$*"
   load_items_json | python3 -c '
 import json, sys
 
 skill_id = sys.argv[1]
+extra = sys.argv[2] if len(sys.argv) > 2 else ""
 data = json.load(sys.stdin)
 items = {item["id"]: item for item in data.get("items", [])}
 item = items.get(skill_id)
@@ -126,8 +145,14 @@ print("")
 
 if category == "manual":
     print("Trigger plan:")
-    print(f"- Mention `{skill_id}` explicitly, or describe a task that matches its summary.")
-    print(f"- Suggested prompt: Use the `{skill_id}` skill for this task.")
+    print(f"- Slash command (after install): /{skill_id} <args>")
+    print(f"- Or mention `{skill_id}` explicitly in any agent.")
+    if extra:
+        print("")
+        print("Suggested prompt:")
+        print(f"  Use the `{skill_id}` skill for this task: {extra}")
+    else:
+        print(f"- Suggested prompt: Use the `{skill_id}` skill for this task.")
 elif category == "global":
     print("Trigger plan:")
     print("- This is a global auto-trigger skill. Install it globally; do not invoke it manually.")
@@ -137,7 +162,7 @@ elif category == "auto":
 elif category == "cron":
     print("Trigger plan:")
     print("- This skill is intended for recurring automation, not manual invocation.")
-' "$skill_id"
+' "$skill_id" "$extra"
 }
 
 pick_manual_skill() {
@@ -176,9 +201,35 @@ case "$cmd" in
     print_manual_list
     ;;
   plan)
-    print_category_plan
+    if [[ $# -ge 2 ]]; then
+      # `ng plan <verb> [extras...]` → resolve to plan-<verb> skill
+      verb="$2"
+      shift 2
+      combined="plan-${verb}"
+      if skill_id_exists "$combined"; then
+        print_skill_plan "$combined" "$@"
+      else
+        echo "error: no skill named '${combined}' under plan/." >&2
+        echo "try: ng list   (to see available plan skills)" >&2
+        exit 1
+      fi
+    else
+      print_category_plan
+    fi
     ;;
   *)
-    print_skill_plan "$cmd"
+    # Try group-verb dispatch: ng <group> <verb> [extras...]
+    if [[ $# -ge 2 ]]; then
+      verb="$2"
+      combined="${cmd}-${verb}"
+      if skill_id_exists "$combined"; then
+        shift 2
+        print_skill_plan "$combined" "$@"
+        exit 0
+      fi
+    fi
+    # Fallback: treat arg1 as skill id, pass remaining args as extras
+    shift
+    print_skill_plan "$cmd" "$@"
     ;;
 esac
