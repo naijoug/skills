@@ -10,13 +10,12 @@ Personal collection of AI coding skills. Skills are classified by directory unde
 │   ├── skills-linker              # Install/uninstall skills (CLI + fzf TUI)
 │   └── tui                        # Shortcut for `skills-linker tui`
 └── skills/
-    ├── global/
-    │   └── in-english/
     ├── cron/
     │   ├── daily-til/
     │   ├── daily-trending/
     │   └── weekly-retro/
     ├── auto/
+    │   ├── in-english/
     │   └── skill-smith/
     └── manual/
         ├── plan/
@@ -46,17 +45,18 @@ Category comes from the directory path, not `skill.yaml`:
 
 | Category | Meaning | Typical examples |
 |----------|---------|------------------|
-| `skills/global/<skill>` | Install globally and auto-inject into agent instructions | `in-english` |
-| `skills/cron/<skill>` | Trigger from recurring automation or heartbeat jobs, not manual invocation | `daily-til`, `daily-trending`, `weekly-retro` |
-| `skills/auto/<skill>` | Auto-trigger helper that activates after installation | `skill-smith` |
-| `skills/manual/<group>/<skill>` | Only runs when explicitly selected or clearly requested | most task skills |
+| `skills/auto/<skill>` | Auto-injected via `inject.md`; activates always-on or on noticed conditions | `in-english`, `skill-smith` |
+| `skills/cron/<skill>` | Installed normally; driven by external scheduled triggers, not manual invocation | `daily-til`, `daily-trending`, `weekly-retro` |
+| `skills/manual/<group>/<skill>` | Only runs when explicitly selected or invoked via `/<name>` | most task skills |
 
 Behavior:
 
-- `global` and `auto` skills are auto-injected by `skills-linker` when they provide `inject.md`
-- `cron` skills are installed normally but are intentionally not auto-injected; they are driven by scheduled triggers
-- `manual` skills are the ones exposed by `./scripts/ng`
+- `auto` skills are auto-injected by `skills-linker` when they provide `inject.md` (writes into `~/.claude/CLAUDE.md` / `~/.codex/AGENTS.md`)
+- `cron` skills are installed normally but intentionally not auto-injected; fire from `/cron`, `launchd`, or system `cron`
+- `manual` skills are the ones exposed by `./scripts/ng` and `--with-slash-commands`
 - manual subgroup comes from the second directory level under `skills/manual/`
+
+> Note: the `global/` category was deprecated and merged into `auto/`. The script still recognizes `global` for backward compatibility, but new skills should use `auto/`.
 
 Recommended manual subdirectories:
 
