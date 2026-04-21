@@ -1,6 +1,6 @@
 # Trigger Examples
 
-Use these prompts to test whether `til-journal` triggers correctly.
+Use these prompts to test whether `daily-til` triggers correctly.
 
 ## Positive (Cron / Scheduled)
 

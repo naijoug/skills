@@ -19,7 +19,7 @@ Collect and organize daily AI hot topics into a concise report for quick review 
 
 - User asks about a specific technology's documentation or usage (use normal Q&A)
 - User wants a personal learning plan based on trends (use `personal-coach`)
-- User wants to record a specific learning from today (use `til-journal`)
+- User wants to record a specific learning from today (use `daily-til`)
 
 ## Suggested Workflow
 

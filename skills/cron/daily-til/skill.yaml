@@ -1,5 +1,5 @@
-id: til-journal
-version: 1.1.0
+id: daily-til
+version: 1.1.1
 title: TIL Journal
 summary: Today I Learned journal — daily cron sweep harvests recordable knowledge from past sessions; manual modes capture, review, summarize, or search
 kind: prompt_only

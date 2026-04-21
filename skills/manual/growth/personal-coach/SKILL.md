@@ -348,7 +348,7 @@ Automatically match mode based on user input:
 | ID | Practice | Freq | Time | Description |
 |----|----------|------|------|-------------|
 | P5-D1 | daily-trending | Daily | 15min | AI/tech trends daily digest: collect signals from multiple sources, filter noise, summarize what matters and why. |
-| P5-D2 | til-journal | Daily | 5min | Today I Learned journal: record one knowledge point in 3-5 sentences, tagged by technology. Build a searchable personal knowledge base. |
+| P5-D2 | daily-til | Daily | 5min | Today I Learned journal: record one knowledge point in 3-5 sentences, tagged by technology. Build a searchable personal knowledge base. |
 | P5-W1 | tech-blog-writer | Weekly | 2h | Write one tech blog post or detailed note: transform this week's most valuable learning into written output. Feynman technique in practice. |
 | P5-W2 | open-source-deep-dive | Weekly | 1h | Deep read one excellent open source project's core module: architecture, design decisions, code style. Annotate what you learned. |
 | P5-W3 | deep-read-digest | Weekly | 1h | Deep read one significant tech article or paper: extract core argument, key insights, personal implications, action items. |

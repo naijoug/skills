@@ -1,5 +1,5 @@
 ---
-name: til-journal
+name: daily-til
 description: Use when a recurring daily job sweeps the past day's AI sessions for recordable knowledge, or when the user manually asks to record/review/summarize/search their TIL diary
 ---
 

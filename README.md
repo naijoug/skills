@@ -13,8 +13,8 @@ Personal collection of AI coding skills. Skills are classified by directory unde
     ├── global/
     │   └── in-english/
     ├── cron/
+    │   ├── daily-til/
     │   ├── daily-trending/
-    │   ├── til-journal/
     │   └── weekly-retro/
     ├── auto/
     │   └── skill-smith/
@@ -47,7 +47,7 @@ Category comes from the directory path, not `skill.yaml`:
 | Category | Meaning | Typical examples |
 |----------|---------|------------------|
 | `skills/global/<skill>` | Install globally and auto-inject into agent instructions | `in-english` |
-| `skills/cron/<skill>` | Trigger from recurring automation or heartbeat jobs, not manual invocation | `til-journal`, `daily-trending`, `weekly-retro` |
+| `skills/cron/<skill>` | Trigger from recurring automation or heartbeat jobs, not manual invocation | `daily-til`, `daily-trending`, `weekly-retro` |
 | `skills/auto/<skill>` | Auto-trigger helper that activates after installation | `skill-smith` |
 | `skills/manual/<group>/<skill>` | Only runs when explicitly selected or clearly requested | most task skills |
 

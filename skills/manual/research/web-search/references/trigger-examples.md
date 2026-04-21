@@ -18,5 +18,5 @@
 - "Fix the bug in my code" (debugging, not search)
 - "Review this PR" (code review)
 - "今天 AI 领域有什么新动态？" (trending skill, not general search)
-- "TIL: learned about async/await" (til-journal)
+- "TIL: learned about async/await" (daily-til)
 - "Help me refactor this function" (refactor)
