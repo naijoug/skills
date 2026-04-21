@@ -21,7 +21,7 @@ Core principle: small, precise improvements driven by real usage context — nev
 
 ## When Not to Use
 
-- The user wants to create a brand-new skill from scratch (use `example-skill` template instead)
+- The user wants to create a brand-new skill from scratch (use `example` template instead)
 - The user wants to delete a skill entirely
 - The problem is not with the skill prompt but with the AI model's general capability
 
@@ -31,7 +31,7 @@ Core principle: small, precise improvements driven by real usage context — nev
 
 Ask the user which skill needs improvement. Use one of these approaches:
 
-1. **User specifies directly**: "improve the `pr-self-review` skill"
+1. **User specifies directly**: "improve the `pr` skill"
 2. **Infer from context**: If the user just used a skill and says "this isn't right", check the most recently triggered skill in the conversation
 3. **Search by keyword**: If the user describes the problem, search installed skills directories to find the matching skill
 
@@ -164,11 +164,11 @@ Next: Re-trigger the skill to verify the improvement.
 ## Example Triggers
 
 - "这个 skill 输出不太对，帮我改进一下"
-- "pr-self-review skill 缺少对 monorepo 的处理"
+- "pr skill 缺少对 monorepo 的处理"
 - "刚才那个 skill 理解错了我的意图，需要修正"
-- "Help me improve the trending skill, it's missing source categories"
-- "The weekly-coding-retro skill needs a better output format"
-- "Fix the algorithm-kata-coach skill — it gives answers too quickly"
+- "Help me improve the daily-trending skill, it's missing source categories"
+- "The weekly-retro skill needs a better output format"
+- "Fix the engineering skill — it gives answers too quickly in algorithm mode"
 
 ## References
 

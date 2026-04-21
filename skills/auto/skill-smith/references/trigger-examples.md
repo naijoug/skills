@@ -5,18 +5,18 @@ Use these prompts to test whether `skill-smith` triggers correctly.
 ## Positive (Chinese)
 
 - 这个 skill 输出不太对，帮我改进一下。 (Explicit skill improvement request)
-- pr-self-review skill 缺少对 monorepo 的处理。 (Specific skill + missing scenario)
+- pr skill 缺少对 monorepo 的处理。 (Specific skill + missing scenario)
 - 刚才那个 skill 理解错了我的意图。 (Recent skill misinterpretation)
 - skill 需要增加一个新的检查项。 (Add quality checks to an existing skill)
 - 这个 skill 的触发条件不够准确。 (Trigger refinement request)
-- 优化一下 code-reading-accelerator 的工作流。 (Workflow optimization for a specific skill)
+- 优化一下 code-reading 的工作流。 (Workflow optimization for a specific skill)
 
 ## Positive (English)
 
-- Help me improve the trending skill. (Explicit improve + skill name)
-- The weekly-coding-retro needs a better output format. (Skill name + output issue)
-- Fix the algorithm-kata-coach; it gives answers too quickly. (Behavior tuning for a skill)
-- Refine the teaching-plan skill prompt. (Prompt refinement for a named skill)
+- Help me improve the daily-trending skill. (Explicit improve + skill name)
+- The weekly-retro needs a better output format. (Skill name + output issue)
+- Fix the engineering skill; it gives answers too quickly in algorithm mode. (Behavior tuning for a skill)
+- Refine the teaching skill prompt. (Prompt refinement for a named skill)
 - The who-am-i skill is missing privacy checks; update it. (Gap + requested update)
 
 ## Negative / Near Miss

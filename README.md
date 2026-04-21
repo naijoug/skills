@@ -13,17 +13,30 @@ Personal collection of AI coding skills. Skills are classified by directory unde
     ├── global/
     │   └── in-english/
     ├── cron/
-    │   └── til-journal/
+    │   ├── daily-trending/
+    │   └── weekly-retro/
     ├── auto/
     │   └── skill-smith/
     └── manual/
         ├── plan/
-        │   └── teaching-plan/
+        │   ├── teaching/
+        │   ├── code-reading/
+        │   └── test-case/
         ├── review/
+        │   ├── pr/
+        │   ├── api-design/
+        │   └── refactor/
         ├── research/
+        │   └── web-search/
         ├── growth/
+        │   ├── personal-coach/
+        │   ├── engineering/
+        │   └── debugging-kata/
         ├── tooling/
+        │   ├── openclaw/
+        │   └── who-am-i/
         └── meta/
+            └── example/
 ```
 
 ## Skill Categories
@@ -40,7 +53,7 @@ Category comes from the directory path, not `skill.yaml`:
 Behavior:
 
 - `global` and `auto` skills are auto-injected by `skills-linker` when they provide `inject.md`
-- `cron` skills are installed normally but are intentionally not auto-injected
+- `cron` skills are installed normally but are intentionally not auto-injected; they are driven by scheduled triggers
 - `manual` skills are the ones exposed by `./scripts/ng`
 - manual subgroup comes from the second directory level under `skills/manual/`
 
@@ -98,13 +111,13 @@ Skills selection supports right-side `SKILL.md` preview. Install defaults to sel
 
 # Install to Claude Code global skills
 ./scripts/skills-linker install --tool claude --scope global \
-  pr-self-review personal-growth-coach
+  pr personal-coach
 
 # Install to project-level
 ./scripts/skills-linker install --tool codex --scope project --project-root .
 
 # Uninstall
-./scripts/skills-linker uninstall --tool claude --scope global pr-self-review
+./scripts/skills-linker uninstall --tool claude --scope global pr
 
 # Check status
 ./scripts/skills-linker status --tool claude --scope global
@@ -140,7 +153,7 @@ Notes:
 ./scripts/ng
 
 # Show how to trigger one specific skill
-./scripts/ng pr-self-review
+./scripts/ng pr
 ```
 
 ## Creating a New Skill

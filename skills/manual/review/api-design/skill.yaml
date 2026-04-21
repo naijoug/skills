@@ -1,0 +1,32 @@
+id: api-design
+version: 1.0.1
+title: API Design Review
+summary: Comprehensive review of API contracts, endpoints, and SDK methods for semantics, compatibility, and maintainability
+kind: prompt_only
+tags:
+  - api
+  - design
+  - rest
+  - graphql
+  - review
+  - contract
+triggers:
+  keywords:
+    - api design
+    - api review
+    - endpoint review
+    - sdk design
+    - interface design
+    - api contract
+    - design review
+    - 接口设计
+    - API 评审
+    - 端点设计
+    - 幂等性
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - amp
+    - cursor
+    - trae

@@ -1,0 +1,22 @@
+id: example
+version: 1.0.1
+title: Example Skill
+summary: A starter template for new skills with standard metadata and triggers
+kind: prompt_only
+tags:
+  - template
+  - development
+  - meta
+triggers:
+  keywords:
+    - new skill
+    - create skill
+    - skill template
+    - template for skills
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - amp
+    - cursor
+    - trae

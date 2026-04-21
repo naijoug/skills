@@ -20,4 +20,5 @@ venv/
 .alma-snapshots
 
 # Skill development workspaces
-skills/power-web-search/workspace/
+skills/manual/research/web-search/workspace/
+.omx/

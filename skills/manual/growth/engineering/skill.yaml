@@ -1,0 +1,50 @@
+id: engineering
+version: 1.0.1
+title: Engineering Coach
+summary: Unified coaching skill for algorithm practice, bug investigation, design pattern evaluation, and performance analysis — auto-detects mode from context
+kind: prompt_only
+tags:
+  - algorithm
+  - interview
+  - debugging
+  - bug
+  - design-pattern
+  - performance
+  - coach
+  - practice
+triggers:
+  keywords:
+    - algorithm practice
+    - interview prep
+    - hints only
+    - kata coach
+    - bug investigation
+    - root cause
+    - flaky test
+    - debug coach
+    - design pattern
+    - overengineering
+    - pattern trade-off
+    - performance analysis
+    - latency
+    - bottleneck
+    - slow code
+    - engineering coach
+    - 算法题训练
+    - 算法面试
+    - 分层提示
+    - 逐步提示
+    - 排查计划
+    - 根因分析
+    - 偶发 bug
+    - 设计模式
+    - 过度设计
+    - 性能分析
+    - 性能瓶颈
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - amp
+    - cursor
+    - trae

@@ -39,28 +39,30 @@ def predict_case(case: dict, mode: str = "keyword-demo") -> list[str]:
     out: list[str] = []
 
     # Minimal keyword demo rules (intentionally simple; replace in real usage)
-    if any(k in p for k in ["flaky", "intermittent", "root cause", "排查", "复现"]):
-        out.append("bug-investigation-coach")
+    if any(
+        k in p
+        for k in [
+            "flaky", "intermittent", "root cause", "排查", "复现",
+            "performance", "latency", "p95", "性能",
+            "leetcode", "algorithm problem", "刷题", "hints only", "kata",
+            "design pattern", "strategy vs state", "设计模式", "overengineering",
+        ]
+    ):
+        out.append("engineering")
     if any(k in p for k in ["test matrix", "测试用例", "边界", "regression test"]):
-        out.append("test-case-designer")
+        out.append("test-case")
     if any(k in p for k in ["codebase", "读代码", "调用链", "request flow"]):
-        out.append("code-reading-accelerator")
+        out.append("code-reading")
     if any(k in p for k in ["refactor", "重构", "behavior-preserving"]):
-        out.append("refactor-safely")
+        out.append("refactor")
     if any(k in p for k in ["self-review", "自检", "reviewer comments", "pr "]):
-        out.append("pr-self-review")
+        out.append("pr")
     if any(k in p for k in ["api contract", "接口设计", "idempotency", "幂等"]):
-        out.append("api-design-review")
-    if any(k in p for k in ["performance", "latency", "p95", "性能"]):
-        out.append("performance-thinking-coach")
+        out.append("api-design")
     if any(k in p for k in ["retro", "复盘", "this week", "weekly"]):
-        out.append("weekly-coding-retro")
-    if any(k in p for k in ["leetcode", "algorithm problem", "刷题", "hints only", "kata"]):
-        out.append("algorithm-kata-coach")
+        out.append("weekly-retro")
     if any(k in p for k in ["debugging kata", "incident practice", "调试练习", "drill"]):
-        out.append("debugging-kata-generator")
-    if any(k in p for k in ["design pattern", "strategy vs state", "设计模式", "overengineering"]):
-        out.append("design-pattern-application-coach")
+        out.append("debugging-kata")
 
     # stable de-dup preserving order
     seen = set()
