@@ -29,6 +29,7 @@ Personal collection of AI coding skills. Skills are classified by directory unde
         │   ├── api-design/
         │   └── refactor/
         ├── research/
+        │   ├── ref/
         │   └── web-search/
         ├── growth/
         │   ├── personal-coach/
