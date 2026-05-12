@@ -1,5 +1,5 @@
 ---
-name: debugging-kata
+name: ng-growth-debugging-kata
 description: Use when creating deliberate debugging exercises, bug drills, or practice incidents and you need realistic failure scenarios, clues, and an optional answer key with escalating difficulty
 ---
 

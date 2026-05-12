@@ -1,4 +1,4 @@
-id: refactor
+id: ng-review-refactor
 version: 1.0.1
 title: Refactor Safely
 summary: Improve code structure without changing behavior through small, reversible steps and regression protection

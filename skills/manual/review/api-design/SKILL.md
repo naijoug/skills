@@ -1,5 +1,5 @@
 ---
-name: api-design
+name: ng-review-api-design
 description: Use when designing or reviewing an API contract, endpoint, SDK method, or service interface and you need checks for semantics, compatibility, errors, and long-term maintainability
 ---
 

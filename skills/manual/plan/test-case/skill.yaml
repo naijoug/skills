@@ -1,4 +1,4 @@
-id: test-case
+id: ng-plan-test-case
 version: 1.0.1
 title: Test Case Designer
 summary: Systematic test case design for functions, APIs, and workflows — cover happy path, boundaries, invalid input, and regression risk

@@ -1,5 +1,5 @@
 ---
-name: example
+name: ng-meta-example
 description: Use when creating a new Alma skill and needing a clean starter template with standard sections
 ---
 

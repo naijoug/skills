@@ -30,6 +30,20 @@ Core principle: reflect on repeated patterns, not isolated frustrations.
 - Time sinks / blockers
 - Notes from daily work
 
+## Modes
+
+| Mode | Trigger | Behavior |
+|------|---------|----------|
+| Manual | User asks for a retro | Use whatever the user provides; ask for any missing inputs |
+| Scheduled (`mode=scheduled-sweep`) | Cron / launchd fires with no user prompt | **Must run unattended** — auto-collect evidence from the sources below; do not ask questions |
+
+Auto-collection sources for scheduled mode (past 7 days):
+
+- AI session transcripts: `~/.claude/projects/*/*.jsonl`, `~/.codex/sessions/*.jsonl`
+- Git activity: `git log --author="$(git config user.email)" --since='7 days ago'` across repo roots from `~/.weekly-retro/config.yaml: repos`
+- PR feedback: `gh pr list --author=@me --state=all --search 'updated:>$(date -v-7d +%F)'` if `gh` is available
+- Output: write to `~/.weekly-retro/<YYYY-MM-DD>.md`
+
 ## Retro Workflow
 
 1. Collect evidence

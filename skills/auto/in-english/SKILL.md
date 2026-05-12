@@ -1,6 +1,6 @@
 ---
 name: in-english
-description: Use on EVERY user message — before responding to any request, first translate/rewrite the user's input into correct, concise English and show grammar corrections. This skill should ALWAYS be active regardless of the topic or language of the input. Activate whenever the user sends any prompt in any language, even if they don't explicitly ask for translation.
+description: Always-on English coach — translate any non-English/imperfect-English user prompt into correct, concise English with brief grammar notes before answering the request
 ---
 
 # In English

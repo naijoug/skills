@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plan Create"
+  short_description: "Draft a dated implementation plan with milestones, tasks, risks, verification"
+  default_prompt: "Use $ng-plan-create to draft an implementation plan for this work and write it to docs/plans/YYYY-MM-DD-<topic>.md."

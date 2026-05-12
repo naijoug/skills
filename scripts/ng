@@ -33,7 +33,7 @@ print_manual_list() {
 import json, sys
 data = json.load(sys.stdin)
 items = data.get("items", [])
-order = ("plan", "review", "research", "growth", "tooling", "meta")
+order = ("plan", "review", "tool", "growth", "meta")
 groups = {name: [] for name in order}
 for item in items:
     groups.setdefault(item.get("manual_group") or "other", []).append(item)
@@ -83,7 +83,7 @@ for category in ("global", "cron", "auto", "manual"):
         print("")
         continue
 
-    order = ("plan", "review", "research", "growth", "tooling", "meta")
+    order = ("plan", "review", "tool", "growth", "meta")
     subgroups = {name: [] for name in order}
     for item in bucket:
         subgroups.setdefault(item.get("manual_group") or "other", []).append(item)
@@ -107,7 +107,13 @@ import json, sys
 skill_id = sys.argv[1]
 data = json.load(sys.stdin)
 for item in data.get("items", []):
-    if item["id"] == skill_id:
+    path_name = (item.get("path") or "").rstrip("/").split("/")[-1]
+    group = item.get("manual_group") or ""
+    aliases = {item["id"], path_name}
+    if group and path_name:
+        aliases.add(f"{group}-{path_name}")
+        aliases.add(f"ng-{group}-{path_name}")
+    if skill_id in aliases:
         raise SystemExit(0)
 raise SystemExit(1)
 ' "$skill_id"
@@ -123,8 +129,18 @@ import json, sys
 skill_id = sys.argv[1]
 extra = sys.argv[2] if len(sys.argv) > 2 else ""
 data = json.load(sys.stdin)
-items = {item["id"]: item for item in data.get("items", [])}
-item = items.get(skill_id)
+item = None
+for candidate in data.get("items", []):
+    path_name = (candidate.get("path") or "").rstrip("/").split("/")[-1]
+    group = candidate.get("manual_group") or ""
+    aliases = {candidate["id"], path_name}
+    if group and path_name:
+        aliases.add(f"{group}-{path_name}")
+        aliases.add(f"ng-{group}-{path_name}")
+    if skill_id in aliases:
+        item = candidate
+        skill_id = candidate["id"]
+        break
 if item is None:
     print(f"error: unknown skill id: {skill_id}", file=sys.stderr)
     raise SystemExit(1)
@@ -202,10 +218,10 @@ case "$cmd" in
     ;;
   plan)
     if [[ $# -ge 2 ]]; then
-      # `ng plan <verb> [extras...]` → resolve to plan-<verb> skill
+      # `ng plan <verb> [extras...]` → resolve to ng-plan-<verb> skill
       verb="$2"
       shift 2
-      combined="plan-${verb}"
+      combined="ng-plan-${verb}"
       if skill_id_exists "$combined"; then
         print_skill_plan "$combined" "$@"
       else
@@ -221,7 +237,7 @@ case "$cmd" in
     # Try group-verb dispatch: ng <group> <verb> [extras...]
     if [[ $# -ge 2 ]]; then
       verb="$2"
-      combined="${cmd}-${verb}"
+      combined="ng-${cmd}-${verb}"
       if skill_id_exists "$combined"; then
         shift 2
         print_skill_plan "$combined" "$@"

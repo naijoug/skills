@@ -1,8 +1,11 @@
 id: daily-trending
-version: 1.0.1
+version: 1.1.0
 title: Trending
 summary: Collect and organize daily AI industry trends, product launches, papers, and community discussions into a dated digest
 kind: prompt_only
+schedule:
+  recommended: "0 9 * * *"
+  description: Once per day, morning, to digest overnight AI activity
 tags:
   - trends
   - news

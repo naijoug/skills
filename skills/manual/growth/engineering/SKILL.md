@@ -1,5 +1,5 @@
 ---
-name: engineering
+name: ng-growth-engineering
 description: Use when practicing or analyzing algorithms, debugging bugs, evaluating design patterns, or investigating performance — a unified coaching skill with mode auto-detection for structured, question-driven guidance
 ---
 

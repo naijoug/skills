@@ -21,13 +21,20 @@ Collect and organize daily AI hot topics into a concise report for quick review 
 - User wants a personal learning plan based on trends (use `personal-coach`)
 - User wants to record a specific learning from today (use `daily-til`)
 
+## Modes
+
+| Mode | Trigger | Behavior |
+|------|---------|----------|
+| Manual | User asks for a digest | Use whatever sources are available; ask before fetching if unsure |
+| Scheduled (`mode=scheduled-sweep`) | Cron / launchd fires the skill with no user prompt | **Must run unattended**: use `WebSearch` (or equivalent) on the source list below; do not ask questions; save to disk |
+
 ## Suggested Workflow
 
-1. Gather signals from multiple sources (news, communities, code, papers).
-2. Deduplicate overlapping topics.
-3. Group by category (product, research, tooling, industry).
+1. **Fetch signals** using `WebSearch` against the sources in *Data Sources* below. In scheduled mode, fetch all categories; in manual mode, ask the user if they want a narrower scope first.
+2. Deduplicate overlapping topics across sources.
+3. Group by category (product, research, tooling, industry, community).
 4. Summarize each item with why it matters.
-5. Save with a date-based filename for later retrieval.
+5. **Save to** `~/.daily-trending/<YYYY-MM-DD>.md` (override via `~/.daily-trending/config.yaml: output_dir`). Create the directory if missing.
 
 ## Output Format (Recommended)
 

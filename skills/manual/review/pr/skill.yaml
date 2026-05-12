@@ -1,8 +1,8 @@
-id: pr
-version: 1.0.1
+id: ng-review-pr
+version: 1.0.2
 title: PR Self Review
 summary: Systematic self-review checklist for regressions, test gaps, readability, and operational risk
-kind: prompt_plus_runtime
+kind: prompt_only
 tags:
   - review
   - pull-request
@@ -21,6 +21,3 @@ compatibility:
     - amp
     - trae
     - antigravity
-runtime:
-  entrypoint: skills.pr.runtime:run
-  timeout: 30

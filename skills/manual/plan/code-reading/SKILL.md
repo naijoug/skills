@@ -1,5 +1,5 @@
 ---
-name: code-reading
+name: ng-plan-code-reading
 description: Use when onboarding to an unfamiliar codebase, tracing a feature flow, or understanding a module quickly and you need a structured reading order and architecture map
 ---
 

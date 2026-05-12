@@ -1,4 +1,4 @@
-id: teaching
+id: ng-plan-teaching
 version: 1.0.1
 title: Teaching Plan
 summary: Generate detailed Markdown lesson plans and teaching scripts from GitHub URLs, code snippets, or documentation

@@ -26,6 +26,7 @@ Options:
   --force                Replace/remove conflicting targets
   --with-slash-commands  Also install slash command wrappers for manual skills
                          (claude→~/.claude/commands, codex→~/.codex/prompts)
+                         Commands use the skill id, e.g. /ng-plan-create
   --json                 JSON output (list/status/install/uninstall)
 
 Requires: fzf (for tui command)
@@ -108,7 +109,7 @@ discover_skills() {
   [[ -d "$skills_root" ]] || return 0
   local dir
   while IFS= read -r dir; do
-    basename "$dir"
+    skill_id "$dir"
   done < <(discover_skill_dirs "$skills_root")
 }
 
@@ -123,9 +124,26 @@ discover_skill_dirs() {
 resolve_skill_dir() {
   local skills_root="$1"
   local skill_id="$2"
-  local dir
+  local dir id
   while IFS= read -r dir; do
-    if [[ "$(basename "$dir")" == "$skill_id" ]]; then
+    id="$(skill_id "$dir")"
+    if [[ "$id" == "$skill_id" ]]; then
+      echo "$dir"
+      return 0
+    fi
+  done < <(discover_skill_dirs "$skills_root")
+
+  local basename_id group
+  while IFS= read -r dir; do
+    basename_id="$(basename "$dir")"
+    group="$(basename "$(dirname "$dir")")"
+    if [[ "$basename_id" == "$skill_id" \
+       || "$group-$basename_id" == "$skill_id" \
+       || "ng-$group-$basename_id" == "$skill_id" ]]; then
+      echo "$dir"
+      return 0
+    fi
+    if [[ "$basename_id" == "search" && "$skill_id" == "web-search" ]]; then
       echo "$dir"
       return 0
     fi
@@ -151,6 +169,20 @@ yaml_top_level_scalar() {
       exit
     }
   ' "$yaml_file"
+}
+
+skill_id() {
+  local skill_dir="$1"
+  local id
+  id="$(yaml_top_level_scalar "$skill_dir/skill.yaml" "id")"
+  if [[ -z "$id" ]]; then
+    id="$(yaml_top_level_scalar "$skill_dir/SKILL.md" "name")"
+  fi
+  if [[ -n "$id" ]]; then
+    echo "$id"
+  else
+    basename "$skill_dir"
+  fi
 }
 
 skill_title() {
@@ -425,6 +457,111 @@ is_manual_skill() {
   [[ "$(skill_category "$skills_root" "$skill_dir")" == "manual" ]]
 }
 
+slash_command_name() {
+  local skill_id="$1"
+  echo "$skill_id"
+}
+
+slash_command_file() {
+  local slash_dir="$1"
+  local skill_id="$2"
+  local command_name
+  command_name="$(slash_command_name "$skill_id")"
+  echo "$slash_dir/$command_name.md"
+}
+
+legacy_slash_command_file() {
+  local slash_dir="$1"
+  local skill_id="$2"
+  echo "$slash_dir/$skill_id.md"
+}
+
+legacy_slash_command_files() {
+  local slash_dir="$1"
+  local skill_id="$2"
+  local skill_dir="$3"
+  local basename_id old_full_name group group_name
+  basename_id="$(basename "$skill_dir")"
+  group="$(basename "$(dirname "$skill_dir")")"
+  old_full_name="ng-tool-$basename_id"
+  group_name="ng-$group-$basename_id"
+
+  printf '%s\n' "$slash_dir/$basename_id.md"
+  printf '%s\n' "$slash_dir/$old_full_name.md"
+  printf '%s\n' "$slash_dir/$group-$basename_id.md"
+  printf '%s\n' "$slash_dir/ng-tool-$group-$basename_id.md"
+  if [[ -n "$group" ]]; then
+    printf '%s\n' "$slash_dir/$group_name.md"
+  fi
+  if [[ "$basename_id" == "search" ]]; then
+    printf '%s\n' "$slash_dir/web-search.md"
+    printf '%s\n' "$slash_dir/ng-tool-web-search.md"
+  fi
+  if [[ "$skill_id" != "$basename_id" ]]; then
+    printf '%s\n' "$slash_dir/$skill_id.md"
+  fi
+}
+
+slash_marker_ids() {
+  local skill_id="$1"
+  local skill_dir="$2"
+  local basename_id group
+  basename_id="$(basename "$skill_dir")"
+  group="$(basename "$(dirname "$skill_dir")")"
+
+  printf '%s\n' "$skill_id"
+  printf '%s\n' "$basename_id"
+  printf '%s\n' "$group-$basename_id"
+  printf '%s\n' "ng-tool-$group-$basename_id"
+  if [[ "$basename_id" == "search" ]]; then
+    printf '%s\n' "web-search"
+  fi
+}
+
+legacy_skill_ids() {
+  local skill_id="$1"
+  local skill_dir="$2"
+  local basename_id group
+  basename_id="$(basename "$skill_dir")"
+  group="$(basename "$(dirname "$skill_dir")")"
+
+  printf '%s\n' "$basename_id"
+  printf '%s\n' "$group-$basename_id"
+  if [[ "$basename_id" == "search" ]]; then
+    printf '%s\n' "web-search"
+  fi
+  if [[ "$skill_id" != "$basename_id" ]]; then
+    printf '%s\n' "$skill_id"
+  fi
+}
+
+is_managed_slash_file() {
+  local file="$1"
+  local skill_id="$2"
+  local skill_dir="$3"
+  local marker_id
+  [[ -f "$file" ]] || return 1
+  while IFS= read -r marker_id; do
+    if grep -qF "<!-- skills-linker:slash:${marker_id} -->" "$file" 2>/dev/null; then
+      return 0
+    fi
+  done < <(slash_marker_ids "$skill_id" "$skill_dir" | sort -u)
+  return 1
+}
+
+slash_command_file_exists() {
+  local slash_dir="$1"
+  local skill_id="$2"
+  local skill_dir="$3"
+  local file legacy_file
+  file="$(slash_command_file "$slash_dir" "$skill_id")"
+  [[ -f "$file" ]] && return 0
+  while IFS= read -r legacy_file; do
+    [[ -f "$legacy_file" ]] && return 0
+  done < <(legacy_slash_command_files "$slash_dir" "$skill_id" "$skill_dir")
+  return 1
+}
+
 write_slash_command_file() {
   local tool="$1"
   local skill_id="$2"
@@ -472,11 +609,11 @@ install_slash_command() {
   local slash_dir="$4"
   local tool="$5"
   local force="$6"
-  local file="$slash_dir/$skill_id.md"
-  local marker="<!-- skills-linker:slash:${skill_id} -->"
+  local file
+  file="$(slash_command_file "$slash_dir" "$skill_id")"
 
   if [[ -e "$file" ]]; then
-    if grep -qF "$marker" "$file" 2>/dev/null; then
+    if is_managed_slash_file "$file" "$skill_id" "$skill_dir"; then
       :  # already managed — safe to refresh
     elif [[ "$force" == "1" ]]; then
       :  # user explicitly opted to overwrite
@@ -487,19 +624,37 @@ install_slash_command() {
 
   mkdir -p "$slash_dir"
   write_slash_command_file "$tool" "$skill_id" "$skill_dir" "$skills_root" "$file"
+
+  local legacy_file
+  while IFS= read -r legacy_file; do
+    [[ "$legacy_file" != "$file" ]] || continue
+    if is_managed_slash_file "$legacy_file" "$skill_id" "$skill_dir"; then
+      rm -f "$legacy_file"
+    fi
+  done < <(legacy_slash_command_files "$slash_dir" "$skill_id" "$skill_dir")
 }
 
 remove_slash_command() {
   local skill_id="$1"
   local slash_dir="$2"
-  local file="$slash_dir/$skill_id.md"
-  local marker="<!-- skills-linker:slash:${skill_id} -->"
-  [[ -f "$file" ]] || return 0
-  if grep -qF "$marker" "$file" 2>/dev/null; then
+  local skill_dir="$3"
+  local file legacy_file removed=1
+  file="$(slash_command_file "$slash_dir" "$skill_id")"
+
+  if is_managed_slash_file "$file" "$skill_id" "$skill_dir"; then
     rm -f "$file"
-    return 0
+    removed=0
   fi
-  return 1
+
+  while IFS= read -r legacy_file; do
+    [[ "$legacy_file" != "$file" ]] || continue
+    if is_managed_slash_file "$legacy_file" "$skill_id" "$skill_dir"; then
+      rm -f "$legacy_file"
+      removed=0
+    fi
+  done < <(legacy_slash_command_files "$slash_dir" "$skill_id" "$skill_dir")
+
+  return "$removed"
 }
 
 handle_slash_install() {
@@ -517,14 +672,15 @@ handle_slash_install() {
     return 0
   }
 
-  local skill source
+  local skill source command_name
   for skill in "${skills[@]}"; do
     source="$(resolve_skill_dir "$skills_root" "$skill")" || continue
     is_manual_skill "$skills_root" "$source" || continue
+    command_name="$(slash_command_name "$skill")"
     if install_slash_command "$skills_root" "$skill" "$source" "$slash_dir" "$tool" "$force"; then
-      echo "$skill: slash command installed → $slash_dir/$skill.md"
+      echo "$skill: slash command installed → $slash_dir/$command_name.md"
     else
-      echo "$skill: slash command exists at $slash_dir/$skill.md (use --force to overwrite)"
+      echo "$skill: slash command exists at $slash_dir/$command_name.md (use --force to overwrite)"
     fi
   done
 }
@@ -540,11 +696,15 @@ handle_slash_uninstall() {
   local slash_dir
   slash_dir="$(resolve_slash_command_dir "$tool" "$scope" "$project_root")" || return 0
 
-  local skill file
+  local skill source file legacy_file
   for skill in "${skills[@]}"; do
-    file="$slash_dir/$skill.md"
-    [[ -f "$file" ]] || continue
-    if remove_slash_command "$skill" "$slash_dir"; then
+    source="$(resolve_skill_dir "$skills_root" "$skill")" || continue
+    skill="$(skill_id "$source")"
+    file="$(slash_command_file "$slash_dir" "$skill")"
+    if ! slash_command_file_exists "$slash_dir" "$skill" "$source"; then
+      continue
+    fi
+    if remove_slash_command "$skill" "$slash_dir" "$source"; then
       echo "$skill: removed slash command ← $file"
     else
       echo "$skill: slash command at $file is not managed by linker, leaving in place"
@@ -596,14 +756,23 @@ run_install() {
 
   mkdir -p "$target_dir"
   local out=()
-  local skill source dest
+  local skill source dest legacy_id legacy_dest
   for skill in "${selected[@]}"; do
     source="$(resolve_skill_dir "$skills_root" "$skill" || true)"
-    dest="$target_dir/$skill"
     if [[ ! -d "$source" || ! -f "$source/SKILL.md" ]]; then
       out+=("$skill"$'\t'"error"$'\t'"skill not found")
       continue
     fi
+    skill="$(skill_id "$source")"
+    dest="$target_dir/$skill"
+    while IFS= read -r legacy_id; do
+      [[ "$legacy_id" != "$skill" ]] || continue
+      legacy_dest="$target_dir/$legacy_id"
+      if [[ -e "$legacy_dest" || -L "$legacy_dest" ]] && [[ -n "$(manifest_get_mode "$target_dir" "$legacy_id")" ]]; then
+        rm -rf "$legacy_dest"
+        manifest_remove "$target_dir" "$legacy_id"
+      fi
+    done < <(legacy_skill_ids "$skill" "$source" | sort -u)
 
     if [[ -e "$dest" || -L "$dest" ]]; then
       if [[ "$force" == "1" ]]; then
@@ -651,8 +820,12 @@ run_uninstall() {
   local selected=("$@")
 
   local out=()
-  local skill dest mode_from_manifest
+  local skill source dest mode_from_manifest
   for skill in "${selected[@]}"; do
+    source="$(resolve_skill_dir "$skills_root" "$skill" || true)"
+    if [[ -n "$source" ]]; then
+      skill="$(skill_id "$source")"
+    fi
     dest="$target_dir/$skill"
     if [[ ! -e "$dest" && ! -L "$dest" ]]; then
       manifest_remove "$target_dir" "$skill"
@@ -695,8 +868,12 @@ run_status() {
   shift 3
   local selected=("$@")
   local out=()
-  local skill dest state managed
+  local skill source dest state managed
   for skill in "${selected[@]}"; do
+    source="$(resolve_skill_dir "$skills_root" "$skill" || true)"
+    if [[ -n "$source" ]]; then
+      skill="$(skill_id "$source")"
+    fi
     dest="$target_dir/$skill"
     if [[ -L "$dest" ]]; then
       state="symlink"
@@ -946,8 +1123,8 @@ run_shell_tui() {
           mode="$(printf '%s' "$install_policy_values" | cut -d'|' -f1)"
           force="$(printf '%s' "$install_policy_values" | cut -d'|' -f2)"
           local slash_choice
-          slash_choice="$(select_with_fzf "slash-commands>" "off (recommended)" "on (write /<name>.md wrappers)")" || continue
-          if [[ "$slash_choice" == "on (write /<name>.md wrappers)" ]]; then
+          slash_choice="$(select_with_fzf "slash-commands>" "off (recommended)" "on (write /<skill-id>.md wrappers)")" || continue
+          if [[ "$slash_choice" == "on (write /<skill-id>.md wrappers)" ]]; then
             with_slash_commands=1
           else
             with_slash_commands=0
@@ -1205,11 +1382,15 @@ if [[ "${#selected[@]}" -eq 0 ]]; then
   die "no skills found"
 fi
 
+normalized_selected=()
 for skill in "${selected[@]}"; do
-  if ! array_contains "$skill" "${discovered[@]}"; then
+  skill_dir="$(resolve_skill_dir "$skills_root" "$skill" || true)"
+  if [[ -z "$skill_dir" ]]; then
     die "unknown skill id: $skill"
   fi
+  normalized_selected+=("$(skill_id "$skill_dir")")
 done
+selected=("${normalized_selected[@]}")
 
 target_dir="$(resolve_target_dir "$tool" "$scope" "$project_root" "$target_dir_override")"
 mkdir -p "$target_dir"

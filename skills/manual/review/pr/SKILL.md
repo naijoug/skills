@@ -1,5 +1,5 @@
 ---
-name: pr
+name: ng-review-pr
 description: Use when preparing a pull request or commit for review and you need a systematic self-review for regressions, readability, test gaps, and operational risk
 ---
 

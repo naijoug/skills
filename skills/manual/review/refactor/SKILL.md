@@ -1,5 +1,5 @@
 ---
-name: refactor
+name: ng-review-refactor
 description: Use when improving code structure without changing behavior and you need small reversible refactor steps, regression protection, and verification checkpoints
 ---
 

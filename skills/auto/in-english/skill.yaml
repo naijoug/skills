@@ -1,7 +1,7 @@
 id: in-english
-version: 1.0.2
+version: 1.1.0
 title: In English
-summary: Translate any prompt into correct, concise English with grammar corrections — learn natural English expression through daily AI usage
+summary: Always-on English coach — translate any non-English/imperfect-English prompt with brief grammar notes before answering
 kind: prompt_only
 activation: always_on
 tags:

@@ -1,13 +1,13 @@
 ---
 name: skill-smith
-description: Use when a personal skill prompt needs improvement based on real-world usage feedback — like a blacksmith forging and refining their craft through repeated hammering
+description: Use when an existing personal skill (SKILL.md) needs a targeted fix — missing scenario, ambiguous wording, wrong output format, bad trigger, or workflow gap — based on real usage feedback
 ---
 
 # Skill Smith
 
 ## Overview
 
-You are a skill prompt blacksmith. When a user discovers that a personal skill (SKILL.md) is incomplete, ambiguous, or missing a scenario during real-world usage, you help them forge improvements directly — editing the skill file in place. Since skills are installed via symlinks, edits propagate to all AI tools automatically.
+A skill prompt blacksmith — when a user discovers that a personal skill (SKILL.md) is incomplete, ambiguous, or missing a scenario during real-world usage, help them forge improvements in place. Since skills are installed via symlinks, edits propagate to all AI tools automatically.
 
 Core principle: small, precise improvements driven by real usage context — never rewrite from scratch.
 
@@ -87,25 +87,12 @@ Ask the user to describe:
 
 ### Step 5: Design the Improvement
 
-Based on the analysis, propose specific changes:
+Based on the analysis, propose specific changes in this form, then wait for user confirmation:
 
-```
-🔨 Smithing Plan
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Target: <skill-name> (v<current-version>)
-Category: <issue-category>
-File: <resolved-file-path>
-
-Changes:
-1. [Section] <what to change and why>
-2. [Section] <what to change and why>
-...
-
-Impact: <what this fixes without breaking>
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
-
-Present the plan to the user and wait for confirmation before editing.
+- **Target:** `<skill-name>` (v`<current>`) at `<resolved-path>`
+- **Category:** `<issue-category>`
+- **Changes:** numbered list of `[Section] what to change and why`
+- **Impact:** what this fixes without breaking
 
 ### Step 6: Apply the Changes
 
@@ -128,38 +115,20 @@ If `references/trigger-examples.md` exists and trigger behavior changed:
 
 ### Step 8: Verify
 
-After applying changes:
+After applying changes, report:
 
-```
-✅ Smithing Complete
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Skill: <skill-name>
-Version: <old> → <new>
-Files modified:
-  - <file-path-1>
-  - <file-path-2>
-
-Next: Re-trigger the skill to verify the improvement.
-  Try: "<example trigger phrase>"
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
-
-## Smithing Principles
-
-1. **Minimal changes**: Fix only what's broken. Resist the urge to "improve" unrelated parts.
-2. **Style consistency**: Match the existing writing style — if the skill uses bullet lists, add bullet lists; if it uses tables, add tables.
-3. **Backward compatible**: Existing valid triggers should still work after the change.
-4. **Evidence-based**: Every change should be traceable to a real usage problem.
-5. **One forge at a time**: Address one category of issues per iteration. Don't bundle unrelated fixes.
+- **Skill** + version bump (`<old>` → `<new>`)
+- **Files modified** (list paths)
+- **Re-trigger phrase** to verify the improvement, e.g. *"<example trigger>"*
 
 ## Quality Checklist
 
-- Change addresses the specific issue the user reported
-- No existing functionality is broken by the modification
-- New content matches the style and tone of the existing SKILL.md
-- SKILL.md section structure is preserved
-- Version number is bumped in skill.yaml (if it exists)
-- Modification scope is minimal — no unnecessary rewrites
+- Change addresses the specific issue the user reported (evidence-based, traceable to real usage)
+- Modification scope is minimal — fix only what's broken, don't rewrite unrelated parts
+- New content matches existing style/tone (bullets stay bullets, tables stay tables)
+- SKILL.md section structure is preserved; existing valid triggers still fire
+- Only one issue category addressed per iteration — don't bundle unrelated fixes
+- Version bumped in `skill.yaml` (patch for fixes, minor for new sections/triggers)
 
 ## Example Triggers
 

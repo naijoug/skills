@@ -1,4 +1,4 @@
-id: api-design
+id: ng-review-api-design
 version: 1.0.1
 title: API Design Review
 summary: Comprehensive review of API contracts, endpoints, and SDK methods for semantics, compatibility, and maintainability

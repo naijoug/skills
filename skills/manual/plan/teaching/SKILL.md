@@ -1,5 +1,5 @@
 ---
-name: teaching
+name: ng-plan-teaching
 description: Use when a user provides a GitHub URL, README, code snippet, document, or raw text and wants a detailed teaching plan or lesson script in Markdown for explanation, mentoring, or technical training
 ---
 

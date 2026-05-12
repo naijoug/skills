@@ -21,4 +21,7 @@ venv/
 
 # Skill development workspaces
 skills/manual/research/web-search/workspace/
+skills/manual/tool/search/workspace/
 .omx/
+
+.ref/

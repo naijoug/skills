@@ -1,7 +1,7 @@
 id: skill-smith
-version: 1.0.1
+version: 1.1.0
 title: Skill Smith
-summary: Forge and refine personal skills based on real-world usage feedback, like a blacksmith perfecting their craft
+summary: Targeted fix to an existing personal skill (SKILL.md) — missing scenario, ambiguous wording, wrong format, bad trigger, or workflow gap — based on real usage feedback
 kind: prompt_only
 activation: always_on
 tags:

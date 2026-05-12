@@ -1,8 +1,11 @@
 id: weekly-retro
-version: 1.0.1
+version: 1.1.0
 title: Weekly Coding Retro
 summary: Weekly engineering retrospective to identify recurring mistakes, debugging patterns, and PR themes for next-week improvement
 kind: prompt_only
+schedule:
+  recommended: "0 18 * * 5"
+  description: Once per week, Friday evening, to close the week with a retro
 tags:
   - retro
   - retrospective

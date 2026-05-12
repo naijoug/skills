@@ -1,5 +1,5 @@
 ---
-name: test-case
+name: ng-plan-test-case
 description: Use when designing test cases for a function, API, workflow, or bugfix and you need a systematic matrix covering happy path, boundaries, invalid input, and regression risk
 ---
 

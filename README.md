@@ -19,8 +19,8 @@ Personal collection of AI coding skills. Skills are classified by directory unde
     │   └── skill-smith/
     └── manual/
         ├── plan/
-        │   ├── plan-create/
-        │   ├── plan-review/
+        │   ├── create/
+        │   ├── review/
         │   ├── teaching/
         │   ├── code-reading/
         │   └── test-case/
@@ -28,14 +28,14 @@ Personal collection of AI coding skills. Skills are classified by directory unde
         │   ├── pr/
         │   ├── api-design/
         │   └── refactor/
-        ├── research/
-        │   ├── ref/
-        │   └── web-search/
         ├── growth/
         │   ├── personal-coach/
         │   ├── engineering/
         │   └── debugging-kata/
-        ├── tooling/
+        ├── tool/
+        │   ├── ref/
+        │   ├── search/
+        │   ├── debug-loom/
         │   ├── openclaw/
         │   └── who-am-i/
         └── meta/
@@ -50,7 +50,7 @@ Category comes from the directory path, not `skill.yaml`:
 |----------|---------|------------------|
 | `skills/auto/<skill>` | Auto-injected via `inject.md`; activates always-on or on noticed conditions | `in-english`, `skill-smith` |
 | `skills/cron/<skill>` | Installed normally; driven by external scheduled triggers, not manual invocation | `daily-til`, `daily-trending`, `weekly-retro` |
-| `skills/manual/<group>/<skill>` | Only runs when explicitly selected or invoked via `/<name>` | most task skills |
+| `skills/manual/<group>/<skill>` | Only runs when explicitly selected or invoked via its full skill id, e.g. `/ng-plan-create` | most task skills |
 
 Behavior:
 
@@ -65,9 +65,8 @@ Recommended manual subdirectories:
 
 - `plan` for planning, mapping, and decomposition skills
 - `review` for review, critique, and safe-change skills
-- `research` for search, trends, and information synthesis
 - `growth` for practice, coaching, and retrospectives
-- `tooling` for local tools and service operations
+- `tool` for local tools and service operations
 - `meta` for skill-authoring or self-profile skills
 
 ## Installation
@@ -134,24 +133,24 @@ Options:
 - `--mode MODE` — symlink | copy (default: symlink)
 - `--auto-install-fzf` — allow `tui` to install fzf via Homebrew when missing
 - `--force` — replace conflicting targets
-- `--with-slash-commands` — also install slash command wrappers for manual skills
+- `--with-slash-commands` — also install slash command wrappers for manual skills using the skill id
 - `--json` — JSON output
 
 ### Slash Commands
 
 `--with-slash-commands` writes one wrapper file per `manual` skill into the
 agent's slash command directory, so you can trigger the skill by typing
-`/<skill-name>` in the chat:
+the skill id, for example `/ng-plan-create` or `/ng-tool-ref`, in the chat:
 
 | Tool | Global | Project |
 |------|--------|---------|
-| Claude Code | `~/.claude/commands/<skill>.md` | `{project}/.claude/commands/<skill>.md` |
-| Codex / ChatGPT | `~/.codex/prompts/<skill>.md` | `{project}/.codex/prompts/<skill>.md` |
+| Claude Code | `~/.claude/commands/<skill-id>.md` | `{project}/.claude/commands/<skill-id>.md` |
+| Codex / ChatGPT | `~/.codex/prompts/<skill-id>.md` | `{project}/.codex/prompts/<skill-id>.md` |
 
 Each wrapper file contains a marker comment so the linker can refresh or
 remove only the files it created — pre-existing files with the same name are
-left alone unless `--force` is passed. Uninstall always cleans up matching
-managed wrappers.
+left alone unless `--force` is passed. Uninstall cleans up matching managed
+wrappers, including legacy `/<skill-name>` wrappers from older installs.
 
 Notes:
 
@@ -184,7 +183,7 @@ mkdir -p skills/my-skill
 mkdir -p skills/manual/plan/my-skill
 cat > skills/manual/plan/my-skill/SKILL.md << 'EOF'
 ---
-name: my-skill
+name: ng-plan-my-skill
 description: Use when [specific trigger conditions]
 ---
 
@@ -206,7 +205,7 @@ EOF
 Suggested `skills/manual/plan/my-skill/skill.yaml`:
 
 ```yaml
-id: my-skill
+id: ng-plan-my-skill
 version: 1.0.0
 title: My Skill
 summary: Use when [specific trigger conditions]
