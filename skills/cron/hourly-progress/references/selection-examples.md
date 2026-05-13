@@ -1,0 +1,112 @@
+# Candidate Selection Examples
+
+Use these examples when an hourly run has multiple possible directions and must choose one safe, valuable slice without mixing unrelated work.
+
+## Quick Triage Matrix
+
+| Candidate | Choose when | Avoid when | Verification |
+| --- | --- | --- | --- |
+| Continue a clean code repo task | The repo is clean or only this run will touch clearly isolated files; tests/build are cheap | The repo has broad unrelated dirty files or no obvious test path | Focused tests, lint, build, diff review |
+| Add a reusable skill | The workflow has repeated prompts or recurring friction; `skills` is clean | The content is just a one-off note with no reuse trigger | YAML parse, readback, path audit |
+| Write docs/tutorial page | The target repo is clean or the new file is isolated; topic is evergreen | Existing docs repo has wide unrelated changes that make commit boundaries risky | Frontmatter check, link/path review, build if cheap |
+| Advance a book chapter | The chapter structure is already chosen and the text can be completed as one coherent slice | The book repo has uncommitted manuscript edits from another thread | Readback, outline consistency, relative path audit |
+| Scan trends | A concrete decision or asset will be produced immediately | The output would be only news clipping | Convert into a plan, doc, experiment, or backlog item |
+| Notebook only | No safe project edit exists, or all candidates require human clarification | There is any clear low-risk, verifiable task | Notebook entry explains why no project edit was safe |
+
+## Example 1: Dirty Docs, Clean Skills
+
+**Observed state**
+
+- `docs` has dozens of modified/deleted/untracked files from existing work.
+- `skills` is clean.
+- The last notebook identifies a recurring workflow gap.
+
+**Decision**
+
+Choose a small `skills/skills/...` addition instead of writing into `docs`.
+
+**Why**
+
+The skill creates reusable process value and has a clean commit boundary. Writing into `docs` might be valuable, but broad existing changes make it easy to stage someone else's work by mistake.
+
+**Good slice**
+
+- Add one `SKILL.md`, one `skill.yaml`, or one reference page.
+- Validate metadata and check that no local absolute paths were written.
+- Commit only the new skill files.
+
+## Example 2: Clean Product Repo With a Follow-up From Last Hour
+
+**Observed state**
+
+- A product repo is clean.
+- The previous run added search behavior and left a concrete UI follow-up.
+- There are focused unit tests already covering the touched utility.
+
+**Decision**
+
+Continue the product repo and implement the smallest UI or utility improvement.
+
+**Why**
+
+This compounds recent context and can be verified with existing tests. The notebook records the result, but the product change is the real output.
+
+**Good slice**
+
+- Touch only the utility/component/test files needed for the follow-up.
+- Run focused tests first, then lint/build if cheap.
+- Commit the product repo separately from `summaries`.
+
+## Example 3: Book Repo Has Existing Manuscript Edits
+
+**Observed state**
+
+- `books` contains modified chapters and untracked book directories.
+- The user did not explicitly ask this run to continue those edits.
+- A new chapter idea is tempting but would overlap the existing manuscript work.
+
+**Decision**
+
+Do not edit `books` this hour unless there is an isolated new draft under the correct `.drafts/` location and the commit can include only that file.
+
+**Why**
+
+Manuscript edits are hard to merge mentally. Preserving authorship and avoiding accidental staging is more important than producing another page.
+
+**Good slice if still choosing books**
+
+- Create a clearly named draft in `books/<book>/.drafts/...` rather than altering active chapters.
+- Do not stage existing modified chapters.
+- Validate by reading back the draft and checking `git status --short` paths.
+
+## Example 4: Trend Scan Without Concrete Action
+
+**Observed state**
+
+- Web search returns several AI tool announcements.
+- No repo has an obvious clean target.
+- The findings are interesting but not immediately actionable.
+
+**Decision**
+
+Convert the scan into one small asset or decision, or skip the scan.
+
+**Why**
+
+Hourly progress should not become passive news summarization. Trend information is useful only if it changes a plan, creates an experiment, or updates durable docs.
+
+**Good slice**
+
+- Add one entry to a backlog/plan with source links and a validation hypothesis.
+- Write a short tutorial section that turns the trend into a repeatable workflow.
+- If neither is possible, record that trend scan was deferred and choose a local asset task.
+
+## Commit Boundary Checklist
+
+Before committing, answer yes to all:
+
+1. Did I inspect the target repo status before editing?
+2. Are staged files limited to this run's intentional changes?
+3. Does the notebook list only relative paths?
+4. Is there a cheap verification result or human-review criterion?
+5. Are project changes and `summaries` changes committed in their own repos?
