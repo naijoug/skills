@@ -1,0 +1,38 @@
+id: hourly-progress
+version: 1.0.0
+title: Hourly Autonomous Progress Beat
+summary: Cron-driven hourly work rhythm for autonomous planning, small verified execution, and durable notebook handoff in a multi-repo workspace
+kind: prompt_only
+schedule:
+  recommended: "0 * * * *"
+  description: Once per hour during active work periods, to review state, choose one valuable small task, execute it, and append a notebook entry
+places:
+  notebook: summaries/hermes/YYYY-MM-DD.md
+  workspaces:
+    - books/
+    - docs/
+    - skills/skills/
+    - loom/
+tags:
+  - cron
+  - planning
+  - execution
+  - notebook
+  - autonomous-work
+  - multi-repo
+triggers:
+  keywords:
+    - hourly planning
+    - 每小时规划
+    - 持续工作推进
+    - work beat
+    - autonomous progress
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity
