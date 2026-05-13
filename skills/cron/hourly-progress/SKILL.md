@@ -48,9 +48,10 @@ The intended stance is: an AI-era programmer steadily building assets — code, 
    - Docs/skills: read back files, YAML/frontmatter lint if available, path audit.
    - Code: focused tests, lint, build, or targeted smoke test.
 7. If candidate selection is unclear, compare options against `references/selection-examples.md`.
-8. Append the notebook entry using the template in `references/notebook-template.md`.
-9. Commit target repo changes, then commit `summaries/...` changes separately.
-10. Final response: summarize selection, actual progress, notebook path, commit hash(es), and next handoff point.
+8. Before committing, run the scope, relative-path, metadata, and handoff checks in `references/pre-commit-checks.md`.
+9. Append the notebook entry using the template in `references/notebook-template.md`.
+10. Commit target repo changes, then commit `summaries/...` changes separately.
+11. Final response: summarize selection, actual progress, notebook path, commit hash(es), and next handoff point.
 
 ## Selection Heuristics
 
