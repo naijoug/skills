@@ -46,7 +46,7 @@ The intended stance is: an AI-era programmer steadily building assets — code, 
 5. Execute one selected small task if there is a safe candidate.
 6. Verify with the strongest cheap check available; use `references/verification-command-matrix.md` to choose the narrowest reliable command set for docs, skills, tests, product code, config, data, or dependency changes.
 7. If candidate selection is unclear, compare options against `references/selection-examples.md`; if several repos are already dirty, apply `references/dirty-worktree-selection.md` before choosing a target.
-8. Before committing, run the scope, relative-path, metadata, and handoff checks in `references/pre-commit-checks.md`.
+8. Before committing, run the scope, relative-path, metadata, and handoff checks in `references/pre-commit-checks.md`; use `references/handoff-quality-checklist.md` to make the next slice specific enough to execute.
 9. Append the notebook entry using the template in `references/notebook-template.md`.
 10. Commit target repo changes, then commit `summaries/...` changes separately; use `references/commit-report-patterns.md` for safe staging, commit message, and hash-reporting patterns.
 11. Final response: summarize selection, actual progress, notebook path, commit hash(es), and next handoff point.
