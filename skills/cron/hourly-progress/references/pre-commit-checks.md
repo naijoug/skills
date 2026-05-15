@@ -83,8 +83,11 @@ Commit the work repo and `summaries/` separately. This keeps the durable noteboo
 
 ## 5. Handoff check
 
-The notebook entry should leave one concrete next action, not a vague intention. A good handoff names:
+The notebook entry should leave one concrete next action, not a vague intention. For a fuller review rubric, use `references/handoff-quality-checklist.md` before staging the notebook.
+
+A good handoff names:
 
 - the preferred repo or path;
 - the next small slice;
-- the first verification command or review standard.
+- the first verification command or review standard;
+- any boundary condition that would make the next run choose a different target.
