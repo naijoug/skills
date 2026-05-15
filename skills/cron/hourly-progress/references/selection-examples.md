@@ -101,6 +101,34 @@ Hourly progress should not become passive news summarization. Trend information 
 - Write a short tutorial section that turns the trend into a repeatable workflow.
 - If neither is possible, record that trend scan was deferred and choose a local asset task.
 
+## Example 5: Handoff Has a Decision Gate and Boundary Condition
+
+**Observed state**
+
+- `skills` is clean and the previous handoff points at `skills/skills/cron/hourly-progress/references/selection-examples.md`.
+- The handoff says to add a decision-gate example only if existing examples are still too generic.
+- `docs`, `books`, and `loom` still contain broad unrelated changes.
+
+**Decision**
+
+Update this reference with one explicit handoff example instead of switching to a noisier repo.
+
+**Why**
+
+The next slice is precise, isolated, and directly improves future hourly runs: a later agent can see how to write a handoff that includes the next path, the next slice, the decision gate, and the boundary condition.
+
+**Good handoff produced by this run**
+
+> Next run: inspect `skills/skills/cron/hourly-progress/references/selection-examples.md` and only add a new example if no existing example shows both a decision gate and a boundary condition; if already covered, switch to a clean product repo such as `bytebite`. Verify with readback/path audit and `git diff --check`.
+
+**What makes it good**
+
+- **Next path:** names the exact file to inspect or edit.
+- **Next slice:** limits the work to one example, not a broad rewrite.
+- **Decision gate:** says when to proceed versus stop.
+- **Boundary condition:** says what to do if the file is already sufficient or other repos are dirty.
+- **Verification:** names the cheapest checks that prove the change is reviewable.
+
 ## Commit Boundary Checklist
 
 Before committing, answer yes to all:
