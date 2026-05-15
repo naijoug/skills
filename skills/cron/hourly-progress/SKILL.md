@@ -67,6 +67,16 @@ Avoid work that is:
 - Mixing with existing uncommitted changes from other work.
 - Trend summaries that do not produce a concrete asset or decision.
 
+## Reference Map
+
+Use the references in the order that matches the run's current decision point:
+
+1. **Choosing the work:** start with `references/selection-examples.md`; when multiple neighboring repos are already dirty, apply `references/dirty-worktree-selection.md` before editing.
+2. **Scoping verification:** after selecting the slice, use `references/verification-command-matrix.md` to pick the cheapest reliable focused, structural, and broad checks.
+3. **Writing the notebook:** use `references/notebook-template.md` for the required sections and `references/handoff-quality-checklist.md` to make the next action specific.
+4. **Preparing the commit:** use `references/pre-commit-checks.md` for scope, path, metadata, diff, and handoff checks before staging.
+5. **Reporting the result:** use `references/commit-report-patterns.md` to keep target repo commits separate from `summaries` and to report commit hashes clearly.
+
 ## Final Response Shape
 
 Keep the final response short. Include:
