@@ -60,6 +60,33 @@ Checklist:
 - Stage with `git add -- <exact-path>`.
 - Inspect `git diff --cached -- <exact-path>` before committing.
 
+### Pattern D: Pre-existing untracked handoff file
+
+Sometimes a run starts with an untracked file that looks like the previous handoff's next slice.
+Treat it as unknown ownership until proven otherwise; a cron run should not silently claim it
+just because it is useful.
+
+Decision gate:
+
+1. **Adopt only when provenance is clear.** Acceptable signals include: the previous notebook
+   explicitly says the prior run created or intentionally left this exact path; the file has a
+   matching commit attempt recorded in the notebook; or the current run itself created the file
+   after the pre-edit status snapshot.
+2. **If provenance is unclear, do not modify or commit it.** Prefer a clean repo/asset task
+   instead, and mention the orphaned path in the notebook as a re-entry risk.
+3. **If adoption is justified, verify before staging.** Run the narrowest focused test/check for
+   that file, inspect the diff, and commit with an explicit message that matches the recovered
+   slice.
+4. **Never use broad formatting or `git add .` around orphaned files.** Broad commands can
+   rewrite or stage unrelated work and make provenance impossible to audit.
+
+Checklist:
+
+- Record the pre-run status containing the untracked path.
+- Read the file and the previous notebook entry before deciding.
+- If not adopting, leave it untouched and choose another task.
+- If adopting, stage only that path and include the reason in the notebook.
+
 ## Commands worth running
 
 ```bash
