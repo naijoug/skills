@@ -129,6 +129,38 @@ The next slice is precise, isolated, and directly improves future hourly runs: a
 - **Boundary condition:** says what to do if the file is already sufficient or other repos are dirty.
 - **Verification:** names the cheapest checks that prove the change is reviewable.
 
+## Example 6: Target Repo Is Dirty at Start Time
+
+**Observed state**
+
+- The previous handoff names `docs/documents/trending/ai/coding.md` as the likely next content slice.
+- `git -C docs status --short` shows broad modified, deleted, renamed, and untracked files that were not created by this run.
+- A clean repo such as `skills` has an isolated process-improvement follow-up, or no clean repo has an obviously useful edit.
+
+**Decision**
+
+Do not add another file to the dirty target repo just to keep momentum. Choose the best safe fallback:
+
+1. If another repo is clean and has a concrete, verifiable slice, switch to that repo.
+2. If only a tiny new file in the dirty repo would be truly isolated, proceed only when it will be the sole staged path and the notebook clearly explains the boundary.
+3. If no safe edit exists, make a notebook-only blocker entry that records the dirty repo status pattern, the skipped target, and the exact condition needed before resuming.
+
+**Why**
+
+A dirty repo can hide other agents' work or the user's manual edits. The hourly run should preserve authorship and auditability instead of producing a low-confidence commit.
+
+**Good fallback slices**
+
+- Update a clean `skills/skills/...` reference that improves the next run's decision quality.
+- Add an isolated `.drafts/` file only when the book repo rules allow it and no existing chapter edits are staged.
+- Defer project edits and write a blocker in `summaries/hermes/YYYY-MM-DD.md` when every candidate would require mixing unrelated changes.
+
+**Verification**
+
+- Capture the dirty target with `git -C <repo> status --short` before choosing the fallback.
+- Before commit, run `git -C <repo> diff --cached --name-only` and confirm staged paths are limited to this run.
+- Read back the notebook entry and confirm it uses workspace-relative paths and names the resume condition.
+
 ## Commit Boundary Checklist
 
 Before committing, answer yes to all:
