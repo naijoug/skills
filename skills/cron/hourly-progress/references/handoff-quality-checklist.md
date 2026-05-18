@@ -44,6 +44,30 @@ Use explicit gates so the next run can make a fast autonomous choice:
 - **Verification too expensive for the hour:** shrink the slice until a focused check is available.
 - **Previous handoff already completed:** pick the next adjacent asset, not a random new direction.
 
+## Verification entrypoint requirement
+
+A handoff is only executable if it tells the next run how to prove the slice is done. Include a verification entrypoint that is specific enough to run or review without inventing a new test plan.
+
+Minimum shape:
+
+1. **Target file or command:** name the first path to read or the first command to run.
+2. **Start condition:** say what status check must pass before editing, such as `git -C skills status --short` showing no unrelated changes.
+3. **Done condition:** describe the observable outcome, not just the activity.
+4. **Focused verification:** give the cheapest reliable command or readback standard.
+5. **Fallback:** say what to do if the target repo/path is already dirty in overlapping files.
+
+Examples:
+
+```text
+下一次优先从 `skills/skills/cron/hourly-progress/references/selection-examples.md` 继续：先确认 `git -C skills status --short` 没有他人改动；若干净，补一个“dirty repo fallback”示例；完成条件是表格中出现可复用示例；验证用 readback + `git -C skills diff --check -- skills/cron/hourly-progress/references/selection-examples.md`；若目标文件已被改动，改选干净 repo 或只记录 blocker。
+```
+
+```text
+下一次优先从 `books/ai-personal-growth/chapters/03-ai-learning-methodology.md` 继续：先检查 `git -C books status --short`，若该章节没有重叠改动，只新增一个小节；完成条件是小节包含标题、3 个要点和一个练习；验证用 readback 检查标题层级、重复段落和相对路径；若章节已脏，暂不编辑书稿。
+```
+
+Avoid vague verification entries like “check it works,” “review docs,” or “run tests” unless the exact test command or manual review standard is named.
+
 ## Bad vs better handoffs
 
 | Weak handoff | Better handoff |
