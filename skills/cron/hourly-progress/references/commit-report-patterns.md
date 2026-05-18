@@ -53,6 +53,28 @@ Avoid vague messages:
 - `Misc changes`
 - `Fix stuff`
 
+## Final response hash report
+
+Before writing the final response, collect hashes from the repos that were actually committed in this run:
+
+```bash
+# Work repo, only if this run committed project/asset changes there
+git -C <repo> rev-parse --short HEAD
+git -C <repo> log -1 --pretty=%s
+
+# Notebook repo, after committing the Hermes note
+git -C summaries rev-parse --short HEAD
+git -C summaries log -1 --pretty=%s
+```
+
+Report them as separate lines; never collapse the work commit and the notebook commit into one ambiguous hash. If multiple work repos were intentionally changed, list each repo separately, but prefer one work repo per hourly run.
+
+Use one of these states for every relevant repo:
+
+- `<repo>: <hash> <subject>` — a commit was created by this run and the hash was read back.
+- `<repo>: no commit` — the repo was inspected but no file was changed or no commit was appropriate.
+- `<repo>: not committed (<reason>)` — files changed but the commit was intentionally skipped; include the concrete reason.
+
 ## Final response template
 
 ```text
