@@ -25,6 +25,12 @@ If a repo already had broad dirty state, prefer one of these patterns:
 
 Notebook entries and summary-style records must use workspace-relative paths such as `skills/skills/...` or `summaries/hermes/YYYY-MM-DD.md`.
 
+Distinguish path semantics before copying commands into the notebook:
+
+- **Notebook prose:** always use paths relative to the workspace root, for example `skills/skills/cron/hourly-progress/references/pre-commit-checks.md`.
+- **`git -C <repo>` commands:** pathspecs are relative to that repo root, for example `git -C skills diff -- skills/cron/hourly-progress/references/pre-commit-checks.md`.
+- **Cross-repo reports:** name both the repo and the workspace-relative file when useful, but do not write local absolute paths.
+
 A quick audit pattern:
 
 ```bash
