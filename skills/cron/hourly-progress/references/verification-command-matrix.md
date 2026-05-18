@@ -25,6 +25,18 @@ Start narrow, then widen only when the change can affect broader behavior.
 | Data fixture or JSON/YAML | Parse the changed data file | Run schema validation if present | Run the consumer test/build if the data is bundled | Stop after parse only for unconsumed archival data |
 | Dependency/package change | Run install/lockfile consistency command | Run tests that import the dependency | Run full build/test | Avoid dependency changes in a short cron unless clearly required |
 
+## Minimal bundle for Markdown/reference-only changes
+
+For an isolated Markdown note, skill reference, or notebook entry, use this small bundle instead of a broad build:
+
+1. **Readback:** reread the changed lines and confirm the section has the required heading, decision, verification, and next-action content.
+2. **Whitespace diff:** run `git -C <repo> diff --check -- <repo-relative-path>` for every touched path in the work repo, and `git -C summaries diff --check -- hermes/YYYY-MM-DD.md` for the notebook.
+3. **Relative-path audit:** search the changed Markdown for local absolute path markers and replace them with workspace-relative paths before staging.
+4. **Discoverability check:** when adding a reference page, confirm `SKILL.md`, a README, sidebar, or index links to it; if no link is appropriate, record why the file is intentionally standalone.
+5. **Staged-diff check:** after `git add <explicit-paths>`, inspect `git -C <repo> diff --cached -- <paths>` so unrelated dirty files are not included.
+
+Use workspace-relative paths in notebook prose, but remember that `git -C <repo>` commands usually need paths relative to that repo root. For example, the workspace path `skills/skills/cron/hourly-progress/SKILL.md` becomes `skills/cron/hourly-progress/SKILL.md` when the command runs with `git -C skills`.
+
 ## Dirty-worktree adjustment
 
 When the target repo has unrelated existing changes:
