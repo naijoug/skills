@@ -1,0 +1,35 @@
+id: ng-growth-income-asset-validation
+version: 1.0.0
+title: Income Asset Validation
+summary: Turn AI-era programmer ideas, content assets, automations, templates, and micro-products into validated income experiments
+kind: prompt_only
+tags:
+  - income
+  - indie-hacker
+  - validation
+  - product
+  - side-project
+  - ai-workflow
+  - offer
+triggers:
+  keywords:
+    - income asset
+    - validate idea
+    - validation sprint
+    - side income
+    - micro product
+    - indie product
+    - paid template
+    - AI consulting offer
+    - developer tool idea
+    - 副业验证
+    - 收入实验
+    - 独立产品
+    - 变现
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - amp
+    - cursor
+    - trae
