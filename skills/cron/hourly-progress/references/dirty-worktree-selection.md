@@ -103,11 +103,21 @@ git -C <repo> add -- <path-created-or-edited-this-run>
 git -C <repo> diff --cached -- <path-created-or-edited-this-run>
 ```
 
+## Avoiding a process-only loop
+
+A clean `skills` repo is a good fallback, but it should not become an infinite substitute for product, writing, or learning work. After two or more consecutive process-only improvements, add an explicit re-entry gate to the notebook:
+
+- **Resume condition:** which dirty repo must become clean, or which isolated path can be safely edited without adopting existing changes.
+- **Value target:** the product, book, tutorial, experiment, or income-facing asset that should take priority once the boundary is safe.
+- **Fallback limit:** whether the next run may still edit `skills`, or should prefer a notebook-only blocker over another process tweak.
+
+Use another `skills/skills/...` improvement only when it removes a concrete recurring failure mode for future runs. If the improvement is merely cosmetic, stop and record the dirty-repo blocker instead.
+
 ## Selection sentence template
 
 Use a concrete sentence in the notebook:
 
-> Because `docs`/`books`/`loom` have broad existing changes and `skills` is clean, this run chooses `skills/skills/...` to create one reusable reference; this avoids mixing unrelated work while still building a durable asset.
+> Because `docs`/`books`/`loom` have broad existing changes and `skills` is clean, this run chooses `skills/skills/...` to create one reusable reference; this avoids mixing unrelated work while still building a durable asset. Since several recent runs have already improved process references, the next handoff names the exact condition for returning to product or writing work.
 
 ## Handoff standard
 
