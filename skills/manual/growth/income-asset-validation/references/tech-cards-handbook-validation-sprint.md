@@ -80,6 +80,21 @@ Track exact phrases for:
 - Budget/timing clues: whether the reader would expense it, buy personally, or only use a free version.
 - Missing trust signals: author experience, before/after examples, screenshots, or real workflow transcripts.
 
+Keep a feedback evidence log before changing the bundle:
+
+| Source | Observable fact | Inference | Confidence | Current grade | Next validation action |
+| --- | --- | --- | --- | --- | --- |
+| Direct reply from target programmer | Reader names a specific failed agent run and asks whether one card covers rollback/recovery | Recovery cards may be more valuable than generic “AI productivity” cards | Medium | Validate | Ask 3 more agent users whether recovery/rollback is a top-three pain |
+| Social like or bookmark | Post receives likes but no comments, emails, or sample requests | The topic may be interesting but not yet painful enough to buy | Low | Record | Do not revise the offer; test a sharper CTA asking for a pain story |
+| Sample-pack reviewer | Reviewer marks 2 cards as “useful” and says examples need real command transcripts | Trust depends on concrete workflow evidence, not just principles | High | Observe | Add one before/after transcript to the next sample before running a price test |
+
+Grade definitions:
+
+- `Record`: keep the signal, but do not change the offer.
+- `Observe`: watch for repeats from matching users.
+- `Validate`: ask a targeted follow-up or run a small CTA test.
+- `Revise`: change the sample, landing message, or offer only after repeated or high-cost evidence.
+
 ### Day 6: Offer test
 
 - Offer: 25-card AI Agent Workflow pack, delivered as Markdown + PDF + printable checklist.

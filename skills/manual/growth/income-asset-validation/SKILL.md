@@ -108,6 +108,11 @@ Rule of thumb: if a human can deliver the outcome in 2-4 hours, validate manuall
 - Budget/timing clues:
 - Missing trust signals:
 
+### Feedback evidence log
+| Source | Observable fact | Inference | Confidence | Current grade | Next validation action |
+| --- | --- | --- | --- | --- | --- |
+|  |  |  |  | record / observe / validate / revise |  |
+
 ### Day 6: Offer test
 - Offer:
 - Price or deposit:
@@ -167,6 +172,11 @@ For ...
 - Day 6:
 - Day 7:
 
+### Feedback Evidence Log
+| Source | Observable fact | Inference | Confidence | Current grade | Next validation action |
+| --- | --- | --- | --- | --- | --- |
+|  |  |  |  | record / observe / validate / revise |  |
+
 ### Kill / Continue Criteria
 - Continue if:
 - Narrow if:
@@ -182,6 +192,7 @@ For ...
 - The desired outcome is measurable
 - The first proof vehicle can be created in one day
 - The sprint collects behavioral evidence, not just opinions
+- Feedback separates observable facts from inferences before changing the offer
 - The offer has a clear scope boundary and delivery promise
 - The plan includes explicit kill or narrow criteria
 
