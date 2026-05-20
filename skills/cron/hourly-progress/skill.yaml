@@ -1,11 +1,14 @@
 id: hourly-progress
 version: 1.0.0
 title: Hourly Autonomous Progress Beat
-summary: Cron-driven hourly work rhythm for autonomous planning, small verified execution, and durable notebook handoff in a multi-repo workspace
+summary: Cron-driven work rhythm for autonomous planning, cadence-sized verified execution, and durable notebook handoff in a multi-repo workspace
 kind: prompt_only
 schedule:
   recommended: "0 * * * *"
-  description: Once per hour during active work periods, to review state, choose one valuable small task, execute it, and append a notebook entry
+  alternatives:
+    quarter_hour: "*/15 * * * *"
+    daily: "0 9 * * *"
+  description: Run on a recurring cadence to review state, choose one cadence-sized valuable task, execute it, and append a notebook entry
 places:
   notebook: summaries/hermes/YYYY-MM-DD.md
   workspaces:
@@ -23,7 +26,9 @@ tags:
 triggers:
   keywords:
     - hourly planning
+    - quarter-hour planning
     - 每小时规划
+    - 每刻钟规划
     - 持续工作推进
     - work beat
     - autonomous progress
