@@ -1,6 +1,6 @@
 # Commit and Report Patterns for Hourly Progress Runs
 
-Use this reference after verification and after applying `final-report-evidence-chain.md`. The goal is to preserve clear ownership in a multi-repo workspace: project work is committed in its own repo, the Hermes notebook is committed in `summaries`, and the final response gives the next run enough context without re-reading every diff.
+Use this reference after verification, after applying `final-report-evidence-chain.md`, and in the same sequence required by `pre-commit-checks.md`'s report-order guard. The goal is to preserve clear ownership in a multi-repo workspace: project work is committed in its own repo, the Hermes notebook is committed in `summaries`, and the final response gives the next run enough context without re-reading every diff.
 
 ## Commit order
 

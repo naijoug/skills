@@ -52,10 +52,10 @@ The intended stance is: an AI-era programmer steadily building assets — code, 
 11. If several recent runs have expanded the same validation or outreach chain, apply `references/validation-chain-stop-rules.md` before adding another template; stop expanding once the chain is executable and blocked on real evidence.
 12. If any status check, build, search, or validation output fails or contradicts the plan, apply `references/failure-output-changes-plan.md` before continuing so the failure changes scope, order, target, or handoff.
 13. Before committing, run the scope, relative-path, metadata, commit-boundary, report-order, and handoff checks in `references/pre-commit-checks.md`; use `references/handoff-quality-checklist.md` to make the next slice specific enough to execute.
-14. Before writing the notebook/final response, apply `references/final-report-evidence-chain.md` so each claim has a change, evidence, and commit/readback link.
-15. Append the notebook entry using the template in `references/notebook-template.md`.
-16. Commit target repo changes, then commit `summaries/...` changes separately; use `references/commit-report-patterns.md` for safe staging, commit message, and hash-reporting patterns.
-17. Final response: summarize selection, actual progress, notebook path, commit hash(es), and next handoff point.
+14. Before staging or reporting, apply `references/final-report-evidence-chain.md` so each claim has a change, evidence, and commit/readback link.
+15. Commit target repo changes first, then append the notebook entry with the real target hash using `references/notebook-template.md`.
+16. Commit `summaries/...` changes separately; use `references/commit-report-patterns.md` for safe staging, commit message, and hash-reporting patterns.
+17. Final response: summarize selection, actual progress, notebook path, read-back commit hash(es), and next handoff point.
 
 ## Selection Heuristics
 
