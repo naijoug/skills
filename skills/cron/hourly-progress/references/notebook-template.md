@@ -17,8 +17,12 @@ Use this template for each hourly entry. Keep all paths relative to the workspac
 - 变更文件：
   - `relative/path`
 - 验证方式：
+  - `command or focused check` 通过/失败；说明失败是否改变了 scope、order、target 或 handoff。
+  - target repo 提交后读回真实 hash：`repo` commit `abcdef0`（如本轮没有 target repo 提交，写“无 target repo commit”）。
 - 后续接力：下一次优先从 `relative/path` 的具体小块继续；决策门是……；若出现……边界条件，则改选……；验证用……。
 ```
+
+Do not write a target repo commit hash into the notebook until the target repo has actually been committed and the hash has been read back with `git rev-parse --short HEAD` or an equivalent focused log command. If the notebook itself is the only changed artifact, say so explicitly instead of inventing a target hash.
 
 If there are no changed project files, write `无` under `变更文件`. If a repo already had unrelated dirty changes, explicitly say they were observed and avoided.
 
