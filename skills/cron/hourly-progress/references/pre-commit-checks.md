@@ -87,7 +87,21 @@ git -C <repo> diff --cached
 
 Commit the work repo and `summaries/` separately. This keeps the durable notebook from being coupled to project changes and makes it easier to revert either side.
 
-## 5. Handoff check
+## 5. Report-order guard
+
+Do not write final commit hashes, verification claims, or “changed files” lists before the evidence exists. Use this order:
+
+1. Run the selected verification checks and save the exact command names/results for the notebook.
+2. Inspect `git diff --check` and the focused diff/path status for only this run's files.
+3. Stage explicit paths; inspect `git diff --cached` for the repo being committed.
+4. Commit the target repo; capture the short hash with `git rev-parse --short HEAD`.
+5. Append/update the notebook with the real verification results and target repo hash.
+6. Stage and commit the `summaries/` notebook; capture its short hash.
+7. Write the final response from the committed state, not from a planned state.
+
+If a later check changes the file set or invalidates a claim, revise the notebook before committing `summaries/`. Never leave a notebook entry saying “submitted” or naming a hash that was only expected.
+
+## 6. Handoff check
 
 The notebook entry should leave one concrete next action, not a vague intention. For a fuller review rubric, use `references/handoff-quality-checklist.md` before staging the notebook.
 
