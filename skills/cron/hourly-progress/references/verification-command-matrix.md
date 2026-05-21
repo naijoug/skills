@@ -37,6 +37,30 @@ For an isolated Markdown note, skill reference, or notebook entry, use this smal
 
 Use workspace-relative paths in notebook prose, but remember that `git -C <repo>` commands usually need paths relative to that repo root. For example, the workspace path `skills/skills/cron/hourly-progress/SKILL.md` becomes `skills/cron/hourly-progress/SKILL.md` when the command runs with `git -C skills`.
 
+## Focused fallback checks
+
+Use a focused fallback when the ideal broad check is unsafe, too slow for the cadence, or polluted by unrelated dirty state. A fallback is acceptable only when it still tests the most likely failure introduced by this run.
+
+A good fallback has four parts:
+
+1. **Named skipped check:** state the broader check that would normally be useful, such as `npm run build`, `docs:build`, or the full test suite.
+2. **Reason for skipping:** name the concrete blocker: unrelated dirty files, known pre-existing failure, missing dependency cache, or cadence budget.
+3. **Substitute check:** run the narrowest command or readback that can catch this slice's likely regression.
+4. **Claim boundary:** write what the fallback proves and what it does not prove.
+
+| Situation | Broad check skipped | Focused fallback | Safe claim |
+| --- | --- | --- | --- |
+| Dirty docs repo, isolated Markdown edit | `docs:build` | Readback changed section + `git diff --check -- <path>` + link/index inspection | The edited page is structurally sane; site-wide navigation was not proven |
+| Skill reference addition | Full skill tooling or repo tests | Readback `SKILL.md` link + text audit for required headings + path audit | The reference is discoverable and formatted; runtime skill loading was not proven |
+| Product code in dirty repo but exact component touched | Full formatter or generator | Typecheck/build if cheap; otherwise focused test for touched component + `git diff --check -- <paths>` | The touched behavior passed the focused check; unrelated dirty files were not validated |
+| Known pre-existing broad test failure | Full suite | Run the nearest passing test or parser for changed files; record the known failure separately | This run did not add the checked regression; the suite remains not green |
+
+Notebook wording pattern:
+
+```markdown
+- 验证方式：未运行 `<broad check>`，因为 `<reason>`；本轮改用 `<focused fallback>`，验证 `<safe claim>`，不声称 `<unverified claim>`。
+```
+
 ## Dirty-worktree adjustment
 
 When the target repo has unrelated existing changes:
