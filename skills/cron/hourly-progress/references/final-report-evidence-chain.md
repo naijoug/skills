@@ -31,6 +31,12 @@ Use verbs that match the evidence:
 - **Code/UI behavior:** narrow type/test/build check when available; if skipped, name the exact missing command and next verification path.
 - **Repo commits:** `git rev-parse --short HEAD` and `git log -1 --pretty=%s` after each commit that will be reported.
 
+## Committed-state read-back
+
+Do not copy commit hashes into the notebook or final response from memory, from a staged plan, or from the commit command's optimistic output alone. After each target repo commit that will be reported, read the committed state back with `git rev-parse --short HEAD` plus `git log -1 --pretty=%s` (or an equally focused log command) and use only that read-back value in the notebook/final response.
+
+If the target repo has no commit in this run, write `no target repo commit` and name the reason instead of leaving the commit link implicit. If the notebook itself is committed after the target repo, read back the `summaries` commit hash before producing the final response.
+
 ## Notebook pattern
 
 In `### 执行记录`, make the evidence chain auditable:
