@@ -51,9 +51,10 @@ The intended stance is: an AI-era programmer steadily building assets — code, 
 10. If web/current-trend scanning is considered, apply `references/trend-scan-to-action.md` first so the scan produces a concrete artifact or is skipped.
 11. If several recent runs have expanded the same validation or outreach chain, apply `references/validation-chain-stop-rules.md` before adding another template; stop expanding once the chain is executable and blocked on real evidence.
 12. Before committing, run the scope, relative-path, metadata, and handoff checks in `references/pre-commit-checks.md`; use `references/handoff-quality-checklist.md` to make the next slice specific enough to execute.
-13. Append the notebook entry using the template in `references/notebook-template.md`.
-14. Commit target repo changes, then commit `summaries/...` changes separately; use `references/commit-report-patterns.md` for safe staging, commit message, and hash-reporting patterns.
-15. Final response: summarize selection, actual progress, notebook path, commit hash(es), and next handoff point.
+13. Before writing the notebook/final response, apply `references/final-report-evidence-chain.md` so each claim has a change, evidence, and commit/readback link.
+14. Append the notebook entry using the template in `references/notebook-template.md`.
+15. Commit target repo changes, then commit `summaries/...` changes separately; use `references/commit-report-patterns.md` for safe staging, commit message, and hash-reporting patterns.
+16. Final response: summarize selection, actual progress, notebook path, commit hash(es), and next handoff point.
 
 ## Selection Heuristics
 
@@ -82,8 +83,9 @@ Use the references in the order that matches the run's current decision point:
 5. **Stopping validation-chain sprawl:** when several recent runs expanded one outreach or validation chain, use `references/validation-chain-stop-rules.md` to decide whether the next useful step is real evidence or a different asset.
 6. **Scoping verification:** after selecting the slice, use `references/verification-command-matrix.md` to pick the cheapest reliable focused, structural, and broad checks.
 7. **Writing the notebook:** use `references/notebook-template.md` for the required sections and `references/handoff-quality-checklist.md` to make the next action specific.
-8. **Preparing the commit:** use `references/pre-commit-checks.md` for scope, path, metadata, diff, and handoff checks before staging.
-9. **Reporting the result:** use `references/commit-report-patterns.md` to keep target repo commits separate from `summaries` and to report commit hashes clearly.
+8. **Checking final evidence:** use `references/final-report-evidence-chain.md` to ensure each notebook/final-response claim has a change, evidence, and commit/readback link.
+9. **Preparing the commit:** use `references/pre-commit-checks.md` for scope, path, metadata, diff, and handoff checks before staging.
+10. **Reporting the result:** use `references/commit-report-patterns.md` to keep target repo commits separate from `summaries` and to report commit hashes clearly.
 
 ## Final Response Shape
 
