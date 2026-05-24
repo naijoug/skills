@@ -87,6 +87,33 @@ Checklist:
 - If not adopting, leave it untouched and choose another task.
 - If adopting, stage only that path and include the reason in the notebook.
 
+### Pattern E: Pre-existing tracked diff matches the previous handoff
+
+A dirty tracked file can look like the obvious continuation from the previous notebook. Do not
+assume it is yours. A tracked diff may have been produced by another agent, a human editor, or a
+failed run, and committing it would make the final report indistinguishable from actual work done
+in this run.
+
+Decision gate:
+
+1. **Read the diff before selecting the slice.** If the diff already implements the named handoff,
+   the useful action is no longer "write it"; the decision is whether to adopt, verify, or avoid it.
+2. **Adopt only with evidence.** Acceptable evidence includes a same-run edit, a prior notebook
+   entry that explicitly says the file was left uncommitted, or an instruction to finish and commit
+   that exact path. A vague next-step note is not enough.
+3. **If not adopting, choose another clean target.** Record that the handoff appears already present
+   but has unclear provenance. Do not modify the same tracked file just to make the diff "partly
+   yours".
+4. **If adopting, report it as adoption.** Verify the existing diff, stage only that path, and state
+   that the run adopted and validated pre-existing work rather than authored it from scratch.
+
+Checklist:
+
+- Capture pre-edit status and a focused `git diff -- <path>` excerpt.
+- Decide whether the diff is same-run, explicitly recoverable, or unknown provenance.
+- If unknown, leave the file untouched and move to a clean repo or isolated new file.
+- If recoverable, run focused validation before staging and commit only that path.
+
 ## Commands worth running
 
 ```bash
@@ -97,6 +124,9 @@ for d in */; do
     git -C "$d" status --short
   fi
 done
+
+# Inspect a suspicious continuation diff before choosing the task.
+git -C <repo> diff -- <path-that-matches-handoff>
 
 # Explicit-path staging for a dirty repo.
 git -C <repo> add -- <path-created-or-edited-this-run>
