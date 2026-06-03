@@ -1,0 +1,26 @@
+{
+  "name": "skills-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.29.2",
+  "scripts": {
+    "build": "pnpm -r --if-present build",
+    "check": "../scripts/skills-manager-check",
+    "dev": "../scripts/skills-manager-dev",
+    "smoke": "../scripts/skills-manager-smoke",
+    "smoke:web": "../scripts/skills-manager-web-smoke",
+    "smoke:desktop": "../scripts/skills-manager-desktop-smoke",
+    "smoke:live": "../scripts/skills-manager-live-smoke",
+    "smoke:openai": "../scripts/skills-manager-openai-smoke",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present build && pnpm -r --if-present typecheck",
+    "dev:web": "pnpm --filter skills-manager-web dev",
+    "dev:api": "pnpm --filter skills-manager-api dev",
+    "dev:desktop": "pnpm --filter skills-manager-desktop tauri:dev"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.13"
+  }
+}

@@ -1,0 +1,268 @@
+.skills-shell {
+  display: grid;
+  grid-template-columns: 280px minmax(320px, 0.9fr) minmax(420px, 1.4fr);
+  height: 100vh;
+  background: #f6f7f2;
+  color: #202622;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.skills-sidebar,
+.skills-list-pane,
+.skills-detail-pane {
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid #d9dfd6;
+  overflow: auto;
+}
+
+.skills-sidebar {
+  padding: 24px;
+  background: #eef1eb;
+}
+
+.skills-brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.skills-brand-mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 8px;
+  background: #202622;
+  color: #fff;
+  font-weight: 700;
+}
+
+.skills-brand h1,
+.skills-toolbar h2,
+.skills-detail h2 {
+  margin: 0;
+}
+
+.skills-brand p,
+.skills-toolbar p,
+.skills-detail header p,
+.skills-detail header span {
+  margin: 4px 0 0;
+  color: #64706a;
+}
+
+.skills-group,
+.skills-row {
+  display: grid;
+  width: 100%;
+  border: 1px solid #d9dfd6;
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  text-align: left;
+}
+
+.skills-group {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 12px;
+}
+
+.skills-group.active,
+.skills-row.active {
+  border-color: #2f6f67;
+  box-shadow: inset 4px 0 0 #2f6f67;
+}
+
+.skills-group small,
+.skills-row span,
+.skills-row small {
+  display: block;
+  color: #64706a;
+}
+
+.skills-list-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+}
+
+.skills-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 260px);
+  gap: 16px;
+  align-items: center;
+}
+
+.skills-import-bar {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 140px auto auto auto;
+  gap: 8px;
+}
+
+.skills-import-bar input,
+.skills-import-bar select {
+  height: 38px;
+  min-width: 0;
+  border: 1px solid #d9dfd6;
+  border-radius: 6px;
+  padding: 0 10px;
+  background: #fff;
+}
+
+.skills-import-bar button {
+  border: 0;
+  border-radius: 6px;
+  padding: 0 12px;
+  background: #2f6f67;
+  color: #fff;
+  font-weight: 700;
+}
+
+.skills-toolbar input,
+.skills-control-row input,
+.skills-control-row select {
+  height: 38px;
+  border: 1px solid #d9dfd6;
+  border-radius: 6px;
+  padding: 0 10px;
+}
+
+.skills-status,
+.skills-empty {
+  border: 1px solid #d9dfd6;
+  border-radius: 8px;
+  padding: 16px;
+  background: #fff;
+}
+
+.skills-empty.detail {
+  display: grid;
+  height: 100%;
+  place-content: center;
+  text-align: center;
+}
+
+.skills-list {
+  display: grid;
+  gap: 8px;
+  overflow: auto;
+}
+
+.skills-row {
+  gap: 5px;
+  min-height: 84px;
+  padding: 12px;
+}
+
+.skills-row div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.skills-row small {
+  border-radius: 999px;
+  padding: 3px 8px;
+  background: #f0f2ec;
+}
+
+.skills-detail-pane {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  background: #fff;
+}
+
+.skills-detail {
+  overflow: auto;
+  padding: 24px;
+}
+
+.skills-detail pre,
+.skills-action-panel pre {
+  overflow: auto;
+  border-radius: 8px;
+  padding: 14px;
+  background: #202622;
+  color: #eef7f0;
+  white-space: pre-wrap;
+}
+
+.skills-detail-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  border-top: 1px solid #d9dfd6;
+  padding: 16px;
+  background: #fbfcf8;
+}
+
+.skills-action-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.skills-action-panel h3 {
+  margin: 0;
+}
+
+.skills-control-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(100px, 1fr) auto;
+  gap: 8px;
+}
+
+.skills-control-row.compact {
+  grid-template-columns: 1fr 1fr;
+}
+
+.skills-action-panel button,
+.skills-control-row button {
+  border: 0;
+  border-radius: 6px;
+  padding: 0 12px;
+  background: #2f6f67;
+  color: #fff;
+  font-weight: 700;
+}
+
+.skills-action-panel button:disabled,
+.skills-import-bar button:disabled {
+  background: #aab3ae;
+  cursor: not-allowed;
+}
+
+.skills-checkbox {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.skills-checkbox span {
+  display: grid;
+  gap: 2px;
+}
+
+.skills-checkbox small {
+  color: #64706a;
+}
+
+@media (max-width: 960px) {
+  .skills-shell {
+    grid-template-columns: 240px minmax(280px, 1fr);
+  }
+
+  .skills-detail-pane {
+    grid-column: 1 / -1;
+    min-height: 70vh;
+  }
+
+  .skills-import-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+}

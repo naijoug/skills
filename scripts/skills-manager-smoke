@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+API_URL="${SKILLS_MANAGER_API_URL:-http://127.0.0.1:8787}"
+WEB_URL="${SKILLS_MANAGER_WEB_URL:-http://127.0.0.1:5173}"
+
+library_json="$(curl -L -sS --fail "${API_URL}/api/library")"
+
+node --input-type=module - "$API_URL" "$library_json" <<'NODE'
+const [, , apiUrl, libraryRaw] = process.argv;
+const library = JSON.parse(libraryRaw);
+const local = library.groups.find((group) => group.id === "local:workspace");
+if (!local) {
+  throw new Error("Missing local:workspace group");
+}
+if (local.skillCount !== 24) {
+  throw new Error(`Expected local workspace to expose 24 skills, got ${local.skillCount}`);
+}
+if (!Array.isArray(library.skills) || library.skills.length < 24) {
+  throw new Error(`Expected at least 24 skills, got ${library.skills?.length ?? 0}`);
+}
+
+const firstSkill = library.skills[0];
+if (!firstSkill?.id) {
+  throw new Error("Missing first skill for detail smoke");
+}
+
+const detail = await getJson(`/api/skills/detail?id=${encodeURIComponent(firstSkill.id)}`);
+if (detail.id !== firstSkill.id || typeof detail.content !== "string" || !detail.content.length) {
+  throw new Error("Skill detail response is incomplete");
+}
+
+const providers = await getJson("/api/translation/providers");
+const openai = providers.find((provider) => provider.id === "openai");
+if (!openai) {
+  throw new Error("Missing OpenAI translation provider descriptor");
+}
+
+const installTargets = await getJson("/api/install/targets");
+if (!Array.isArray(installTargets) || installTargets.length !== 0) {
+  throw new Error("Web API should not expose local install targets");
+}
+
+const installBoundary = await postJson("/api/install", {
+  skillIds: [firstSkill.id],
+  targetIds: ["codex-global"],
+  mode: "copy",
+  conflictPolicy: "fail"
+});
+if (installBoundary.response.status !== 400 || !String(installBoundary.payload.error).includes("desktop app")) {
+  throw new Error("Web install boundary did not return the expected desktop-app error");
+}
+
+if (!openai.configured) {
+  const translationBoundary = await postJson("/api/translate", {
+    skillId: firstSkill.id,
+    targetLanguage: "Chinese",
+    providerId: "openai"
+  });
+  if (translationBoundary.response.status !== 503 || !String(translationBoundary.payload.error).includes("not configured")) {
+    throw new Error("Missing-key translation boundary did not return the expected error");
+  }
+}
+
+console.log(`API OK: ${library.groups.length} groups, ${library.skills.length} skills, detail/providers/boundaries checked`);
+
+async function getJson(path) {
+  const response = await fetch(`${apiUrl}${path}`);
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(`${path} failed: ${JSON.stringify(payload)}`);
+  }
+  return payload;
+}
+
+async function postJson(path, body) {
+  const response = await fetch(`${apiUrl}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  const payload = await response.json();
+  return { response, payload };
+}
+NODE
+
+web_html="$(curl -L -sS --fail "$WEB_URL")"
+if [[ "$web_html" != *"Skills Manager Web"* ]]; then
+  echo "Web OK check failed: expected Skills Manager Web title from $WEB_URL" >&2
+  exit 1
+fi
+
+echo "Web OK: $WEB_URL"

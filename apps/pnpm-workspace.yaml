@@ -1,0 +1,5 @@
+packages:
+  - "skills-manager-web"
+  - "skills-manager-api"
+  - "skills-manager-desktop"
+  - "packages/*"

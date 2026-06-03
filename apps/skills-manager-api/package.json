@@ -1,0 +1,20 @@
+{
+  "name": "skills-manager-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "tsx src/server.ts"
+  },
+  "dependencies": {
+    "@skills-manager/core": "workspace:*",
+    "@skills-manager/translation": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
+  }
+}

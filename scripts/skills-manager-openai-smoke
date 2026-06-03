@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR/apps"
+
+if [[ -z "${OPENAI_API_KEY:-}" ]]; then
+  echo "Set OPENAI_API_KEY to run the live OpenAI translation smoke." >&2
+  echo "Optional: SKILLS_MANAGER_OPENAI_SMOKE_TARGET_LANGUAGE=Chinese ./scripts/skills-manager-openai-smoke" >&2
+  exit 2
+fi
+
+API_PORT="${SKILLS_MANAGER_OPENAI_SMOKE_API_PORT:-8798}"
+API_URL="http://127.0.0.1:${API_PORT}"
+DATA_DIR="$(mktemp -d "${TMPDIR:-/tmp}/skills-manager-openai.XXXXXX")"
+API_LOG="${SKILLS_MANAGER_OPENAI_SMOKE_API_LOG:-${DATA_DIR}/api.log}"
+
+cleanup() {
+  if [[ -n "${API_PID:-}" ]]; then
+    kill "$API_PID" 2>/dev/null || true
+  fi
+  if [[ "${SKILLS_MANAGER_KEEP_OPENAI_SMOKE_DATA:-0}" != "1" ]]; then
+    rm -rf "$DATA_DIR"
+  else
+    echo "Keeping OpenAI smoke data directory: $DATA_DIR"
+  fi
+}
+
+trap cleanup EXIT INT TERM
+
+SKILLS_MANAGER_DATA_DIR="$DATA_DIR" SKILLS_MANAGER_API_PORT="$API_PORT" pnpm --filter skills-manager-api start >"$API_LOG" 2>&1 &
+API_PID="$!"
+
+for _ in {1..80}; do
+  if curl -L -sS --fail "${API_URL}/health" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 0.25
+done
+
+if ! curl -L -sS --fail "${API_URL}/health" >/dev/null 2>&1; then
+  echo "Skills Manager API failed to start. Log: $API_LOG" >&2
+  sed -n '1,160p' "$API_LOG" >&2 || true
+  exit 1
+fi
+
+node --input-type=module - "$API_URL" <<'NODE'
+const [, , apiUrl] = process.argv;
+const targetLanguage = process.env.SKILLS_MANAGER_OPENAI_SMOKE_TARGET_LANGUAGE ?? "Chinese";
+const preferredRelativePath = process.env.SKILLS_MANAGER_OPENAI_SMOKE_SKILL_RELATIVE_PATH;
+
+const library = await getJson("/api/library");
+const localSkills = library.skills.filter((skill) => skill.groupId === "local:workspace");
+if (!localSkills.length) {
+  throw new Error("Missing local skills for OpenAI smoke.");
+}
+
+const details = [];
+for (const skill of localSkills) {
+  if (preferredRelativePath && skill.relativePath !== preferredRelativePath) {
+    continue;
+  }
+  const detail = await getJson(`/api/skills/detail?id=${encodeURIComponent(skill.id)}`);
+  details.push(detail);
+}
+if (!details.length) {
+  throw new Error(`No local skill matched SKILLS_MANAGER_OPENAI_SMOKE_SKILL_RELATIVE_PATH=${preferredRelativePath}`);
+}
+
+const detail = details.sort((left, right) => left.content.length - right.content.length)[0];
+const providers = await getJson("/api/translation/providers");
+const openai = providers.find((provider) => provider.id === "openai");
+if (!openai?.configured) {
+  throw new Error("OpenAI provider is not configured even though OPENAI_API_KEY is set.");
+}
+
+const translation = await postJson("/api/translate", {
+  skillId: detail.id,
+  targetLanguage,
+  providerId: "openai"
+});
+if (translation.providerId !== "openai" || translation.targetLanguage !== targetLanguage || !translation.markdown?.trim()) {
+  throw new Error("OpenAI live translation response was incomplete.");
+}
+
+console.log(`OpenAI translation OK: ${detail.relativePath} -> ${targetLanguage}, ${translation.markdown.length} chars`);
+
+async function getJson(path) {
+  const response = await fetch(`${apiUrl}${path}`);
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(formatFailure(path, payload));
+  }
+  return payload;
+}
+
+async function postJson(path, body) {
+  const response = await fetch(`${apiUrl}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(formatFailure(path, payload));
+  }
+  return payload;
+}
+
+function formatFailure(path, payload) {
+  const raw = JSON.stringify(payload);
+  const hint = raw.includes("insufficient_quota")
+    ? " Check the OpenAI account quota or billing settings for OPENAI_API_KEY."
+    : raw.includes("invalid_api_key")
+      ? " Check that OPENAI_API_KEY is valid for the OpenAI API."
+      : "";
+  return `${path} failed: ${raw}${hint}`;
+}
+NODE

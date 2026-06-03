@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@skills-manager/core": ["packages/skills-core/src/index.ts"],
+      "@skills-manager/platform": ["packages/skills-platform/src/index.ts"],
+      "@skills-manager/translation": ["packages/skills-translation/src/index.ts"],
+      "@skills-manager/installers": ["packages/skills-installers/src/index.ts"],
+      "@skills-manager/ui": ["packages/skills-ui/src/index.ts"]
+    }
+  }
+}

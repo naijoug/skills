@@ -6,6 +6,11 @@
 # Temporary files
 *.tmp
 *.log
+node_modules/
+dist/
+target/
+*.tsbuildinfo
+apps/skills-manager-desktop/src-tauri/gen/
 
 # Python cache (trigger eval scripts)
 __pycache__/
@@ -25,3 +30,6 @@ skills/manual/tool/search/workspace/
 .omx/
 
 .ref/
+
+# Local Skills Manager imports/cache
+.skills-manager-data/

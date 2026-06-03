@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR/apps"
+
+if [[ -z "${SKILLS_MANAGER_LIVE_REPO_URL:-}" ]]; then
+  echo "Set SKILLS_MANAGER_LIVE_REPO_URL to a GitHub repository that contains one or more SKILL.md files." >&2
+  echo "Example: SKILLS_MANAGER_LIVE_REPO_URL=https://github.com/owner/repo ./scripts/skills-manager-live-smoke" >&2
+  exit 2
+fi
+
+API_PORT="${SKILLS_MANAGER_LIVE_API_PORT:-8797}"
+API_URL="http://127.0.0.1:${API_PORT}"
+DATA_DIR="$(mktemp -d "${TMPDIR:-/tmp}/skills-manager-live.XXXXXX")"
+API_LOG="${SKILLS_MANAGER_LIVE_API_LOG:-${DATA_DIR}/api.log}"
+
+cleanup() {
+  if [[ -n "${API_PID:-}" ]]; then
+    kill "$API_PID" 2>/dev/null || true
+  fi
+  if [[ "${SKILLS_MANAGER_KEEP_LIVE_DATA:-0}" != "1" ]]; then
+    rm -rf "$DATA_DIR"
+  else
+    echo "Keeping live smoke data directory: $DATA_DIR"
+  fi
+}
+
+trap cleanup EXIT INT TERM
+
+SKILLS_MANAGER_DATA_DIR="$DATA_DIR" SKILLS_MANAGER_API_PORT="$API_PORT" pnpm --filter skills-manager-api start >"$API_LOG" 2>&1 &
+API_PID="$!"
+
+for _ in {1..80}; do
+  if curl -L -sS --fail "${API_URL}/health" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 0.25
+done
+
+if ! curl -L -sS --fail "${API_URL}/health" >/dev/null 2>&1; then
+  echo "Skills Manager API failed to start. Log: $API_LOG" >&2
+  sed -n '1,160p' "$API_LOG" >&2 || true
+  exit 1
+fi
+
+node --input-type=module - "$API_URL" "$SKILLS_MANAGER_LIVE_REPO_URL" <<'NODE'
+const [, , apiUrl, repoUrl] = process.argv;
+
+const imported = await postJson("/api/repositories", { url: repoUrl, source: "github-api" });
+const importedGroup = imported.groups.find((group) => group.kind === "github-api" && group.skillCount > 0);
+if (!importedGroup) {
+  throw new Error(`Expected ${repoUrl} to import at least one SKILL.md through the GitHub API path`);
+}
+
+const importedSkill = imported.skills.find((skill) => skill.groupId === importedGroup.id);
+if (!importedSkill) {
+  throw new Error(`Imported group ${importedGroup.id} did not expose any skill summaries`);
+}
+
+const refreshed = await postJson("/api/refresh", {});
+const refreshedGroup = refreshed.groups.find((group) => group.id === importedGroup.id);
+if (!refreshedGroup || refreshedGroup.skillCount < 1) {
+  throw new Error(`Refresh lost imported GitHub API group ${importedGroup.id}`);
+}
+
+const detail = await getJson(`/api/skills/detail?id=${encodeURIComponent(importedSkill.id)}`);
+if (detail.id !== importedSkill.id || typeof detail.content !== "string" || !detail.content.length) {
+  throw new Error(`Imported skill detail is incomplete for ${importedSkill.id}`);
+}
+
+const providers = await getJson("/api/translation/providers");
+const openai = providers.find((provider) => provider.id === "openai");
+if (!openai) {
+  throw new Error("Missing OpenAI provider descriptor");
+}
+
+if (openai.configured && process.env.SKILLS_MANAGER_LIVE_TRANSLATE !== "0") {
+  const targetLanguage = process.env.SKILLS_MANAGER_LIVE_TARGET_LANGUAGE ?? "Chinese";
+  const translation = await postJson("/api/translate", {
+    skillId: importedSkill.id,
+    targetLanguage,
+    providerId: "openai"
+  });
+  if (translation.providerId !== "openai" || translation.targetLanguage !== targetLanguage || !translation.markdown?.trim()) {
+    throw new Error("OpenAI live translation response was incomplete");
+  }
+  console.log(`OpenAI translation OK: ${targetLanguage}, ${translation.markdown.length} chars`);
+} else {
+  console.log("OpenAI translation skipped: provider is not configured or SKILLS_MANAGER_LIVE_TRANSLATE=0");
+}
+
+const removed = await postJson("/api/repositories/remove", { repositoryId: importedGroup.id });
+if (removed.groups.some((group) => group.id === importedGroup.id)) {
+  throw new Error(`Remove repository did not remove ${importedGroup.id}`);
+}
+
+console.log(`Live GitHub API OK: ${importedGroup.name}, ${importedGroup.skillCount} skills`);
+
+async function getJson(path) {
+  const response = await fetch(`${apiUrl}${path}`);
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(formatFailure(path, payload));
+  }
+  return payload;
+}
+
+async function postJson(path, body) {
+  const response = await fetch(`${apiUrl}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(formatFailure(path, payload));
+  }
+  return payload;
+}
+
+function formatFailure(path, payload) {
+  const raw = JSON.stringify(payload);
+  const hint = raw.includes("rate limit")
+    ? " Set GITHUB_TOKEN or GH_TOKEN to raise the GitHub API rate limit, or retry after the unauthenticated rate limit resets."
+    : "";
+  return `${path} failed: ${raw}${hint}`;
+}
+NODE
