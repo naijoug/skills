@@ -6,17 +6,26 @@ import {
   buildLibrary,
   decodeSkillId,
   parseSkillFile,
+  type GroupKind,
   type InstallResult,
   type InstallStatus,
   type InstallTarget,
   type SkillDetail,
   type SkillFileSource,
+  type SkillRelatedFile,
+  type SkillRelatedFileKind,
   type SkillGroup,
   type SkillTranslation,
   type SkillsLibrary,
   type TranslationProviderDescriptor
 } from "@skills-manager/core";
-import { OpenAITranslationProvider, TranslationProviderRegistry } from "@skills-manager/translation";
+import {
+  ClaudeCodeTranslationProvider,
+  CodexTranslationProvider,
+  OpenAITranslationProvider,
+  OpenRouterTranslationProvider,
+  TranslationProviderRegistry
+} from "@skills-manager/translation";
 
 const execFileAsync = promisify(execFile);
 
@@ -54,11 +63,13 @@ interface StoredLibrary {
   repositories: StoredRepository[];
 }
 
-interface GitHubRepoInfo {
+interface GitRepoInfo {
   id: string;
   name: string;
+  provider: "github" | "gitlab";
   owner: string;
   repo: string;
+  namespace: string;
   slug: string;
   url: string;
   cloneUrl: string;
@@ -79,6 +90,14 @@ export class ApiManager {
         model: process.env.SKILLS_MANAGER_OPENAI_MODEL
       })
     );
+    this.translationRegistry.register(
+      new OpenRouterTranslationProvider({
+        apiKey: process.env.OPENROUTER_API_KEY,
+        model: process.env.SKILLS_MANAGER_OPENROUTER_MODEL
+      })
+    );
+    this.translationRegistry.register(new CodexTranslationProvider());
+    this.translationRegistry.register(new ClaudeCodeTranslationProvider());
   }
 
   async listLibrary(): Promise<SkillsLibrary> {
@@ -88,13 +107,13 @@ export class ApiManager {
 
   async importRepository(input: ImportRepositoryInput): Promise<SkillsLibrary> {
     if (typeof input.url !== "string" || !input.url.trim()) {
-      throw new ApiError("Missing GitHub repository URL.", 400);
+      throw new ApiError("Missing repository URL.", 400);
     }
     const source = input.source ?? "server-cache";
     if (source !== "server-cache" && source !== "github-api") {
       throw new ApiError("Unsupported repository source.", 400);
     }
-    const repo = normalizeGitHubUrl(input.url);
+    const repo = normalizeGitRepositoryUrl(input.url);
     const now = new Date().toISOString();
     const library = await this.loadStoredLibrary();
     const repositories = library.repositories.filter((item) => item.id !== repo.id);
@@ -103,9 +122,16 @@ export class ApiManager {
 
     if (source === "server-cache") {
       await this.cloneOrPull(repo);
+      await assertSkillsRepository(join(this.reposDir, repo.slug));
     } else {
+      if (repo.provider !== "github") {
+        throw new ApiError("GitHub API source only supports GitHub repositories. Use server-cache for GitLab.", 400);
+      }
       defaultBranch = await this.readGitHubDefaultBranch(repo);
-      await this.readGitHubApiSources({ ...repo, defaultBranch });
+      const sources = await this.readGitHubApiSources({ ...repo, defaultBranch });
+      if (!sources.length) {
+        throw new ApiError("This repository does not contain a detectable skills directory or SKILL.md files.", 400);
+      }
     }
 
     repositories.push({
@@ -149,11 +175,11 @@ export class ApiManager {
       throw new ApiError("The local workspace group cannot be removed.", 400);
     }
     const library = await this.loadStoredLibrary();
-    const repository = library.repositories.find((item) => (item.id ?? normalizeGitHubUrl(item.url).id) === input.repositoryId);
+    const repository = library.repositories.find((item) => (item.id ?? normalizeGitRepositoryUrl(item.url).id) === input.repositoryId);
     if (!repository) {
       throw new ApiError("Repository not found.", 404);
     }
-    const repositories = library.repositories.filter((item) => (item.id ?? normalizeGitHubUrl(item.url).id) !== input.repositoryId);
+    const repositories = library.repositories.filter((item) => (item.id ?? normalizeGitRepositoryUrl(item.url).id) !== input.repositoryId);
     await this.saveStoredLibrary({ version: 1, repositories });
 
     const normalized = this.normalizeStoredRepository(repository);
@@ -182,7 +208,12 @@ export class ApiManager {
     throw new ApiError("Web API does not accept translation provider secrets. Configure OPENAI_API_KEY on the server or use the desktop app.", 400);
   }
 
-  async translateSkill(input: { skillId: string; targetLanguage: string; providerId?: string }): Promise<SkillTranslation> {
+  async translateSkill(input: {
+    skillId: string;
+    targetLanguage: string;
+    providerId?: string;
+    sourceMode?: "summary" | "markdown";
+  }): Promise<SkillTranslation> {
     const skillId = typeof input.skillId === "string" ? input.skillId.trim() : "";
     if (!skillId) {
       throw new ApiError("Missing skill id.", 400);
@@ -201,12 +232,12 @@ export class ApiManager {
     }
     if (!provider.configured()) {
       throw new ApiError(
-        `Translation provider is not configured: ${providerId}. Configure OPENAI_API_KEY on the server or use the desktop app.`,
+        `Translation provider is not configured: ${providerId}. Configure the matching provider key on the server or use the desktop app.`,
         503
       );
     }
     const translation = await provider.translate({
-      markdown: detail.content,
+      markdown: translationSourceMarkdown(detail, input.sourceMode),
       targetLanguage
     });
     return { ...translation, skillId };
@@ -247,7 +278,7 @@ export class ApiManager {
       const group: SkillGroup = {
         id: normalized.id,
         name: normalized.name,
-        kind: normalized.source === "github-api" ? "github-api" : "web-cache",
+        kind: groupKindFor(normalized),
         url: normalized.url,
         path: normalized.source === "server-cache" ? normalized.path : undefined,
         importedAt: normalized.importedAt,
@@ -263,7 +294,7 @@ export class ApiManager {
     return { groups, filesByGroup };
   }
 
-  private async cloneOrPull(repo: GitHubRepoInfo): Promise<void> {
+  private async cloneOrPull(repo: GitRepoInfo): Promise<void> {
     await mkdir(this.reposDir, { recursive: true });
     const target = join(this.reposDir, repo.slug);
     try {
@@ -274,7 +305,7 @@ export class ApiManager {
     }
   }
 
-  private async readGitHubApiSources(repo: GitHubRepoInfo): Promise<SkillFileSource[]> {
+  private async readGitHubApiSources(repo: GitRepoInfo): Promise<SkillFileSource[]> {
     const defaultBranch = repo.defaultBranch ?? (await this.readGitHubDefaultBranch(repo));
     const tree = await githubJson<{ tree?: Array<{ path: string; type: string; sha: string }>; truncated?: boolean }>(
       `https://api.github.com/repos/${repo.owner}/${repo.repo}/git/trees/${encodeURIComponent(defaultBranch)}?recursive=1`
@@ -295,16 +326,26 @@ export class ApiManager {
     for (const entry of skillEntries) {
       const entryDir = dirname(entry.path);
       const manifestPath = entryDir === "." ? "skill.yaml" : `${entryDir}/skill.yaml`;
+      const relatedEntries = entries
+        .filter((candidate) => candidate.type === "blob")
+        .filter((candidate) => isRelatedFilePath(entry.path, candidate.path));
       sources.push({
         relativePath: entry.path,
         content: await readGitHubBlob(repo, entry.sha),
-        manifestContent: byPath.has(manifestPath) ? await readGitHubBlob(repo, byPath.get(manifestPath)!.sha) : undefined
+        manifestContent: byPath.has(manifestPath) ? await readGitHubBlob(repo, byPath.get(manifestPath)!.sha) : undefined,
+        relatedFiles: await Promise.all(
+          relatedEntries.map(async (related) => ({
+            relativePath: related.path,
+            kind: relatedFileKind(related.path),
+            content: await readGitHubBlob(repo, related.sha)
+          }))
+        )
       });
     }
     return sources;
   }
 
-  private async readGitHubDefaultBranch(repo: GitHubRepoInfo): Promise<string> {
+  private async readGitHubDefaultBranch(repo: GitRepoInfo): Promise<string> {
     const metadata = await githubJson<{ default_branch?: string }>(`https://api.github.com/repos/${repo.owner}/${repo.repo}`);
     if (!metadata.default_branch) {
       throw new ApiError("GitHub repository metadata did not include a default branch.", 502);
@@ -333,9 +374,9 @@ export class ApiManager {
     path: string;
     importedAt?: string;
     updatedAt?: string;
-    repoInfo: GitHubRepoInfo;
+    repoInfo: GitRepoInfo;
   } {
-    const repoInfo = normalizeGitHubUrl(repository.url);
+    const repoInfo = normalizeGitRepositoryUrl(repository.url);
     const slug = repository.slug ?? repoInfo.slug;
     return {
       id: repository.id ?? repoInfo.id,
@@ -354,6 +395,48 @@ function isSkillFilePath(path: string): boolean {
   return path === "SKILL.md" || path.endsWith("/SKILL.md");
 }
 
+function translationSourceMarkdown(detail: SkillDetail, sourceMode?: "summary" | "markdown"): string {
+  if (sourceMode !== "summary") {
+    return detail.content;
+  }
+  const sections = [`# ${detail.title}`];
+  if (detail.description) {
+    sections.push(detail.description);
+  }
+  const references = extractMarkdownSection(detail.content, "References");
+  if (references) {
+    sections.push(`## References\n\n${references}`);
+  }
+  return sections.join("\n\n");
+}
+
+function extractMarkdownSection(markdown: string, heading: string): string {
+  const lines = markdown.split(/\r?\n/);
+  const start = lines.findIndex((line) => new RegExp(`^##\\s+${escapeRegExp(heading)}\\s*$`, "i").test(line.trim()));
+  if (start === -1) {
+    return "";
+  }
+  const collected: string[] = [];
+  for (const line of lines.slice(start + 1)) {
+    if (/^##\s+/.test(line.trim())) {
+      break;
+    }
+    collected.push(line);
+  }
+  return collected.join("\n").trim();
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function groupKindFor(repository: { source: "server-cache" | "github-api"; repoInfo: GitRepoInfo }): GroupKind {
+  if (repository.source === "github-api") {
+    return "github-api";
+  }
+  return repository.repoInfo.provider === "gitlab" ? "gitlab" : "web-cache";
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -364,24 +447,31 @@ export class ApiError extends Error {
 }
 
 export async function readSkillSources(root: string): Promise<SkillFileSource[]> {
+  const scanRoot = await detectSkillRoot(root);
   const files: SkillFileSource[] = [];
-  await walk(root, async (file) => {
+  await walk(scanRoot, async (file) => {
     if (!file.endsWith("/SKILL.md")) {
       return;
     }
-    const relativePath = relative(root, file).split("\\").join("/");
+    const relativePath = relative(scanRoot, file).split("\\").join("/");
     const manifestPath = file.replace(/SKILL\.md$/, "skill.yaml");
+    const skillDir = dirname(file);
     files.push({
       relativePath,
       content: await readFile(file, "utf8"),
       manifestContent: await readOptionalFile(manifestPath),
+      relatedFiles: await readRelatedFiles(skillDir, scanRoot),
       absolutePath: file
     });
   });
   return files;
 }
 
-export function normalizeGitHubUrl(input: string): GitHubRepoInfo {
+export function normalizeGitHubUrl(input: string): GitRepoInfo {
+  return normalizeGitRepositoryUrl(input);
+}
+
+export function normalizeGitRepositoryUrl(input: string): GitRepoInfo {
   const trimmed = input.trim();
   const sshMatch = trimmed.match(/^git@github\.com:([^/\s]+)\/([^/\s]+?)(?:\.git)?\/?$/);
   const sshUrlMatch = trimmed.match(/^ssh:\/\/git@github\.com\/([^/\s]+)\/([^/\s]+?)(?:\.git)?\/?$/);
@@ -391,22 +481,116 @@ export function normalizeGitHubUrl(input: string): GitHubRepoInfo {
   if (sshUrlMatch) {
     return githubRepoInfo(sshUrlMatch[1], sshUrlMatch[2], `ssh://git@github.com/${sshUrlMatch[1]}/${sshUrlMatch[2]}.git`);
   }
+  const gitlabSshMatch = trimmed.match(/^git@gitlab\.com:(.+?)(?:\.git)?\/?$/);
+  const gitlabSshUrlMatch = trimmed.match(/^ssh:\/\/git@gitlab\.com\/(.+?)(?:\.git)?\/?$/);
+  if (gitlabSshMatch) {
+    return gitlabRepoInfo(gitlabSshMatch[1], `git@gitlab.com:${trimGitSuffix(gitlabSshMatch[1])}.git`);
+  }
+  if (gitlabSshUrlMatch) {
+    return gitlabRepoInfo(gitlabSshUrlMatch[1], `ssh://git@gitlab.com/${trimGitSuffix(gitlabSshUrlMatch[1])}.git`);
+  }
 
   let url: URL;
   try {
     url = new URL(trimmed);
   } catch {
-    throw new ApiError("Enter a valid GitHub repository URL.");
+    throw new ApiError("Enter a valid GitHub or GitLab repository URL.");
   }
-  if (!["http:", "https:"].includes(url.protocol) || url.hostname.toLowerCase() !== "github.com") {
-    throw new ApiError("Only GitHub repository URLs are supported.");
+  if (!["http:", "https:"].includes(url.protocol)) {
+    throw new ApiError("Only HTTP(S), GitHub SSH, and GitLab SSH repository URLs are supported.");
   }
-  const [owner, rawRepo] = url.pathname.split("/").filter(Boolean);
-  if (!owner || !rawRepo) {
-    throw new ApiError("GitHub URL must include owner and repository.");
+  const hostname = url.hostname.toLowerCase();
+  if (hostname === "github.com") {
+    const [owner, rawRepo] = url.pathname.split("/").filter(Boolean);
+    if (!owner || !rawRepo) {
+      throw new ApiError("GitHub URL must include owner and repository.");
+    }
+    const repo = trimGitSuffix(rawRepo);
+    return githubRepoInfo(owner, repo, `https://github.com/${owner}/${repo}.git`);
   }
-  const repo = rawRepo.endsWith(".git") ? rawRepo.slice(0, -4) : rawRepo;
-  return githubRepoInfo(owner, repo, `https://github.com/${owner}/${repo}.git`);
+  if (hostname === "gitlab.com") {
+    const pathParts = url.pathname.split("/").filter(Boolean);
+    const routeIndex = pathParts.indexOf("-");
+    const namespacePath = (routeIndex === -1 ? pathParts : pathParts.slice(0, routeIndex)).join("/");
+    return gitlabRepoInfo(namespacePath, `https://gitlab.com/${trimGitSuffix(namespacePath)}.git`);
+  }
+  throw new ApiError("Only GitHub and GitLab repository URLs are supported.");
+}
+
+async function assertSkillsRepository(root: string): Promise<void> {
+  const sources = await readSkillSources(root);
+  if (!sources.length) {
+    throw new ApiError("This repository does not contain a detectable skills directory or SKILL.md files.", 400);
+  }
+}
+
+async function detectSkillRoot(root: string): Promise<string> {
+  const skillsRoot = join(root, "skills");
+  if ((await hasSkillFiles(skillsRoot)) || !(await hasSkillFiles(root))) {
+    return skillsRoot;
+  }
+  return root;
+}
+
+async function hasSkillFiles(root: string): Promise<boolean> {
+  let found = false;
+  await walk(root, async (file) => {
+    if (file.endsWith("/SKILL.md")) {
+      found = true;
+    }
+  });
+  return found;
+}
+
+async function readRelatedFiles(skillDir: string, scanRoot: string): Promise<SkillRelatedFile[]> {
+  const files: SkillRelatedFile[] = [];
+  await walk(skillDir, async (file) => {
+    const basename = file.split(/[\\/]/).at(-1);
+    if (basename === "SKILL.md" || basename === "skill.yaml") {
+      return;
+    }
+    const fileStat = await stat(file);
+    const relativePath = relative(scanRoot, file).split("\\").join("/");
+    files.push({
+      relativePath,
+      kind: relatedFileKind(relativePath),
+      sizeBytes: fileStat.size,
+      content: textLikeFile(relativePath) && fileStat.size <= 128_000 ? await readOptionalFile(file) : undefined
+    });
+  });
+  return files.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+}
+
+function relatedFileKind(path: string): SkillRelatedFileKind {
+  const normalized = path.toLowerCase();
+  if (normalized.includes("/references/") || normalized.endsWith("/references.md")) {
+    return "reference";
+  }
+  if (/\.(md|mdx|txt)$/.test(normalized)) {
+    return "markdown";
+  }
+  if (/\.(ts|tsx|js|jsx|mjs|cjs|py|rs|go|java|rb|sh|zsh|bash|fish|sql|css|scss|html|jsonc)$/.test(normalized)) {
+    return "code";
+  }
+  if (/\.(ya?ml|json|toml|ini|env|lock)$/.test(normalized)) {
+    return "config";
+  }
+  if (/\.(png|jpe?g|gif|webp|svg|pdf)$/.test(normalized)) {
+    return "asset";
+  }
+  return "other";
+}
+
+function textLikeFile(path: string): boolean {
+  return relatedFileKind(path) !== "asset";
+}
+
+function isRelatedFilePath(skillPath: string, candidatePath: string): boolean {
+  const dir = dirname(skillPath);
+  if (candidatePath === skillPath || candidatePath === `${dir}/skill.yaml`) {
+    return false;
+  }
+  return dir === "." ? !candidatePath.includes("/") : candidatePath.startsWith(`${dir}/`);
 }
 
 async function walk(directory: string, onFile: (file: string) => Promise<void>): Promise<void> {
@@ -448,19 +632,47 @@ async function runGit(args: string[], cwd?: string): Promise<string> {
   }
 }
 
-function githubRepoInfo(owner: string, repo: string, cloneUrl: string): GitHubRepoInfo {
+function githubRepoInfo(owner: string, repo: string, cloneUrl: string): GitRepoInfo {
   if (!/^[A-Za-z0-9_.-]+$/.test(owner) || !/^[A-Za-z0-9_.-]+$/.test(repo)) {
     throw new ApiError("GitHub owner or repository name contains unsupported characters.");
   }
+  const namespace = `${owner}/${repo}`;
   return {
-    id: `github:${owner}/${repo}`.toLowerCase(),
-    name: `${owner}/${repo}`,
+    id: `github:${namespace}`.toLowerCase(),
+    name: namespace,
+    provider: "github",
     owner,
     repo,
+    namespace,
     slug: `${owner}--${repo}`.replace(/[^A-Za-z0-9_.-]+/g, "-").toLowerCase(),
-    url: `https://github.com/${owner}/${repo}`,
+    url: `https://github.com/${namespace}`,
     cloneUrl
   };
+}
+
+function gitlabRepoInfo(namespacePath: string, cloneUrl: string): GitRepoInfo {
+  const parts = trimGitSuffix(namespacePath).split("/").filter(Boolean);
+  if (parts.length < 2 || !parts.every((part) => /^[A-Za-z0-9_.-]+$/.test(part))) {
+    throw new ApiError("GitLab URL must include a namespace and repository.");
+  }
+  const repo = parts.at(-1)!;
+  const owner = parts.slice(0, -1).join("/");
+  const namespace = parts.join("/");
+  return {
+    id: `gitlab:${namespace}`.toLowerCase(),
+    name: namespace,
+    provider: "gitlab",
+    owner,
+    repo,
+    namespace,
+    slug: `gitlab--${namespace}`.replace(/[^A-Za-z0-9_.-]+/g, "-").toLowerCase(),
+    url: `https://gitlab.com/${namespace}`,
+    cloneUrl
+  };
+}
+
+function trimGitSuffix(value: string): string {
+  return value.trim().replace(/\/+$/, "").replace(/\.git$/, "");
 }
 
 async function githubJson<T>(url: string): Promise<T> {
@@ -483,7 +695,7 @@ function githubAuthToken(): string | undefined {
   return process.env.GITHUB_TOKEN || process.env.GH_TOKEN || undefined;
 }
 
-async function readGitHubBlob(repo: GitHubRepoInfo, sha: string): Promise<string> {
+async function readGitHubBlob(repo: GitRepoInfo, sha: string): Promise<string> {
   const blob = await githubJson<{ content: string; encoding: string }>(
     `https://api.github.com/repos/${repo.owner}/${repo.repo}/git/blobs/${sha}`
   );

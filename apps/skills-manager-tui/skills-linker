@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEFAULT_SKILLS_ROOT="$ROOT_DIR/skills"
 DEFAULT_PROJECT_ROOT="$PWD"
 MANIFEST_FILENAME=".skills-linker-manifest.tsv"

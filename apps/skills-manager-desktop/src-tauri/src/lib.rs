@@ -4,7 +4,7 @@ use std::env;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Output, Stdio};
 
 #[derive(Serialize)]
 struct Health {
@@ -36,6 +36,7 @@ struct SkillSource {
     relative_path: String,
     content: String,
     manifest_content: Option<String>,
+    related_files: Vec<Value>,
     absolute_path: Option<PathBuf>,
 }
 
@@ -73,6 +74,10 @@ fn import_repository(input: Value) -> Result<Value, String> {
     let url = get_string(&input, "url")?;
     let repo = normalize_github_url(&url)?;
     clone_or_pull(&repo)?;
+    let repo_path = repos_dir().join(&repo.slug);
+    if read_skill_sources(&repo_path)?.is_empty() {
+        return Err("This repository does not contain a detectable skills directory or SKILL.md files.".to_string());
+    }
 
     let now = now_iso();
     let mut library = load_library()?;
@@ -89,7 +94,6 @@ fn import_repository(input: Value) -> Result<Value, String> {
             string_field(item, "importedAt").or_else(|| string_field(item, "imported_at"))
         })
         .unwrap_or_else(|| now.clone());
-    let repo_path = repos_dir().join(&repo.slug);
 
     let mut repositories: Vec<Value> = existing_repos
         .into_iter()
@@ -186,50 +190,69 @@ fn get_skill_detail(input: Value) -> Result<Value, String> {
 
 #[tauri::command]
 fn list_translation_providers() -> Value {
-    let configured = openai_api_key().ok().flatten().is_some();
-    json!([{
-        "id": "openai",
-        "label": "OpenAI",
-        "configured": configured,
-        "supportsConfiguration": true
-    }])
+    json!([
+        {
+            "id": "openai",
+            "label": "OpenAI",
+            "configured": openai_api_key().ok().flatten().is_some(),
+            "supportsConfiguration": true,
+            "configurationHint": "Use OPENAI_API_KEY or save an OpenAI key here."
+        },
+        {
+            "id": "openrouter",
+            "label": "OpenRouter",
+            "configured": openrouter_api_key().ok().flatten().is_some(),
+            "supportsConfiguration": true,
+            "configurationHint": "Use OPENROUTER_API_KEY or save an OpenRouter key here."
+        },
+        {
+            "id": "codex",
+            "label": "Local Codex",
+            "configured": command_available("codex"),
+            "configurationHint": "Uses local `codex exec` in read-only, ephemeral mode."
+        },
+        {
+            "id": "claude-code",
+            "label": "Local Claude Code",
+            "configured": command_available("claude"),
+            "configurationHint": "Uses local `claude -p` with no session persistence."
+        }
+    ])
 }
 
 #[tauri::command]
 fn save_translation_provider_config(input: Value) -> Result<Value, String> {
     let provider_id = get_string(&input, "providerId")?;
-    if provider_id != "openai" {
-        return Err(format!("Unsupported translation provider: {provider_id}"));
-    }
+    let provider_key = configurable_translation_provider_key(&provider_id)?;
 
     let mut root = load_config()?.as_object().cloned().unwrap_or_default();
     let mut translation = root
         .remove("translation")
         .and_then(|value| value.as_object().cloned())
         .unwrap_or_default();
-    let mut openai = translation
-        .remove("openai")
+    let mut provider = translation
+        .remove(provider_key)
         .and_then(|value| value.as_object().cloned())
         .unwrap_or_default();
 
     if let Some(api_key) = string_field(&input, "apiKey") {
         let trimmed = api_key.trim();
         if trimmed.is_empty() {
-            openai.remove("apiKey");
+            provider.remove("apiKey");
         } else {
-            openai.insert("apiKey".to_string(), json!(trimmed));
+            provider.insert("apiKey".to_string(), json!(trimmed));
         }
     }
     if let Some(model) = string_field(&input, "model") {
         let trimmed = model.trim();
         if trimmed.is_empty() {
-            openai.remove("model");
+            provider.remove("model");
         } else {
-            openai.insert("model".to_string(), json!(trimmed));
+            provider.insert("model".to_string(), json!(trimmed));
         }
     }
 
-    translation.insert("openai".to_string(), Value::Object(openai));
+    translation.insert(provider_key.to_string(), Value::Object(provider));
     root.insert("translation".to_string(), Value::Object(translation));
     save_config(&Value::Object(root))?;
     Ok(list_translation_providers())
@@ -242,59 +265,18 @@ fn translate_skill(input: Value) -> Result<Value, String> {
         required_trimmed_string(&input, "targetLanguage", "Missing target language.")?;
     let provider_id = string_field(&input, "providerId").unwrap_or_else(|| "openai".to_string());
     let provider_id = provider_id.trim();
-    if provider_id != "openai" && !provider_id.is_empty() {
-        return Err(format!("Unsupported translation provider: {provider_id}"));
-    }
     let detail = find_skill_detail(&skill_id)?;
-    let markdown = get_string(&detail, "content")?;
-    let api_key = openai_api_key()?.ok_or_else(|| {
-        "OpenAI translation provider is not configured. Set OPENAI_API_KEY or save an OpenAI key in the desktop app.".to_string()
-    })?;
-    let model = openai_model()?;
+    let source_mode = string_field(&input, "sourceMode").unwrap_or_else(|| "markdown".to_string());
+    let markdown = translation_source_markdown(&detail, source_mode.trim())?;
 
-    let instructions = [
-        "You are a precise technical translator.".to_string(),
-        format!("Translate the Markdown skill documentation into {target_language}."),
-        "Preserve Markdown structure, fenced code blocks, YAML front matter keys, command names, paths, placeholders, and examples.".to_string(),
-        "Return only the translated Markdown.".to_string(),
-    ]
-    .join(" ");
-    let payload = json!({
-        "model": model,
-        "instructions": instructions,
-        "input": markdown,
-        "max_output_tokens": 8000
-    });
-
-    let output = Command::new("curl")
-        .args([
-            "-sS",
-            "https://api.openai.com/v1/responses",
-            "-H",
-            &format!("Authorization: Bearer {api_key}"),
-            "-H",
-            "Content-Type: application/json",
-            "-d",
-            &payload.to_string(),
-        ])
-        .output()
-        .map_err(|error| format!("Failed to run curl for translation: {error}"))?;
-    if !output.status.success() {
-        return Err(String::from_utf8_lossy(&output.stderr).trim().to_string());
+    match provider_id {
+        "" | "openai" => translate_with_openai(&skill_id, &target_language, &markdown),
+        "openrouter" => translate_with_openrouter(&skill_id, &target_language, &markdown),
+        "codex" | "claude-code" => {
+            translate_with_local_agent(provider_id, &skill_id, &target_language, &markdown)
+        }
+        _ => Err(format!("Unsupported translation provider: {provider_id}")),
     }
-    let response: Value = serde_json::from_slice(&output.stdout)
-        .map_err(|error| format!("Failed to parse OpenAI response: {error}"))?;
-    if response.get("error").is_some() {
-        return Err(format!("OpenAI translation failed: {response}"));
-    }
-
-    Ok(json!({
-        "skillId": skill_id,
-        "providerId": "openai",
-        "targetLanguage": target_language,
-        "markdown": extract_response_text(&response).trim(),
-        "model": model
-    }))
 }
 
 #[tauri::command]
@@ -617,10 +599,15 @@ fn collect_group_sources() -> Result<Vec<(GroupData, Vec<SkillSource>)>, String>
         .unwrap_or_default()
     {
         let stored = stored_repo(&repository)?;
+        let kind = if stored.info.id.starts_with("gitlab:") {
+            "gitlab".to_string()
+        } else {
+            "github".to_string()
+        };
         let group = GroupData {
             id: stored.info.id,
             name: stored.info.name,
-            kind: "github".to_string(),
+            kind,
             url: Some(stored.info.url),
             path: Some(stored.path.clone()),
             imported_at: stored.imported_at,
@@ -657,7 +644,8 @@ fn stored_repo(repository: &Value) -> Result<StoredRepo, String> {
 
 fn read_skill_sources(root: &Path) -> Result<Vec<SkillSource>, String> {
     let mut sources = Vec::new();
-    walk(root, root, &mut sources)?;
+    let scan_root = skill_scan_root(root)?;
+    walk(&scan_root, &scan_root, &mut sources)?;
     Ok(sources)
 }
 
@@ -683,16 +671,120 @@ fn walk(root: &Path, directory: &Path, sources: &mut Vec<SkillSource>) -> Result
                 .to_string_lossy()
                 .replace('\\', "/");
             let manifest_path = path.with_file_name("skill.yaml");
+            let skill_dir = path
+                .parent()
+                .ok_or_else(|| "Skill source directory is unavailable.".to_string())?;
             sources.push(SkillSource {
                 relative_path,
                 content: fs::read_to_string(&path)
                     .map_err(|error| format!("Failed to read {}: {error}", path.display()))?,
                 manifest_content: fs::read_to_string(manifest_path).ok(),
+                related_files: read_related_files(skill_dir, root)?,
                 absolute_path: Some(path),
             });
         }
     }
     Ok(())
+}
+
+fn skill_scan_root(root: &Path) -> Result<PathBuf, String> {
+    let skills_root = root.join("skills");
+    if has_skill_files(&skills_root)? || !has_skill_files(root)? {
+        Ok(skills_root)
+    } else {
+        Ok(root.to_path_buf())
+    }
+}
+
+fn has_skill_files(root: &Path) -> Result<bool, String> {
+    let mut found = false;
+    walk_files(root, &mut |path| {
+        if path.file_name().and_then(|value| value.to_str()) == Some("SKILL.md") {
+            found = true;
+        }
+        Ok(())
+    })?;
+    Ok(found)
+}
+
+fn read_related_files(skill_dir: &Path, scan_root: &Path) -> Result<Vec<Value>, String> {
+    let mut files = Vec::new();
+    walk_files(skill_dir, &mut |path| {
+        let file_name = path.file_name().and_then(|value| value.to_str()).unwrap_or_default();
+        if file_name == "SKILL.md" || file_name == "skill.yaml" {
+            return Ok(());
+        }
+        let metadata = fs::metadata(path).map_err(|error| error.to_string())?;
+        let relative_path = path
+            .strip_prefix(scan_root)
+            .map_err(|error| error.to_string())?
+            .to_string_lossy()
+            .replace('\\', "/");
+        let kind = related_file_kind(&relative_path);
+        let content = if kind != "asset" && metadata.len() <= 128_000 {
+            fs::read_to_string(path).ok()
+        } else {
+            None
+        };
+        files.push(json!({
+            "relativePath": relative_path,
+            "kind": kind,
+            "sizeBytes": metadata.len(),
+            "content": content
+        }));
+        Ok(())
+    })?;
+    files.sort_by(|left, right| value_string(left, "relativePath").cmp(&value_string(right, "relativePath")));
+    Ok(files)
+}
+
+fn walk_files(directory: &Path, on_file: &mut dyn FnMut(&Path) -> Result<(), String>) -> Result<(), String> {
+    let entries = match fs::read_dir(directory) {
+        Ok(entries) => entries,
+        Err(_) => return Ok(()),
+    };
+    for entry in entries {
+        let entry = entry.map_err(|error| error.to_string())?;
+        let path = entry.path();
+        let file_name = entry.file_name();
+        let file_name = file_name.to_string_lossy();
+        if file_name.starts_with('.') || should_skip_dir(&file_name) {
+            continue;
+        }
+        if path.is_dir() {
+            walk_files(&path, on_file)?;
+        } else {
+            on_file(&path)?;
+        }
+    }
+    Ok(())
+}
+
+fn related_file_kind(path: &str) -> &'static str {
+    let normalized = path.to_ascii_lowercase();
+    if normalized.contains("/references/") || normalized.ends_with("/references.md") {
+        "reference"
+    } else if matches_extension(&normalized, &["md", "mdx", "txt"]) {
+        "markdown"
+    } else if matches_extension(
+        &normalized,
+        &[
+            "ts", "tsx", "js", "jsx", "mjs", "cjs", "py", "rs", "go", "java", "rb", "sh",
+            "zsh", "bash", "fish", "sql", "css", "scss", "html", "jsonc",
+        ],
+    ) {
+        "code"
+    } else if matches_extension(&normalized, &["yaml", "yml", "json", "toml", "ini", "env", "lock"]) {
+        "config"
+    } else if matches_extension(&normalized, &["png", "jpg", "jpeg", "gif", "webp", "svg", "pdf"]) {
+        "asset"
+    } else {
+        "other"
+    }
+}
+
+fn matches_extension(path: &str, extensions: &[&str]) -> bool {
+    extensions.iter().any(|extension| path.ends_with(&format!(".{extension}")))
 }
 
 fn parse_skill_file(group: &GroupData, source: &SkillSource) -> Result<Value, String> {
@@ -743,6 +835,7 @@ fn parse_skill_file(group: &GroupData, source: &SkillSource) -> Result<Value, St
         "content": source.content,
         "frontmatter": frontmatter,
         "manifest": manifest,
+        "relatedFiles": source.related_files,
         "absolutePath": source.absolute_path
     }))
 }
@@ -752,6 +845,7 @@ fn to_summary(mut detail: Value) -> Value {
         object.remove("content");
         object.remove("frontmatter");
         object.remove("manifest");
+        object.remove("relatedFiles");
         object.remove("absolutePath");
     }
     detail
@@ -872,17 +966,35 @@ fn normalize_github_url(input: &str) -> Result<RepoInfo, String> {
             format!("ssh://git@github.com/{owner}/{repo}.git"),
         );
     }
-    let rest = trimmed
+    if let Some(rest) = trimmed.strip_prefix("git@gitlab.com:") {
+        let rest = rest.trim_end_matches('/').trim_end_matches(".git");
+        return gitlab_repo_info(rest, format!("git@gitlab.com:{rest}.git"));
+    }
+    if let Some(rest) = trimmed.strip_prefix("ssh://git@gitlab.com/") {
+        let rest = rest.trim_end_matches('/').trim_end_matches(".git");
+        return gitlab_repo_info(rest, format!("ssh://git@gitlab.com/{rest}.git"));
+    }
+    if let Some(rest) = trimmed
         .strip_prefix("https://github.com/")
         .or_else(|| trimmed.strip_prefix("http://github.com/"))
-        .ok_or_else(|| "Only GitHub repository URLs are supported.".to_string())?;
-    let rest = rest.trim_end_matches('/').trim_end_matches(".git");
-    let (owner, repo) = split_owner_repo(rest)?;
-    github_repo_info(
-        owner,
-        repo,
-        format!("https://github.com/{owner}/{repo}.git"),
-    )
+    {
+        let rest = rest.trim_end_matches('/').trim_end_matches(".git");
+        let (owner, repo) = split_owner_repo(rest)?;
+        return github_repo_info(
+            owner,
+            repo,
+            format!("https://github.com/{owner}/{repo}.git"),
+        );
+    }
+    if let Some(rest) = trimmed
+        .strip_prefix("https://gitlab.com/")
+        .or_else(|| trimmed.strip_prefix("http://gitlab.com/"))
+    {
+        let rest = rest.trim_end_matches('/').trim_end_matches(".git");
+        let namespace = gitlab_namespace_from_url_path(rest);
+        return gitlab_repo_info(&namespace, format!("https://gitlab.com/{namespace}.git"));
+    }
+    Err("Only GitHub and GitLab repository URLs are supported.".to_string())
 }
 
 fn split_owner_repo(path: &str) -> Result<(&str, &str), String> {
@@ -897,7 +1009,7 @@ fn split_owner_repo(path: &str) -> Result<(&str, &str), String> {
 }
 
 fn github_repo_info(owner: &str, repo: &str, clone_url: String) -> Result<RepoInfo, String> {
-    if !is_github_name(owner) || !is_github_name(repo) {
+    if !is_repo_path_segment(owner) || !is_repo_path_segment(repo) {
         return Err("GitHub owner or repository name contains unsupported characters.".to_string());
     }
     let name = format!("{owner}/{repo}");
@@ -908,6 +1020,27 @@ fn github_repo_info(owner: &str, repo: &str, clone_url: String) -> Result<RepoIn
         url: format!("https://github.com/{owner}/{repo}"),
         clone_url,
     })
+}
+
+fn gitlab_repo_info(namespace_path: &str, clone_url: String) -> Result<RepoInfo, String> {
+    let parts: Vec<&str> = namespace_path.split('/').filter(|part| !part.is_empty()).collect();
+    if parts.len() < 2 || !parts.iter().all(|part| is_repo_path_segment(part)) {
+        return Err("GitLab URL must include a namespace and repository.".to_string());
+    }
+    let name = parts.join("/");
+    Ok(RepoInfo {
+        id: format!("gitlab:{name}").to_lowercase(),
+        name: name.clone(),
+        slug: sanitize_slug(&format!("gitlab--{name}")).to_lowercase(),
+        url: format!("https://gitlab.com/{name}"),
+        clone_url,
+    })
+}
+
+fn gitlab_namespace_from_url_path(path: &str) -> String {
+    let parts: Vec<&str> = path.split('/').filter(|part| !part.is_empty()).collect();
+    let route_index = parts.iter().position(|part| *part == "-").unwrap_or(parts.len());
+    parts[..route_index].join("/")
 }
 
 fn clone_or_pull(repo: &RepoInfo) -> Result<(), String> {
@@ -973,20 +1106,6 @@ fn install_targets() -> Vec<InstallTargetData> {
             id: "codex-project".to_string(),
             tool_id: "codex".to_string(),
             label: "Codex project".to_string(),
-            skills_dir: project.join(".codex").join("skills"),
-            slash_commands_dir: Some(project.join(".codex").join("prompts")),
-        },
-        InstallTargetData {
-            id: "chatgpt-global".to_string(),
-            tool_id: "chatgpt".to_string(),
-            label: "ChatGPT global (Codex alias)".to_string(),
-            skills_dir: PathBuf::from(&home).join(".codex").join("skills"),
-            slash_commands_dir: Some(PathBuf::from(&home).join(".codex").join("prompts")),
-        },
-        InstallTargetData {
-            id: "chatgpt-project".to_string(),
-            tool_id: "chatgpt".to_string(),
-            label: "ChatGPT project (Codex alias)".to_string(),
             skills_dir: project.join(".codex").join("skills"),
             slash_commands_dir: Some(project.join(".codex").join("prompts")),
         },
@@ -1328,6 +1447,21 @@ fn openai_api_key() -> Result<Option<String>, String> {
         .map(ToString::to_string))
 }
 
+fn openrouter_api_key() -> Result<Option<String>, String> {
+    if let Ok(value) = env::var("OPENROUTER_API_KEY") {
+        if !value.trim().is_empty() {
+            return Ok(Some(value));
+        }
+    }
+    Ok(load_config()?
+        .get("translation")
+        .and_then(|value| value.get("openrouter"))
+        .and_then(|value| value.get("apiKey"))
+        .and_then(Value::as_str)
+        .filter(|value| !value.trim().is_empty())
+        .map(ToString::to_string))
+}
+
 fn openai_model() -> Result<String, String> {
     if let Ok(value) = env::var("SKILLS_MANAGER_OPENAI_MODEL") {
         if !value.trim().is_empty() {
@@ -1342,6 +1476,45 @@ fn openai_model() -> Result<String, String> {
         .filter(|value| !value.trim().is_empty())
         .map(ToString::to_string)
         .unwrap_or_else(|| "gpt-5".to_string()))
+}
+
+fn openrouter_model() -> Result<String, String> {
+    if let Ok(value) = env::var("SKILLS_MANAGER_OPENROUTER_MODEL") {
+        if !value.trim().is_empty() {
+            return Ok(value);
+        }
+    }
+    Ok(load_config()?
+        .get("translation")
+        .and_then(|value| value.get("openrouter"))
+        .and_then(|value| value.get("model"))
+        .and_then(Value::as_str)
+        .filter(|value| !value.trim().is_empty())
+        .map(ToString::to_string)
+        .unwrap_or_else(|| "openai/gpt-5".to_string()))
+}
+
+fn configurable_translation_provider_key(provider_id: &str) -> Result<&'static str, String> {
+    match provider_id.trim() {
+        "openai" => Ok("openai"),
+        "openrouter" => Ok("openrouter"),
+        "codex" | "claude-code" | "amp" => Err(format!(
+            "{} uses the local command line and does not accept API key configuration.",
+            provider_label(provider_id)
+        )),
+        value => Err(format!("Unsupported translation provider: {value}")),
+    }
+}
+
+fn provider_label(provider_id: &str) -> &'static str {
+    match provider_id {
+        "codex" => "Local Codex",
+        "claude-code" => "Local Claude Code",
+        "amp" => "Local Amp",
+        "openrouter" => "OpenRouter",
+        "openai" => "OpenAI",
+        _ => "Translation provider",
+    }
 }
 
 fn repo_root() -> PathBuf {
@@ -1522,6 +1695,290 @@ fn decode_component(input: &str) -> Result<String, String> {
     String::from_utf8(output).map_err(|error| error.to_string())
 }
 
+fn translation_source_markdown(detail: &Value, source_mode: &str) -> Result<String, String> {
+    let content = get_string(detail, "content")?;
+    if source_mode != "summary" {
+        return Ok(content);
+    }
+    let title = string_field(detail, "title").unwrap_or_else(|| "Skill".to_string());
+    let mut sections = vec![format!("# {title}")];
+    if let Some(description) = string_field(detail, "description").filter(|value| !value.trim().is_empty()) {
+        sections.push(description);
+    }
+    let references = extract_markdown_section(&content, "References");
+    if !references.is_empty() {
+        sections.push(format!("## References\n\n{references}"));
+    }
+    Ok(sections.join("\n\n"))
+}
+
+fn extract_markdown_section(markdown: &str, heading: &str) -> String {
+    let heading_marker = format!("## {}", heading.to_ascii_lowercase());
+    let mut started = false;
+    let mut lines = Vec::new();
+    for line in markdown.lines() {
+        let trimmed = line.trim();
+        if started {
+            if trimmed.starts_with("## ") {
+                break;
+            }
+            lines.push(line);
+        } else if trimmed.to_ascii_lowercase() == heading_marker {
+            started = true;
+        }
+    }
+    lines.join("\n").trim().to_string()
+}
+
+fn translation_instructions(target_language: &str) -> String {
+    [
+        "You are a precise technical translator.".to_string(),
+        format!("Translate the Markdown skill documentation into {target_language}."),
+        "Preserve Markdown structure, fenced code blocks, YAML front matter keys, command names, paths, placeholders, and examples.".to_string(),
+        "Return only the translated Markdown.".to_string(),
+    ]
+    .join(" ")
+}
+
+fn translate_with_openai(skill_id: &str, target_language: &str, markdown: &str) -> Result<Value, String> {
+    let api_key = openai_api_key()?.ok_or_else(|| {
+        "OpenAI translation provider is not configured. Set OPENAI_API_KEY or save an OpenAI key in the desktop app.".to_string()
+    })?;
+    let model = openai_model()?;
+    let payload = json!({
+        "model": model,
+        "instructions": translation_instructions(target_language),
+        "input": markdown,
+        "max_output_tokens": 8000
+    });
+    let response = curl_json(
+        "https://api.openai.com/v1/responses",
+        &api_key,
+        &payload,
+        "OpenAI translation failed",
+    )?;
+    Ok(json!({
+        "skillId": skill_id,
+        "providerId": "openai",
+        "targetLanguage": target_language,
+        "markdown": extract_response_text(&response).trim(),
+        "model": model
+    }))
+}
+
+fn translate_with_openrouter(skill_id: &str, target_language: &str, markdown: &str) -> Result<Value, String> {
+    let api_key = openrouter_api_key()?.ok_or_else(|| {
+        "OpenRouter translation provider is not configured. Set OPENROUTER_API_KEY or save an OpenRouter key in the desktop app.".to_string()
+    })?;
+    let model = openrouter_model()?;
+    let payload = json!({
+        "model": model,
+        "messages": [
+            {
+                "role": "system",
+                "content": translation_instructions(target_language)
+            },
+            {
+                "role": "user",
+                "content": markdown
+            }
+        ]
+    });
+    let response = curl_json(
+        "https://openrouter.ai/api/v1/chat/completions",
+        &api_key,
+        &payload,
+        "OpenRouter translation failed",
+    )?;
+    Ok(json!({
+        "skillId": skill_id,
+        "providerId": "openrouter",
+        "targetLanguage": target_language,
+        "markdown": extract_chat_completion_text(&response).trim(),
+        "model": model
+    }))
+}
+
+fn translate_with_local_agent(
+    provider_id: &str,
+    skill_id: &str,
+    target_language: &str,
+    markdown: &str,
+) -> Result<Value, String> {
+    let prompt = format!(
+        "{}\n\nMarkdown:\n\n{}",
+        translation_instructions(target_language),
+        markdown
+    );
+    let codex_output_file = if provider_id == "codex" {
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|duration| duration.as_nanos())
+            .unwrap_or_default();
+        Some(env::temp_dir().join(format!(
+            "skills-manager-codex-last-{}-{nanos}.md",
+            std::process::id()
+        )))
+    } else {
+        None
+    };
+    let command = match provider_id {
+        "codex" => {
+            let mut command = Command::new("codex");
+            command.args([
+                "exec",
+                "--skip-git-repo-check",
+                "--ignore-rules",
+                "-c",
+                "model_reasoning_effort=\"low\"",
+                "--sandbox",
+                "read-only",
+                "--ephemeral",
+            ]);
+            if let Some(path) = &codex_output_file {
+                command.arg("--output-last-message");
+                command.arg(path);
+            }
+            command.arg(&prompt);
+            command
+        }
+        "claude-code" => {
+            let mut command = Command::new("claude");
+            command.args(["-p", "--no-session-persistence", &prompt]);
+            command
+        }
+        "amp" => {
+            let mut command = Command::new("amp");
+            command.args(["--no-ide", "--no-notifications", "-x", &prompt]);
+            command
+        }
+        _ => return Err(format!("Unsupported translation provider: {provider_id}")),
+    };
+    let timeout = if provider_id == "amp" {
+        std::time::Duration::from_secs(45)
+    } else {
+        std::time::Duration::from_secs(180)
+    };
+    let output = run_agent_command(command, timeout, provider_label(provider_id))
+        .map_err(|error| normalize_local_agent_error(provider_id, &error))?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        return Err(if stderr.is_empty() {
+            format!("{} translation command failed.", provider_label(provider_id))
+        } else {
+            normalize_local_agent_error(provider_id, &stderr)
+        });
+    }
+    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let file_output = codex_output_file
+        .as_ref()
+        .and_then(|path| fs::read_to_string(path).ok())
+        .unwrap_or_default()
+        .trim()
+        .to_string();
+    if let Some(path) = &codex_output_file {
+        let _ = fs::remove_file(path);
+    }
+    let translated_markdown = if stdout.is_empty() { file_output } else { stdout };
+    if translated_markdown.is_empty() {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        if !stderr.is_empty() {
+            return Err(normalize_local_agent_error(provider_id, &stderr));
+        }
+        return Err(format!(
+            "{} translation command returned no output.",
+            provider_label(provider_id)
+        ));
+    }
+    Ok(json!({
+        "skillId": skill_id,
+        "providerId": provider_id,
+        "targetLanguage": target_language,
+        "markdown": translated_markdown
+    }))
+}
+
+fn normalize_local_agent_error(provider_id: &str, message: &str) -> String {
+    if provider_id != "amp" {
+        return message.to_string();
+    }
+    let normalized = message.to_ascii_lowercase();
+    if normalized.contains("paid credits")
+        || normalized.contains("amp free")
+        || normalized.contains("execute mode")
+        || normalized.contains("402")
+    {
+        return format!(
+            "{} is installed, but non-interactive translation uses `amp -x`, which requires Amp paid credits. Add Amp paid credits or configure AMP_API_KEY for an account that supports execute mode, then retry.",
+            provider_label(provider_id)
+        );
+    }
+    if normalized.contains("certificate verification") {
+        return format!(
+            "{} is installed, but Amp could not reach its service because certificate verification failed. Fix Amp network or certificate settings, then retry.",
+            provider_label(provider_id)
+        );
+    }
+    message.to_string()
+}
+
+fn run_agent_command(mut command: Command, timeout: std::time::Duration, label: &str) -> Result<Output, String> {
+    command.stdout(Stdio::piped()).stderr(Stdio::piped());
+    let mut child = command
+        .spawn()
+        .map_err(|error| format!("Failed to run {label}: {error}"))?;
+    let started = std::time::Instant::now();
+    loop {
+        match child.try_wait() {
+            Ok(Some(_status)) => return child.wait_with_output().map_err(|error| error.to_string()),
+            Ok(None) => {
+                if started.elapsed() >= timeout {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    return Err(format!(
+                        "{label} translation command timed out after {} seconds.",
+                        timeout.as_secs()
+                    ));
+                }
+                std::thread::sleep(std::time::Duration::from_millis(100));
+            }
+            Err(error) => return Err(error.to_string()),
+        }
+    }
+}
+
+fn curl_json(endpoint: &str, api_key: &str, payload: &Value, error_label: &str) -> Result<Value, String> {
+    let output = Command::new("curl")
+        .args([
+            "-sS",
+            "--connect-timeout",
+            "20",
+            "--retry",
+            "2",
+            "--retry-all-errors",
+            "--retry-delay",
+            "1",
+            endpoint,
+            "-H",
+            &format!("Authorization: Bearer {api_key}"),
+            "-H",
+            "Content-Type: application/json",
+            "-d",
+            &payload.to_string(),
+        ])
+        .output()
+        .map_err(|error| format!("Failed to run curl for translation: {error}"))?;
+    if !output.status.success() {
+        return Err(String::from_utf8_lossy(&output.stderr).trim().to_string());
+    }
+    let response: Value = serde_json::from_slice(&output.stdout)
+        .map_err(|error| format!("Failed to parse translation response: {error}"))?;
+    if response.get("error").is_some() {
+        return Err(format!("{error_label}: {response}"));
+    }
+    Ok(response)
+}
+
 fn extract_response_text(value: &Value) -> String {
     if value.get("type").and_then(Value::as_str) == Some("output_text") {
         return value
@@ -1545,6 +2002,29 @@ fn extract_response_text(value: &Value) -> String {
             .join("\n"),
         _ => String::new(),
     }
+}
+
+fn extract_chat_completion_text(value: &Value) -> String {
+    value
+        .get("choices")
+        .and_then(Value::as_array)
+        .map(|choices| {
+            choices
+                .iter()
+                .filter_map(|choice| {
+                    choice
+                        .get("message")
+                        .and_then(|message| message.get("content"))
+                        .and_then(Value::as_str)
+                })
+                .collect::<Vec<_>>()
+                .join("\n")
+        })
+        .unwrap_or_default()
+}
+
+fn command_available(command: &str) -> bool {
+    Command::new(command).arg("--version").output().is_ok()
 }
 
 fn now_iso() -> String {
@@ -1574,7 +2054,7 @@ fn should_skip_dir(name: &str) -> bool {
     )
 }
 
-fn is_github_name(value: &str) -> bool {
+fn is_repo_path_segment(value: &str) -> bool {
     !value.is_empty()
         && value
             .chars()
@@ -1619,6 +2099,19 @@ mod tests {
         assert_eq!(info.id, "github:openai/codex");
         assert_eq!(info.slug, "openai--codex");
         assert_eq!(info.clone_url, "https://github.com/openai/codex.git");
+    }
+
+    #[test]
+    fn normalizes_gitlab_urls() {
+        let info = normalize_github_url("https://gitlab.com/acme/platform/skills.git").unwrap();
+        assert_eq!(info.id, "gitlab:acme/platform/skills");
+        assert_eq!(info.name, "acme/platform/skills");
+        assert_eq!(info.slug, "gitlab--acme-platform-skills");
+        assert_eq!(info.clone_url, "https://gitlab.com/acme/platform/skills.git");
+
+        let tree_url = normalize_github_url("https://gitlab.com/acme/platform/skills/-/tree/main").unwrap();
+        assert_eq!(tree_url.id, "gitlab:acme/platform/skills");
+        assert_eq!(tree_url.clone_url, "https://gitlab.com/acme/platform/skills.git");
     }
 
     #[test]
@@ -1985,43 +2478,18 @@ mod tests {
     }
 
     #[test]
-    fn chatgpt_target_aliases_codex_home() {
-        let _guard = ENV_LOCK.lock().unwrap();
-        let old_home = env::var_os("HOME");
-        let home = temp_dir("skills-manager-desktop-home");
-        fs::create_dir_all(&home).unwrap();
-        unsafe {
-            env::set_var("HOME", &home);
-        }
-
+    fn install_targets_exclude_chatgpt_aliases() {
         let targets = list_install_targets();
-        let chatgpt = targets
+        let target_ids: Vec<&str> = targets
             .as_array()
             .unwrap()
             .iter()
-            .find(|target| target.get("id").and_then(Value::as_str) == Some("chatgpt-global"))
-            .unwrap();
-        assert_eq!(
-            chatgpt.get("toolId").and_then(Value::as_str),
-            Some("chatgpt")
-        );
-        assert_eq!(
-            chatgpt.get("skillsDir").and_then(Value::as_str),
-            Some(home.join(".codex/skills").to_string_lossy().to_string()).as_deref()
-        );
-
-        let skill_id = encode_skill_id("local:workspace", "auto/in-english/SKILL.md");
-        install_skills(json!({
-            "skillIds": [skill_id],
-            "targetIds": ["chatgpt-global"],
-            "mode": "copy",
-            "conflictPolicy": "fail"
-        }))
-        .unwrap();
-        assert!(home.join(".codex/skills/in-english/SKILL.md").exists());
-
-        restore_home(old_home);
-        fs::remove_dir_all(home).unwrap();
+            .filter_map(|target| target.get("id").and_then(Value::as_str))
+            .collect();
+        assert!(!target_ids.iter().any(|id| id.starts_with("chatgpt")));
+        assert!(target_ids.contains(&"codex-global"));
+        assert!(target_ids.contains(&"claude-code-global"));
+        assert!(target_ids.contains(&"amp-global"));
     }
 
     #[test]
@@ -2034,7 +2502,6 @@ mod tests {
             .filter_map(|target| target.get("id").and_then(Value::as_str))
             .collect();
         assert!(target_ids.contains(&"codex-project"));
-        assert!(target_ids.contains(&"chatgpt-project"));
         assert!(target_ids.contains(&"claude-code-project"));
         assert!(target_ids.contains(&"amp-project"));
 
@@ -2138,18 +2605,7 @@ mod tests {
             .iter()
             .any(
                 |group| group.get("id").and_then(Value::as_str) == Some("github:acme/skills")
-                    && group.get("skillCount").and_then(Value::as_u64) == Some(2)
-            ));
-        assert!(imported
-            .get("skills")
-            .and_then(Value::as_array)
-            .unwrap()
-            .iter()
-            .any(
-                |skill| skill.get("title").and_then(Value::as_str) == Some("Desktop Root Skill")
-                    && skill.get("relativePath").and_then(Value::as_str) == Some("SKILL.md")
-                    && skill.get("description").and_then(Value::as_str)
-                        == Some("desktop root fixture")
+                    && group.get("skillCount").and_then(Value::as_u64) == Some(1)
             ));
         assert!(
             imported
@@ -2249,17 +2705,28 @@ mod tests {
     fn desktop_translation_provider_can_be_configured_locally() {
         let _guard = ENV_LOCK.lock().unwrap();
         let old_key = env::var_os("OPENAI_API_KEY");
+        let old_openrouter_key = env::var_os("OPENROUTER_API_KEY");
         let old_model = env::var_os("SKILLS_MANAGER_OPENAI_MODEL");
+        let old_openrouter_model = env::var_os("SKILLS_MANAGER_OPENROUTER_MODEL");
         let old_data_dir = env::var_os("SKILLS_MANAGER_DATA_DIR");
         let data_dir = temp_dir("skills-manager-desktop-config");
         fs::create_dir_all(&data_dir).unwrap();
         unsafe {
             env::remove_var("OPENAI_API_KEY");
+            env::remove_var("OPENROUTER_API_KEY");
             env::remove_var("SKILLS_MANAGER_OPENAI_MODEL");
+            env::remove_var("SKILLS_MANAGER_OPENROUTER_MODEL");
             env::set_var("SKILLS_MANAGER_DATA_DIR", &data_dir);
         }
 
         let providers = list_translation_providers();
+        let provider_ids: Vec<&str> = providers
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|provider| provider.get("id").and_then(Value::as_str))
+            .collect();
+        assert_eq!(provider_ids, vec!["openai", "openrouter", "codex", "claude-code"]);
         assert_eq!(
             providers
                 .as_array()
@@ -2288,10 +2755,72 @@ mod tests {
         assert_eq!(openai_api_key().unwrap(), Some("sk-local-test".to_string()));
         assert_eq!(openai_model().unwrap(), "gpt-test");
 
+        save_translation_provider_config(json!({
+            "providerId": "openrouter",
+            "apiKey": "sk-or-test",
+            "model": "openai/test-model"
+        }))
+        .unwrap();
+        assert_eq!(openrouter_api_key().unwrap(), Some("sk-or-test".to_string()));
+        assert_eq!(openrouter_model().unwrap(), "openai/test-model");
+
         restore_openai_key(old_key);
+        restore_openrouter_key(old_openrouter_key);
         restore_openai_model(old_model);
+        restore_openrouter_model(old_openrouter_model);
         restore_data_dir(old_data_dir);
         fs::remove_dir_all(data_dir).unwrap();
+    }
+
+    #[test]
+    fn desktop_translation_uses_local_agent_commands() {
+        let _guard = ENV_LOCK.lock().unwrap();
+        let old_path = env::var_os("PATH");
+        let data_dir = temp_dir("skills-manager-desktop-agents");
+        let log_file = data_dir.join("agents.log");
+        install_fake_agent_commands(&data_dir, &log_file);
+        let next_path = match &old_path {
+            Some(path) => format!("{}:{}", data_dir.join("bin").display(), path.to_string_lossy()),
+            None => data_dir.join("bin").display().to_string(),
+        };
+        unsafe {
+            env::set_var("PATH", next_path);
+        }
+
+        for provider_id in ["codex", "claude-code", "amp"] {
+            let result = translate_with_local_agent(provider_id, "skill-id", "Chinese", "# Hello").unwrap();
+            assert_eq!(result.get("markdown").and_then(Value::as_str), Some("# 你好"));
+            assert_eq!(result.get("providerId").and_then(Value::as_str), Some(provider_id));
+        }
+
+        let log = fs::read_to_string(&log_file).unwrap();
+        assert!(log.contains(
+            "codex\texec --skip-git-repo-check --ignore-rules -c model_reasoning_effort=\"low\" --sandbox read-only --ephemeral --output-last-message"
+        ));
+        assert!(log.contains("claude\t-p --no-session-persistence"));
+        assert!(log.contains("amp\t--no-ide --no-notifications -x"));
+
+        restore_path(old_path);
+        fs::remove_dir_all(data_dir).unwrap();
+    }
+
+    #[test]
+    fn desktop_translation_explains_amp_environment_failures() {
+        let paid_credits = normalize_local_agent_error(
+            "amp",
+            "Error: 402 {\"error\":{\"message\":\"Execute mode (amp -x) requires paid credits and cannot use Amp Free.\"}}",
+        );
+        assert!(paid_credits.contains("requires Amp paid credits"));
+        assert!(paid_credits.contains("AMP_API_KEY"));
+
+        let certificate =
+            normalize_local_agent_error("amp", "Error: unknown certificate verification error");
+        assert!(certificate.contains("certificate verification failed"));
+
+        assert_eq!(
+            normalize_local_agent_error("codex", "codex failed"),
+            "codex failed"
+        );
     }
 
     fn temp_dir(prefix: &str) -> PathBuf {
@@ -2366,6 +2895,32 @@ esac
         }
     }
 
+    fn install_fake_agent_commands(data_dir: &Path, log_file: &Path) {
+        let bin_dir = data_dir.join("bin");
+        fs::create_dir_all(&bin_dir).unwrap();
+        for command_name in ["codex", "claude", "amp"] {
+            let command_path = bin_dir.join(command_name);
+            fs::write(
+                &command_path,
+                format!(
+                    r#"#!/bin/sh
+printf '%s\t%s\n' "${{0##*/}}" "$*" >> "{}"
+printf '# 你好\n'
+"#,
+                    log_file.display()
+                ),
+            )
+            .unwrap();
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let mut permissions = fs::metadata(&command_path).unwrap().permissions();
+                permissions.set_mode(0o755);
+                fs::set_permissions(&command_path, permissions).unwrap();
+            }
+        }
+    }
+
     fn restore_home(value: Option<std::ffi::OsString>) {
         unsafe {
             if let Some(value) = value {
@@ -2386,12 +2941,32 @@ esac
         }
     }
 
+    fn restore_openrouter_key(value: Option<std::ffi::OsString>) {
+        unsafe {
+            if let Some(value) = value {
+                env::set_var("OPENROUTER_API_KEY", value);
+            } else {
+                env::remove_var("OPENROUTER_API_KEY");
+            }
+        }
+    }
+
     fn restore_openai_model(value: Option<std::ffi::OsString>) {
         unsafe {
             if let Some(value) = value {
                 env::set_var("SKILLS_MANAGER_OPENAI_MODEL", value);
             } else {
                 env::remove_var("SKILLS_MANAGER_OPENAI_MODEL");
+            }
+        }
+    }
+
+    fn restore_openrouter_model(value: Option<std::ffi::OsString>) {
+        unsafe {
+            if let Some(value) = value {
+                env::set_var("SKILLS_MANAGER_OPENROUTER_MODEL", value);
+            } else {
+                env::remove_var("SKILLS_MANAGER_OPENROUTER_MODEL");
             }
         }
     }

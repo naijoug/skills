@@ -2,6 +2,12 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$ROOT_DIR/apps"
+cd "$ROOT_DIR/apps/skills-manager-desktop"
 
-exec pnpm --filter skills-manager-desktop tauri:dev
+DESKTOP_PORT="${SKILLS_MANAGER_DESKTOP_PORT:-5191}"
+DESKTOP_HOST="${SKILLS_MANAGER_DESKTOP_HOST:-127.0.0.1}"
+export SKILLS_MANAGER_DESKTOP_PORT="$DESKTOP_PORT"
+export SKILLS_MANAGER_DESKTOP_HOST="$DESKTOP_HOST"
+TAURI_CONFIG="$(node -e "const host = process.env.SKILLS_MANAGER_DESKTOP_HOST || '127.0.0.1'; const port = process.env.SKILLS_MANAGER_DESKTOP_PORT || '5191'; console.log(JSON.stringify({ build: { beforeDevCommand: 'SKILLS_MANAGER_DESKTOP_PORT=' + port + ' pnpm dev -- --host ' + host + ' --port ' + port + ' --strictPort', devUrl: 'http://' + host + ':' + port } }));")"
+
+exec pnpm exec tauri dev --config "$TAURI_CONFIG"

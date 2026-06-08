@@ -6,7 +6,7 @@ Reads exported cases JSONL from `trigger_examples_tool.py export`
 and writes predictions JSONL consumable by `trigger_examples_tool.py score`.
 
 Usage:
-  python3 scripts/predictor_adapter_template.py \
+  python3 apps/skills-manager-tui/predictor_adapter_template.py \
     --input /tmp/cases.jsonl \
     --output /tmp/predictions.jsonl
 

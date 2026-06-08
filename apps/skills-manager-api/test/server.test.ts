@@ -16,6 +16,7 @@ afterEach(async () => {
 describe("skills-manager-api server", () => {
   it("serves health, library, details, and web install boundary over HTTP", async () => {
     vi.stubEnv("OPENAI_API_KEY", "");
+    vi.stubEnv("OPENROUTER_API_KEY", "");
     const dataDir = await tempDataDir();
     const server = createSkillsManagerServer({ repoRoot, dataDir });
     const baseUrl = await listen(server);
@@ -44,6 +45,9 @@ describe("skills-manager-api server", () => {
       });
       expect(providerConfigResponse.status).toBe(400);
       await expect(providerConfigResponse.json()).resolves.toMatchObject({ error: expect.stringContaining("does not accept") });
+
+      const providers = await getJson(`${baseUrl}/api/translation/providers`);
+      expect(providers.map((provider: { id: string }) => provider.id)).toEqual(["openai", "openrouter", "codex", "claude-code"]);
 
       const translateResponse = await fetch(`${baseUrl}/api/translate`, {
         method: "POST",
@@ -127,7 +131,7 @@ describe("skills-manager-api server", () => {
         body: "{}"
       });
       expect(missingUrlResponse.status).toBe(400);
-      await expect(missingUrlResponse.json()).resolves.toMatchObject({ error: "Missing GitHub repository URL." });
+      await expect(missingUrlResponse.json()).resolves.toMatchObject({ error: "Missing repository URL." });
     } finally {
       await close(server);
     }

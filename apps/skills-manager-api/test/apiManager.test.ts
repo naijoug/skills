@@ -21,6 +21,16 @@ describe("apiManager", () => {
       slug: "openai--codex",
       cloneUrl: "https://github.com/openai/codex.git"
     });
+    expect(normalizeGitHubUrl("https://gitlab.com/acme/platform/skills.git")).toMatchObject({
+      id: "gitlab:acme/platform/skills",
+      name: "acme/platform/skills",
+      slug: "gitlab--acme-platform-skills",
+      cloneUrl: "https://gitlab.com/acme/platform/skills.git"
+    });
+    expect(normalizeGitHubUrl("https://gitlab.com/acme/platform/skills/-/tree/main")).toMatchObject({
+      id: "gitlab:acme/platform/skills",
+      cloneUrl: "https://gitlab.com/acme/platform/skills.git"
+    });
   });
 
   it("rejects missing URLs and unsupported repository sources", async () => {
@@ -28,7 +38,7 @@ describe("apiManager", () => {
     dataDirs.push(dataDir);
     const manager = new ApiManager({ repoRoot, dataDir });
 
-    await expect(manager.importRepository({ url: "" })).rejects.toThrow("Missing GitHub repository URL");
+    await expect(manager.importRepository({ url: "" })).rejects.toThrow("Missing repository URL");
     await expect(
       manager.importRepository({ url: "https://github.com/acme/skills", source: "desktop-local" as never })
     ).rejects.toThrow("Unsupported repository source");
@@ -69,7 +79,8 @@ describe("apiManager", () => {
               { path: "SKILL.md", type: "blob", sha: "root-skill-sha" },
               { path: "skill.yaml", type: "blob", sha: "root-manifest-sha" },
               { path: "skills/example/SKILL.md", type: "blob", sha: "skill-sha" },
-              { path: "skills/example/skill.yaml", type: "blob", sha: "manifest-sha" }
+              { path: "skills/example/skill.yaml", type: "blob", sha: "manifest-sha" },
+              { path: "skills/example/references/checklist.md", type: "blob", sha: "reference-sha" }
             ]
           });
         }
@@ -85,6 +96,9 @@ describe("apiManager", () => {
         if (url.endsWith("/git/blobs/manifest-sha")) {
           return jsonResponse({ encoding: "base64", content: Buffer.from("id: example\nsummary: API fixture").toString("base64") });
         }
+        if (url.endsWith("/git/blobs/reference-sha")) {
+          return jsonResponse({ encoding: "base64", content: Buffer.from("# Checklist\n\n- Review inputs").toString("base64") });
+        }
         return jsonResponse({ message: "unexpected URL" }, 404);
       })
     );
@@ -99,6 +113,17 @@ describe("apiManager", () => {
     expect(library.skills).toEqual(
       expect.arrayContaining([expect.objectContaining({ title: "Root Skill", relativePath: "SKILL.md", groupName: "acme/skills" })])
     );
+    const exampleSkill = library.skills.find((skill) => skill.title === "Example Skill");
+    expect(exampleSkill).toBeDefined();
+    await expect(manager.getSkillDetail(exampleSkill!.id)).resolves.toMatchObject({
+      relatedFiles: [
+        expect.objectContaining({
+          relativePath: "skills/example/references/checklist.md",
+          kind: "reference",
+          content: "# Checklist\n\n- Review inputs"
+        })
+      ]
+    });
     const saved = JSON.parse(await readFile(join(dataDir, "library.json"), "utf8"));
     expect(saved.repositories[0]).toMatchObject({ source: "github-api", slug: "acme--skills", defaultBranch: "trunk" });
     expect(requests.every((request) => headersObject(request.headers).Authorization === "Bearer gh-token-test")).toBe(true);
@@ -131,8 +156,14 @@ describe("apiManager", () => {
     expect(removed.groups).toEqual([expect.objectContaining({ id: "local:workspace" })]);
     await expect(readFile(join(dataDir, "repos/acme--skills/skills/cache/SKILL.md"), "utf8")).rejects.toThrow();
 
+    const gitlabImported = await manager.importRepository({ url: "https://gitlab.com/acme/platform/skills.git", source: "server-cache" });
+    expect(gitlabImported.groups).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: "gitlab:acme/platform/skills", kind: "gitlab", skillCount: 1 })])
+    );
+
     const log = await readFile(gitLog, "utf8");
     expect(log).toContain("clone --depth 1 https://github.com/acme/skills.git");
+    expect(log).toContain("clone --depth 1 https://gitlab.com/acme/platform/skills.git");
     expect(log).toContain("pull --ff-only");
   });
 

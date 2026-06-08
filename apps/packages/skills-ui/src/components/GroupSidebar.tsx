@@ -1,62 +1,79 @@
+import type { ReactNode } from "react";
+import { BookOpen, ChevronRight, Circle, Database, Settings } from "lucide-react";
 import type { SkillGroup } from "@skills-manager/core";
 
 export interface GroupSidebarProps {
   groups: SkillGroup[];
   totalSkills: number;
-  selectedGroupId: string;
+  activeView: "library" | "settings";
+  repositoriesOpen: boolean;
+  platformLabel: string;
+  capabilityText: string;
+  repositoryCount: number;
   onSelectGroup(groupId: string): void;
+  onOpenRepositories(): void;
+  onOpenSettings(): void;
 }
 
-export function GroupSidebar({ groups, totalSkills, selectedGroupId, onSelectGroup }: GroupSidebarProps) {
+export function GroupSidebar({
+  groups,
+  totalSkills,
+  activeView,
+  repositoriesOpen,
+  platformLabel,
+  capabilityText,
+  repositoryCount,
+  onSelectGroup,
+  onOpenRepositories,
+  onOpenSettings
+}: GroupSidebarProps) {
   return (
     <aside className="skills-sidebar">
-      <div className="skills-brand">
-        <div className="skills-brand-mark">SM</div>
-        <div>
-          <h1>Skills Manager</h1>
-          <p>Web/Desktop monorepo</p>
-        </div>
-      </div>
-      <nav aria-label="Skill groups">
-        <GroupButton
-          id="all"
-          name="All skills"
-          subtitle="Across imported groups"
-          count={totalSkills}
-          active={selectedGroupId === "all"}
-          onClick={() => onSelectGroup("all")}
-        />
-        {groups.map((group) => (
-          <GroupButton
-            key={group.id}
-            id={group.id}
-            name={group.name}
-            subtitle={group.kind}
-            count={group.skillCount ?? 0}
-            active={selectedGroupId === group.id}
-            onClick={() => onSelectGroup(group.id)}
+      <div className="skills-sidebar-main">
+        <nav className="skills-primary-nav" aria-label="Primary navigation">
+          <NavButton
+            active={activeView === "library" && !repositoriesOpen}
+            icon={<BookOpen size={20} />}
+            label="Library"
+            onClick={() => onSelectGroup("all")}
           />
-        ))}
-      </nav>
+          <NavButton
+            active={activeView === "library" && repositoriesOpen}
+            icon={<Database size={20} />}
+            label="Repositories"
+            badge={repositoryCount || groups.length || totalSkills}
+            onClick={onOpenRepositories}
+          />
+          <NavButton active={activeView === "settings"} icon={<Settings size={20} />} label="Settings" onClick={onOpenSettings} />
+        </nav>
+      </div>
+      <div className="skills-sidebar-status">
+        <div>
+          <Circle className="skills-status-dot" size={10} fill="currentColor" strokeWidth={0} aria-hidden="true" />
+          <strong>{platformLabel}</strong>
+          <ChevronRight size={16} />
+        </div>
+        <span>{capabilityText}</span>
+        <hr />
+        <small>Codex, Claude Code, Amp</small>
+        <small>Skills Manager 1.4.2</small>
+      </div>
     </aside>
   );
 }
 
-function GroupButton(props: {
-  id: string;
-  name: string;
-  subtitle: string;
-  count: number;
+function NavButton(props: {
+  icon: ReactNode;
+  label: string;
+  badge?: number;
   active: boolean;
   onClick(): void;
 }) {
   return (
-    <button className={`skills-group ${props.active ? "active" : ""}`} type="button" onClick={props.onClick}>
-      <span>
-        <strong>{props.name}</strong>
-        <small>{props.subtitle}</small>
-      </span>
-      <b>{props.count}</b>
+    <button className={`skills-nav-item ${props.active ? "active" : ""}`} type="button" onClick={props.onClick}>
+      {props.icon}
+      <span>{props.label}</span>
+      {typeof props.badge === "number" ? <b>{props.badge}</b> : null}
     </button>
   );
 }

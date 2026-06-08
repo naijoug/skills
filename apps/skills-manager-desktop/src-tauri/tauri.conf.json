@@ -12,11 +12,22 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "Skills Manager",
-        "width": 1280,
-        "height": 820,
-        "minWidth": 960,
-        "minHeight": 640
+        "width": 1487,
+        "height": 1058,
+        "minWidth": 1280,
+        "minHeight": 720,
+        "decorations": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "trafficLightPosition": {
+          "x": 20,
+          "y": 19
+        },
+        "shadow": true,
+        "theme": "Dark",
+        "backgroundColor": [24, 24, 24, 255]
       }
     ],
     "security": {

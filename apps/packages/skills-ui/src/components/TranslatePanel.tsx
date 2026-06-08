@@ -1,20 +1,22 @@
 import { useEffect, useRef, useState } from "react";
-import type { TranslationProviderDescriptor } from "@skills-manager/core";
+import type { SkillDetail, TranslationProviderDescriptor } from "@skills-manager/core";
 import type { SkillsAdapter } from "@skills-manager/platform";
+import type { TranslateSkillInput } from "@skills-manager/platform";
 
 export interface TranslatePanelProps {
   adapter: SkillsAdapter;
-  skillId: string;
+  detail: SkillDetail;
+  sourceMode: TranslationSourceMode;
 }
 
-export function TranslatePanel({ adapter, skillId }: TranslatePanelProps) {
+export type TranslationSourceMode = "summary" | "markdown";
+
+export function TranslatePanel({ adapter, detail, sourceMode }: TranslatePanelProps) {
   const [targetLanguage, setTargetLanguage] = useState("Chinese");
   const [providerId, setProviderId] = useState("openai");
   const [providers, setProviders] = useState<TranslationProviderDescriptor[]>([]);
-  const [apiKey, setApiKey] = useState("");
-  const [model, setModel] = useState("");
   const [result, setResult] = useState("");
-  const [busyAction, setBusyAction] = useState<"saving" | "translating" | "">("");
+  const [busyAction, setBusyAction] = useState<"translating" | "">("");
   const providerRequestId = useRef(0);
   const translationRequestId = useRef(0);
 
@@ -36,36 +38,21 @@ export function TranslatePanel({ adapter, skillId }: TranslatePanelProps) {
   }, [adapter]);
 
   useEffect(() => {
+    if (providers.length && !providers.some((provider) => provider.id === providerId)) {
+      setProviderId(providers[0].id);
+    }
+  }, [providerId, providers]);
+
+  useEffect(() => {
     translationRequestId.current += 1;
     setResult("");
     setBusyAction((current) => (current === "translating" ? "" : current));
-  }, [skillId]);
+  }, [detail.id, sourceMode]);
 
   const selectedProvider = providers.find((provider) => provider.id === providerId);
+  const sourceMarkdown = translationSourceMarkdown(detail, sourceMode);
+  const sourceLabel = sourceMode === "summary" ? "summary" : "Markdown";
   const canTranslate = Boolean(targetLanguage.trim()) && !busyAction;
-  const canSaveProvider = Boolean(selectedProvider?.supportsConfiguration) && Boolean(apiKey.trim() || model.trim()) && !busyAction;
-
-  async function saveProviderConfig(): Promise<void> {
-    if (!canSaveProvider) {
-      return;
-    }
-    setBusyAction("saving");
-    setResult("Saving provider...");
-    try {
-      const nextProviders = await adapter.saveTranslationProviderConfig({
-        providerId,
-        apiKey: apiKey.trim() || undefined,
-        model: model.trim() || undefined
-      });
-      setProviders(nextProviders);
-      setApiKey("");
-      setResult("Provider saved.");
-    } catch (error) {
-      setResult(error instanceof Error ? error.message : String(error));
-    } finally {
-      setBusyAction((current) => (current === "saving" ? "" : current));
-    }
-  }
 
   async function translate(): Promise<void> {
     if (!canTranslate) {
@@ -76,7 +63,7 @@ export function TranslatePanel({ adapter, skillId }: TranslatePanelProps) {
     setBusyAction("translating");
     setResult("Translating...");
     try {
-      const translation = await adapter.translateSkill({ skillId, targetLanguage: targetLanguage.trim(), providerId });
+      const translation = await adapter.translateSkill(buildTranslateSkillInput(detail, targetLanguage, providerId, sourceMode));
       if (translationRequestId.current !== requestId) {
         return;
       }
@@ -95,8 +82,8 @@ export function TranslatePanel({ adapter, skillId }: TranslatePanelProps) {
 
   return (
     <section className="skills-action-panel">
-      <h3>Translate</h3>
-      <div className="skills-control-row">
+      <h3>Translate {sourceLabel}</h3>
+      <div className="skills-control-row translate-controls">
         <select value={providerId} onChange={(event) => setProviderId(event.target.value)} disabled={Boolean(busyAction)}>
           {providers.length ? (
             providers.map((provider) => (
@@ -114,22 +101,64 @@ export function TranslatePanel({ adapter, skillId }: TranslatePanelProps) {
           {busyAction === "translating" ? "Translating" : "Translate"}
         </button>
       </div>
-      {selectedProvider?.supportsConfiguration ? (
-        <div className="skills-control-row">
-          <input
-            value={apiKey}
-            onChange={(event) => setApiKey(event.target.value)}
-            placeholder="OpenAI API key"
-            disabled={Boolean(busyAction)}
-            type="password"
-          />
-          <input value={model} onChange={(event) => setModel(event.target.value)} placeholder="Model" disabled={Boolean(busyAction)} />
-          <button type="button" onClick={saveProviderConfig} disabled={!canSaveProvider}>
-            {busyAction === "saving" ? "Saving" : "Save provider"}
-          </button>
+      {selectedProvider?.configurationHint ? <p>{selectedProvider.configurationHint}</p> : null}
+      {result ? (
+        <div className="skills-translation-grid">
+          <section>
+            <h4>English source</h4>
+            <pre>{sourceMarkdown}</pre>
+          </section>
+          <section>
+            <h4>Translation</h4>
+            <pre>{result}</pre>
+          </section>
         </div>
       ) : null}
-      {result ? <pre>{result}</pre> : null}
     </section>
   );
+}
+
+export function buildTranslateSkillInput(
+  detail: SkillDetail,
+  targetLanguage: string,
+  providerId: string,
+  sourceMode: TranslationSourceMode
+): TranslateSkillInput {
+  return {
+    skillId: detail.id,
+    targetLanguage: targetLanguage.trim(),
+    providerId,
+    sourceMode
+  };
+}
+
+export function translationSourceMarkdown(detail: SkillDetail, sourceMode: TranslationSourceMode): string {
+  if (sourceMode === "markdown") {
+    return detail.content;
+  }
+  const parts = [`# ${detail.title}`];
+  if (detail.description) {
+    parts.push(detail.description);
+  }
+  const references = extractMarkdownSection(detail.content, "References");
+  if (references) {
+    parts.push(`## References\n\n${references}`);
+  }
+  return parts.join("\n\n");
+}
+
+function extractMarkdownSection(markdown: string, heading: string): string {
+  const lines = markdown.split(/\r?\n/);
+  const start = lines.findIndex((line) => line.trim().toLowerCase() === `## ${heading.toLowerCase()}`);
+  if (start === -1) {
+    return "";
+  }
+  const collected: string[] = [];
+  for (const line of lines.slice(start + 1)) {
+    if (line.trim().startsWith("## ")) {
+      break;
+    }
+    collected.push(line);
+  }
+  return collected.join("\n").trim();
 }

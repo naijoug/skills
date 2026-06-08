@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SKILLS_ROOT="$ROOT_DIR/skills"
-LINKER="$ROOT_DIR/scripts/skills-linker"
+LINKER="$ROOT_DIR/apps/skills-manager-tui/skills-linker"
 
 usage() {
   cat <<'EOF'

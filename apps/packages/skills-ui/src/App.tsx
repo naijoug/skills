@@ -1,13 +1,24 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { ChevronDown, Code2, Download, Filter, Globe2, Moon, MoreVertical, RefreshCw, Search, Share2 } from "lucide-react";
 import type { SkillDetail, SkillSummary, SkillsLibrary } from "@skills-manager/core";
 import type { ImportRepositoryInput, SkillsAdapter } from "@skills-manager/platform";
 import { mockAdapter } from "@skills-manager/platform";
+import { gistBundleForDetail } from "./actionBundles";
 import { GroupSidebar } from "./components/GroupSidebar";
 import { InstallPanel } from "./components/InstallPanel";
-import { SkillDetailView } from "./components/SkillDetailView";
+import { SettingsListPane, SettingsPanel, type SettingsSectionId } from "./components/SettingsPanel";
+import { SkillDetailView, type SkillDetailTab } from "./components/SkillDetailView";
 import { SkillList } from "./components/SkillList";
 import { TranslatePanel } from "./components/TranslatePanel";
 import { findImportedGroup, firstSkillForView, groupAfterRefresh, selectedSkillForView, skillsForView } from "./selection";
+import {
+  defaultSkillsUserSettings,
+  fontFamilyCssValue,
+  fontSizeCssValue,
+  loadSkillsUserSettings,
+  saveSkillsUserSettings,
+  type SkillsUserSettings
+} from "./settings";
 
 export interface SkillsManagerAppProps {
   adapter?: SkillsAdapter;
@@ -19,22 +30,41 @@ export interface RepositorySourceOption {
   label: string;
 }
 
+type PrimaryView = "library" | "settings";
+
 const defaultRepositorySources: RepositorySourceOption[] = [
-  { id: "server-cache", label: "Server cache" },
+  { id: "server-cache", label: "Git clone cache" },
   { id: "github-api", label: "GitHub API" }
 ];
 
 export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = defaultRepositorySources }: SkillsManagerAppProps) {
+  const [settings, setSettings] = useState<SkillsUserSettings>(() => loadSkillsUserSettings());
+  const [primaryView, setPrimaryView] = useState<PrimaryView>(() => initialPrimaryView(settings));
+  const [activeSettingsSection, setActiveSettingsSection] = useState<SettingsSectionId>(() => initialSettingsSection());
   const [library, setLibrary] = useState<SkillsLibrary>({ groups: [], skills: [] });
   const [selectedGroupId, setSelectedGroupId] = useState<string>("all");
   const [selectedSkillId, setSelectedSkillId] = useState<string>("");
   const [selectedDetail, setSelectedDetail] = useState<SkillDetail | null>(null);
+  const [activeDetailTab, setActiveDetailTab] = useState<SkillDetailTab>("summary");
   const [query, setQuery] = useState("");
   const [repositoryUrl, setRepositoryUrl] = useState("");
   const [repositorySource, setRepositorySource] = useState<NonNullable<ImportRepositoryInput["source"]>>(repositorySources[0].id);
+  const [repositoriesOpen, setRepositoriesOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [status, setStatus] = useState("Loading library...");
   const [busyAction, setBusyAction] = useState<"loading" | "importing" | "refreshing" | "removing" | "selecting" | "">("loading");
   const selectionRequestId = useRef(0);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const shellStyle = {
+    "--skills-font-family": fontFamilyCssValue(settings.fontFamily),
+    "--skills-font-size": fontSizeCssValue(settings.textScale),
+    "--skills-row-height": settings.compactLists ? "44px" : "48px",
+    "--skills-group-heading-height": settings.compactLists ? "32px" : "34px"
+  } as CSSProperties;
+
+  useEffect(() => {
+    saveSkillsUserSettings(settings);
+  }, [settings]);
 
   useEffect(() => {
     setBusyAction("loading");
@@ -43,7 +73,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
       .then((nextLibrary) => {
         setLibrary(nextLibrary);
         if (!selectedSkillId) {
-          const firstSkill = firstSkillForView(nextLibrary, selectedGroupId, query);
+          const firstSkill = preferredInitialSkill(nextLibrary, selectedGroupId, query);
           if (firstSkill) {
             void selectSkill(firstSkill, { showBusy: false });
           }
@@ -70,7 +100,14 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
   }, [library.skills, query, selectedGroupId]);
 
   const selectedGroup = library.groups.find((group) => group.id === selectedGroupId);
-  const canRemoveSelectedGroup = Boolean(selectedGroup && selectedGroup.kind !== "local");
+  const selectedDetailGroup = library.groups.find((group) => group.id === selectedDetail?.groupId);
+  const selectedRepository =
+    selectedGroup && selectedGroup.kind !== "local" ? selectedGroup : selectedDetailGroup && selectedDetailGroup.kind !== "local" ? selectedDetailGroup : undefined;
+  const canRemoveSelectedGroup = Boolean(selectedRepository);
+  const isDesktopRuntime = repositorySources.some((source) => source.id === "desktop-local");
+  const platformLabel = isDesktopRuntime ? "Desktop Mode" : "Web Mode";
+  const capabilityText = platformLabel === "Desktop Mode" ? "Ready for local installs" : "Local installs require Desktop";
+  const importedRepositoryCount = library.groups.filter((group) => group.kind !== "local").length;
 
   function clearSelection(): void {
     selectionRequestId.current += 1;
@@ -84,6 +121,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
     selectionRequestId.current = requestId;
     setSelectedSkillId(skill.id);
     setSelectedDetail(null);
+    setActiveDetailTab("summary");
     if (showBusy) {
       setBusyAction("selecting");
     }
@@ -117,7 +155,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
 
   async function importRepository(): Promise<void> {
     if (!repositoryUrl.trim()) {
-      setStatus("Enter a GitHub repository URL.");
+      setStatus("Enter a GitHub or GitLab repository URL.");
       return;
     }
     setBusyAction("importing");
@@ -125,12 +163,12 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
     try {
       const nextLibrary = await adapter.importRepository({ url: repositoryUrl, source: repositorySource });
       const importedGroup = findImportedGroup(library, nextLibrary);
-      const nextGroupId = importedGroup?.id ?? selectedGroupId;
+      const importedSkill = importedGroup ? nextLibrary.skills.find((skill) => skill.groupId === importedGroup.id) : undefined;
       setLibrary(nextLibrary);
       setRepositoryUrl("");
       setQuery("");
-      setSelectedGroupId(nextGroupId);
-      await selectFirstVisibleSkill(nextLibrary, nextGroupId, "", false);
+      setSelectedGroupId("all");
+      await selectResolvedSkill(importedSkill ?? firstSkillForView(nextLibrary, "all", ""), false);
       setStatus("");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : String(error));
@@ -140,6 +178,10 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
   }
 
   async function refreshRepositories(): Promise<void> {
+    if (!importedRepositoryCount) {
+      setStatus("No imported repositories to refresh.");
+      return;
+    }
     setBusyAction("refreshing");
     setStatus("Refreshing repositories...");
     try {
@@ -149,7 +191,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
       setSelectedGroupId(nextGroupId);
       const nextSelection = selectedSkillForView(nextLibrary, nextGroupId, query, selectedSkillId);
       await selectResolvedSkill(nextSelection, false);
-      setStatus("");
+      setStatus("Repositories refreshed.");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : String(error));
     } finally {
@@ -158,13 +200,13 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
   }
 
   async function removeSelectedRepository(): Promise<void> {
-    if (!selectedGroup || selectedGroup.kind === "local") {
+    if (!selectedRepository) {
       return;
     }
     setBusyAction("removing");
-    setStatus(`Removing ${selectedGroup.name}...`);
+    setStatus(`Removing ${selectedRepository.name}...`);
     try {
-      const nextLibrary = await adapter.removeRepository({ repositoryId: selectedGroup.id });
+      const nextLibrary = await adapter.removeRepository({ repositoryId: selectedRepository.id });
       setLibrary(nextLibrary);
       setSelectedGroupId("all");
       await selectFirstVisibleSkill(nextLibrary, "all", query, false);
@@ -177,6 +219,8 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
   }
 
   async function selectGroup(groupId: string): Promise<void> {
+    setPrimaryView("library");
+    setRepositoriesOpen(false);
     setSelectedGroupId(groupId);
     await selectFirstVisibleSkill(library, groupId, query, true);
   }
@@ -198,59 +242,310 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
     await selectResolvedSkill(nextSelection, true);
   }
 
+  function updateSettings(nextSettings: Partial<SkillsUserSettings>): void {
+    setSettings((current) => ({ ...current, ...nextSettings }));
+  }
+
+  function resetSettings(): void {
+    setSettings(defaultSkillsUserSettings);
+  }
+
+  function openRepositories(): void {
+    setPrimaryView("library");
+    setRepositoriesOpen((open) => !open);
+    setMoreMenuOpen(false);
+  }
+
+  function openSettings(): void {
+    setPrimaryView("settings");
+    setRepositoriesOpen(false);
+    setMoreMenuOpen(false);
+  }
+
+  function showDetailTab(tab: SkillDetailTab): void {
+    setPrimaryView("library");
+    setActiveDetailTab(tab);
+    setMoreMenuOpen(false);
+  }
+
+  function copySelectedSkillPath(): void {
+    if (!selectedDetail) {
+      return;
+    }
+    void writeTextOrDownload(selectedDetail.relativePath, `${selectedDetail.name || "skill"}-path.txt`).then((method) => {
+      setStatus(method === "clipboard" ? `Copied path: ${selectedDetail.relativePath}` : `Downloaded path: ${selectedDetail.relativePath}`);
+    });
+    setMoreMenuOpen(false);
+  }
+
+  async function exportGistBundle(): Promise<void> {
+    if (!selectedDetail) {
+      return;
+    }
+    const bundle = gistBundleForDetail(selectedDetail);
+    const method = await writeTextOrDownload(bundle, `${selectedDetail.name || "skill"}-gist.md`);
+    setStatus(method === "clipboard" ? "Copied Gist-ready skill bundle to clipboard." : "Downloaded Gist-ready skill bundle.");
+    setMoreMenuOpen(false);
+  }
+
   return (
-    <main className="skills-shell" aria-busy={busyAction ? "true" : "false"}>
+    <main
+      className="skills-shell"
+      data-theme={settings.theme}
+      data-runtime={isDesktopRuntime ? "desktop" : "web"}
+      aria-busy={busyAction ? "true" : "false"}
+      style={shellStyle}
+    >
+      <header className="skills-topbar" data-tauri-drag-region="true">
+        <div className="skills-topbar-drag-surface" data-tauri-drag-region="true" aria-hidden="true" />
+        <div className="skills-topbrand">
+          <div className="skills-brand-mark" data-tauri-drag-region="true" aria-hidden="true">
+            <Code2 size={24} strokeWidth={2.2} />
+          </div>
+          <div className="skills-topbrand-copy" data-tauri-drag-region="true">
+            <strong data-tauri-drag-region="true">Skills Manager</strong>
+          </div>
+          <button
+            className="skills-kbd-action"
+            type="button"
+            aria-label="Focus skill search"
+            onClick={() => searchInputRef.current?.focus()}
+            data-tauri-drag-region="false"
+          >
+            ⌘K
+          </button>
+        </div>
+        <div className="skills-top-actions">
+          <button
+            className="skills-primary-action split"
+            type="button"
+            disabled={!selectedDetail}
+            onClick={() => {
+              setPrimaryView("library");
+              setActiveDetailTab("install");
+            }}
+            data-tauri-drag-region="false"
+          >
+            <Download size={18} />
+            <span>Install</span>
+            <span className="skills-action-divider" aria-hidden="true" />
+            <ChevronDown size={16} />
+          </button>
+          <button
+            className="skills-secondary-action"
+            type="button"
+            disabled={!selectedDetail}
+            onClick={() => {
+              setPrimaryView("library");
+              setActiveDetailTab(activeDetailTab === "markdown" ? "markdown" : "summary");
+            }}
+            data-tauri-drag-region="false"
+          >
+            <Globe2 size={18} />
+            <span>Translate</span>
+          </button>
+          <button
+            className="skills-secondary-action"
+            type="button"
+            disabled={!selectedDetail}
+            onClick={() => void exportGistBundle()}
+            data-tauri-drag-region="false"
+          >
+            <Share2 size={17} />
+            <span>Gist</span>
+          </button>
+          <button
+            className="skills-secondary-action"
+            type="button"
+            disabled={Boolean(busyAction)}
+            onClick={() => void refreshRepositories()}
+            data-tauri-drag-region="false"
+          >
+            <RefreshCw size={16} />
+            <span>{busyAction === "refreshing" ? "Checking" : "Newer"}</span>
+          </button>
+          <div className="skills-more-wrap" data-tauri-drag-region="false">
+            <button
+              className="skills-secondary-action"
+              type="button"
+              disabled={!selectedDetail}
+              onClick={() => setMoreMenuOpen((open) => !open)}
+              aria-expanded={moreMenuOpen}
+            >
+              <MoreVertical size={18} />
+              <span>More</span>
+            </button>
+            {moreMenuOpen && selectedDetail ? (
+              <div className="skills-more-menu" role="menu">
+                <button type="button" role="menuitem" onClick={() => showDetailTab("summary")}>
+                  Summary
+                </button>
+                <button type="button" role="menuitem" onClick={() => showDetailTab("markdown")}>
+                  Markdown
+                </button>
+                <button type="button" role="menuitem" onClick={() => showDetailTab("files")}>
+                  Files
+                </button>
+                <button type="button" role="menuitem" onClick={copySelectedSkillPath}>
+                  Copy path
+                </button>
+              </div>
+            ) : null}
+          </div>
+          <button
+            className="skills-secondary-action"
+            type="button"
+            onClick={() => updateSettings({ theme: settings.theme === "dark" ? "light" : "dark" })}
+            data-tauri-drag-region="false"
+          >
+            <Moon size={17} />
+            <span>{settings.theme === "dark" ? "Dark" : "Light"}</span>
+            <ChevronDown size={15} />
+          </button>
+        </div>
+      </header>
       <GroupSidebar
         groups={library.groups}
         totalSkills={library.skills.length}
-        selectedGroupId={selectedGroupId}
+        activeView={primaryView}
+        repositoriesOpen={repositoriesOpen}
+        platformLabel={platformLabel}
+        capabilityText={capabilityText}
+        repositoryCount={importedRepositoryCount}
         onSelectGroup={(groupId) => void selectGroup(groupId)}
+        onOpenRepositories={openRepositories}
+        onOpenSettings={openSettings}
       />
       <section className="skills-list-pane">
-        <div className="skills-import-bar">
-          <input
-            value={repositoryUrl}
-            onChange={(event) => setRepositoryUrl(event.target.value)}
-            placeholder="https://github.com/owner/repo"
-          />
-          <select value={repositorySource} onChange={(event) => setRepositorySource(event.target.value as NonNullable<ImportRepositoryInput["source"]>)}>
-            {repositorySources.map((source) => (
-              <option key={source.id} value={source.id}>
-                {source.label}
-              </option>
-            ))}
-          </select>
-          <button type="button" onClick={importRepository} disabled={Boolean(busyAction)}>
-            {busyAction === "importing" ? "Importing" : "Import"}
-          </button>
-          <button type="button" onClick={refreshRepositories} disabled={Boolean(busyAction)}>
-            {busyAction === "refreshing" ? "Refreshing" : "Refresh"}
-          </button>
-          <button type="button" onClick={removeSelectedRepository} disabled={Boolean(busyAction) || !canRemoveSelectedGroup}>
-            {busyAction === "removing" ? "Removing" : "Remove"}
-          </button>
-        </div>
-        <div className="skills-toolbar">
-          <div>
-            <h2>{selectedGroupId === "all" ? "All skills" : library.groups.find((group) => group.id === selectedGroupId)?.name}</h2>
-            <p>
-              {visibleSkills.length} of {library.skills.length} skills
-            </p>
-          </div>
-          <input value={query} onChange={(event) => void updateQuery(event.target.value)} placeholder="Search skills" />
-        </div>
-        {status ? <div className="skills-status">{status}</div> : null}
-        <SkillList skills={visibleSkills} selectedSkillId={selectedSkillId} onSelectSkill={selectSkill} />
+        {primaryView === "settings" ? (
+          <SettingsListPane activeSection={activeSettingsSection} onActiveSectionChange={setActiveSettingsSection} />
+        ) : (
+          <>
+            <div className="skills-search-row">
+              <div className="skills-search-box">
+                <Search className="skills-search-icon" size={18} />
+                <input ref={searchInputRef} value={query} onChange={(event) => void updateQuery(event.target.value)} placeholder="Search skills..." />
+                <span className="skills-search-kbd">⌘K</span>
+              </div>
+              <button className="skills-filter-action" type="button" aria-label="Open repository filters" onClick={openRepositories}>
+                <Filter size={19} />
+              </button>
+            </div>
+            <div className="skills-list-meta">
+              <span>{visibleSkills.length} skills</span>
+              <button type="button">
+                Sorted by: <strong>Name</strong>
+                <ChevronDown size={14} />
+              </button>
+            </div>
+            {repositoriesOpen ? (
+              <div className="skills-import-bar">
+                <input
+                  value={repositoryUrl}
+                  onChange={(event) => setRepositoryUrl(event.target.value)}
+                  placeholder="https://github.com/owner/repo or https://gitlab.com/group/repo"
+                />
+                <select
+                  value={repositorySource}
+                  onChange={(event) => setRepositorySource(event.target.value as NonNullable<ImportRepositoryInput["source"]>)}
+                >
+                  {repositorySources.map((source) => (
+                    <option key={source.id} value={source.id}>
+                      {source.label}
+                    </option>
+                  ))}
+                </select>
+                <button type="button" onClick={importRepository} disabled={Boolean(busyAction)}>
+                  {busyAction === "importing" ? "Importing" : "Import"}
+                </button>
+                <button type="button" onClick={refreshRepositories} disabled={Boolean(busyAction)}>
+                  {busyAction === "refreshing" ? "Refreshing" : "Refresh"}
+                </button>
+                <button type="button" onClick={removeSelectedRepository} disabled={Boolean(busyAction) || !canRemoveSelectedGroup}>
+                  {busyAction === "removing" ? "Removing" : "Remove"}
+                </button>
+              </div>
+            ) : null}
+            {status ? <div className="skills-status">{status}</div> : null}
+            <SkillList groups={library.groups} skills={visibleSkills} selectedSkillId={selectedSkillId} onSelectSkill={selectSkill} />
+          </>
+        )}
       </section>
       <section className="skills-detail-pane">
-        <SkillDetailView detail={selectedDetail} />
-        {selectedDetail ? (
-          <div className="skills-detail-actions">
-            <TranslatePanel adapter={adapter} skillId={selectedDetail.id} />
-            <InstallPanel adapter={adapter} skillId={selectedDetail.id} />
-          </div>
-        ) : null}
+        {primaryView === "settings" ? (
+          <SettingsPanel
+            adapter={adapter}
+            activeSection={activeSettingsSection}
+            platformLabel={platformLabel}
+            settings={settings}
+            onSettingsChange={updateSettings}
+            onReset={resetSettings}
+          />
+        ) : (
+          <SkillDetailView
+            detail={selectedDetail}
+            activeTab={activeDetailTab}
+            platformLabel={platformLabel}
+            capabilityText={capabilityText}
+            onActiveTabChange={setActiveDetailTab}
+            installPanel={
+              selectedDetail ? (
+                <InstallPanel adapter={adapter} skillId={selectedDetail.id} confirmActions={settings.confirmInstallActions} />
+              ) : null
+            }
+            summaryTranslationPanel={selectedDetail ? <TranslatePanel adapter={adapter} detail={selectedDetail} sourceMode="summary" /> : null}
+            markdownTranslationPanel={selectedDetail ? <TranslatePanel adapter={adapter} detail={selectedDetail} sourceMode="markdown" /> : null}
+          />
+        )}
       </section>
     </main>
   );
+}
+
+function preferredInitialSkill(library: SkillsLibrary, groupId: string, query: string): SkillSummary | undefined {
+  return skillsForView(library, groupId, query).find((skill) => skill.name === "type-safety") ?? firstSkillForView(library, groupId, query);
+}
+
+function initialPrimaryView(settings: SkillsUserSettings): PrimaryView {
+  if (typeof window !== "undefined" && window.location.hash.startsWith("#settings")) {
+    return "settings";
+  }
+  return settings.startupView;
+}
+
+function initialSettingsSection(): SettingsSectionId {
+  if (typeof window === "undefined") {
+    return "appearance";
+  }
+  const section = window.location.hash.replace(/^#settings\/?/, "");
+  return section === "browser" || section === "translation" || section === "desktop" || section === "appearance" ? section : "appearance";
+}
+
+async function writeTextOrDownload(text: string, fileName: string): Promise<"clipboard" | "download"> {
+  try {
+    await navigator.clipboard?.writeText(text);
+    if (navigator.clipboard) {
+      return "clipboard";
+    }
+  } catch {
+    // Fall through to a local download when clipboard access is unavailable.
+  }
+  downloadTextFile(fileName, text);
+  return "download";
+}
+
+function downloadTextFile(fileName: string, text: string): void {
+  if (typeof document === "undefined") {
+    return;
+  }
+  const blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.style.display = "none";
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }

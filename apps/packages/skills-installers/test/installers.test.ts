@@ -4,7 +4,6 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   AmpInstaller,
-  ChatGptInstaller,
   ClaudeCodeInstaller,
   CodexInstaller,
   getInstallStatusForTargets,
@@ -24,22 +23,11 @@ describe("agent installers", () => {
     const home = await tempHome();
     const projectRoot = join(home, "project");
     const codex = new CodexInstaller(home, projectRoot);
-    const chatgpt = new ChatGptInstaller(home, projectRoot);
     const claude = new ClaudeCodeInstaller(home, projectRoot);
     const amp = new AmpInstaller(home, projectRoot);
 
     expect((await codex.detectTargets())[0]).toMatchObject({ id: "codex-global", exists: false });
     expect((await codex.detectTargets())[1]).toMatchObject({ id: "codex-project", skillsDir: join(projectRoot, ".codex", "skills"), exists: false });
-    expect((await chatgpt.detectTargets())[0]).toMatchObject({
-      id: "chatgpt-global",
-      skillsDir: join(home, ".codex", "skills"),
-      exists: false
-    });
-    expect((await chatgpt.detectTargets())[1]).toMatchObject({
-      id: "chatgpt-project",
-      skillsDir: join(projectRoot, ".codex", "skills"),
-      exists: false
-    });
     expect((await claude.detectTargets())[0]).toMatchObject({ id: "claude-code-global", exists: false });
     expect((await claude.detectTargets())[1]).toMatchObject({ id: "claude-code-project", skillsDir: join(projectRoot, ".claude", "skills"), exists: false });
     expect((await amp.detectTargets())[0]).toMatchObject({ id: "amp-global", exists: false });
@@ -54,8 +42,6 @@ describe("agent installers", () => {
 
     expect((await codex.detectTargets())[0]).toMatchObject({ id: "codex-global", exists: true });
     expect((await codex.detectTargets())[1]).toMatchObject({ id: "codex-project", exists: true });
-    expect((await chatgpt.detectTargets())[0]).toMatchObject({ id: "chatgpt-global", exists: true });
-    expect((await chatgpt.detectTargets())[1]).toMatchObject({ id: "chatgpt-project", exists: true });
     expect((await claude.detectTargets())[0]).toMatchObject({ id: "claude-code-global", exists: true });
     expect((await claude.detectTargets())[1]).toMatchObject({ id: "claude-code-project", exists: true });
     expect((await amp.detectTargets())[0]).toMatchObject({ id: "amp-global", exists: true });

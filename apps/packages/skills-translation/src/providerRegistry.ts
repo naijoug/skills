@@ -16,7 +16,9 @@ export class TranslationProviderRegistry {
     return this.list().map((provider) => ({
       id: provider.id,
       label: provider.label,
-      configured: provider.configured()
+      configured: provider.configured(),
+      supportsConfiguration: provider.supportsConfiguration,
+      configurationHint: provider.configurationHint
     }));
   }
 

@@ -124,11 +124,19 @@ export function parseSkillFile(group: SkillGroup, source: SkillFileSource): Skil
     content: source.content,
     frontmatter,
     manifest,
+    relatedFiles: source.relatedFiles ?? [],
     absolutePath: source.absolutePath
   };
 }
 
 export function toSkillSummary(detail: SkillDetail): SkillSummary {
-  const { content: _content, frontmatter: _frontmatter, manifest: _manifest, absolutePath: _absolutePath, ...summary } = detail;
+  const {
+    content: _content,
+    frontmatter: _frontmatter,
+    manifest: _manifest,
+    relatedFiles: _relatedFiles,
+    absolutePath: _absolutePath,
+    ...summary
+  } = detail;
   return summary;
 }

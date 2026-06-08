@@ -7,9 +7,10 @@ import { installPanelAvailability } from "../installPanelState";
 export interface InstallPanelProps {
   adapter: SkillsAdapter;
   skillId: string;
+  confirmActions?: boolean;
 }
 
-export function InstallPanel({ adapter, skillId }: InstallPanelProps) {
+export function InstallPanel({ adapter, skillId, confirmActions = true }: InstallPanelProps) {
   const [targets, setTargets] = useState<InstallTarget[]>([]);
   const [statuses, setStatuses] = useState<InstallStatus[]>([]);
   const [selectedTargetIds, setSelectedTargetIds] = useState<string[]>([]);
@@ -69,6 +70,9 @@ export function InstallPanel({ adapter, skillId }: InstallPanelProps) {
     if (!selectedTargetIds.length || busyAction) {
       return;
     }
+    if (confirmActions && !window.confirm("Install this skill to the selected targets?")) {
+      return;
+    }
     setBusyAction("installing");
     setMessage("Installing skill...");
     try {
@@ -90,6 +94,9 @@ export function InstallPanel({ adapter, skillId }: InstallPanelProps) {
 
   async function uninstall(): Promise<void> {
     if (!selectedTargetIds.length || busyAction) {
+      return;
+    }
+    if (confirmActions && !window.confirm("Uninstall this skill from the selected targets?")) {
       return;
     }
     setBusyAction("uninstalling");

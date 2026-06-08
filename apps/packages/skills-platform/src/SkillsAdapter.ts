@@ -28,6 +28,7 @@ export interface TranslateSkillInput {
   skillId: string;
   targetLanguage: string;
   providerId?: string;
+  sourceMode?: "summary" | "markdown";
 }
 
 export interface SkillsAdapter {

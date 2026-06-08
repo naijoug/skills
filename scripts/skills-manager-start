@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+MODE="${1:-desktop}"
+API_PORT="${SKILLS_MANAGER_API_PORT:-8787}"
+WEB_PORT="${SKILLS_MANAGER_WEB_PORT:-5173}"
+DESKTOP_PORT="${SKILLS_MANAGER_DESKTOP_PORT:-5191}"
+
+usage() {
+  cat <<EOF
+Usage: ./scripts/skills-manager-start [desktop|web|stop|status]
+
+Modes:
+  desktop  Stop existing Skills Manager previews, then start the Tauri desktop app.
+  web      Stop existing Skills Manager previews, then start API + web.
+  stop     Stop Skills Manager preview processes from this repository.
+  status   Show matching Skills Manager preview processes.
+
+Ports:
+  desktop: SKILLS_MANAGER_DESKTOP_PORT=${DESKTOP_PORT}
+  web:     SKILLS_MANAGER_WEB_PORT=${WEB_PORT}
+  api:     SKILLS_MANAGER_API_PORT=${API_PORT}
+EOF
+}
+
+matching_processes() {
+  ps -axo pid=,ppid=,command= | awk \
+    -v root="$ROOT_DIR" \
+    -v desktop_port="$DESKTOP_PORT" \
+    -v web_port="$WEB_PORT" \
+    -v api_port="$API_PORT" '
+      {
+        is_repo = index($0, root) > 0
+        is_repo_preview = 0
+        is_desktop_tauri = 0
+        is_repo_port = 0
+
+        if (is_repo && $0 ~ /scripts\/skills-manager-dev/) is_repo_preview = 1
+        if (is_repo && $0 ~ /scripts\/skills-manager-desktop/) is_repo_preview = 1
+        if (is_repo && $0 ~ /pnpm --filter skills-manager-api/) is_repo_preview = 1
+        if (is_repo && $0 ~ /pnpm --filter skills-manager-web/) is_repo_preview = 1
+        if (is_repo && $0 ~ /apps\/skills-manager-desktop\/.*vite/) is_repo_preview = 1
+        if ($0 ~ /target\/debug\/skills-manager-desktop/) is_repo_preview = 1
+
+        if ($0 ~ /pnpm exec tauri dev/ && index($0, "127.0.0.1:" desktop_port) > 0) is_desktop_tauri = 1
+        if ($0 ~ /pnpm exec tauri dev/ && index($0, "SKILLS_MANAGER_DESKTOP_PORT=" desktop_port) > 0) is_desktop_tauri = 1
+
+        if (is_repo && index($0, "127.0.0.1:" web_port) > 0) is_repo_port = 1
+        if (is_repo && index($0, "127.0.0.1:" api_port) > 0) is_repo_port = 1
+
+        if (is_repo_preview || is_desktop_tauri || is_repo_port) {
+          print
+        }
+      }
+    '
+}
+
+matching_pids() {
+  matching_processes | awk '{ print $1 }' | sort -n -u
+}
+
+stop_existing() {
+  local pids
+  pids="$(matching_pids || true)"
+
+  if [[ -z "$pids" ]]; then
+    echo "No Skills Manager preview processes found."
+    return
+  fi
+
+  echo "Stopping Skills Manager preview processes:"
+  matching_processes
+
+  while read -r pid; do
+    [[ -n "$pid" ]] || continue
+    if [[ "$pid" != "$$" ]]; then
+      kill "$pid" 2>/dev/null || true
+    fi
+  done <<<"$pids"
+
+  sleep 1
+
+  pids="$(matching_pids || true)"
+  if [[ -n "$pids" ]]; then
+    while read -r pid; do
+      [[ -n "$pid" ]] || continue
+      if [[ "$pid" != "$$" ]]; then
+        kill -9 "$pid" 2>/dev/null || true
+      fi
+    done <<<"$pids"
+  fi
+}
+
+show_status() {
+  local processes
+  processes="$(matching_processes || true)"
+  if [[ -z "$processes" ]]; then
+    echo "No Skills Manager preview processes found."
+  else
+    echo "$processes"
+  fi
+}
+
+case "$MODE" in
+  desktop)
+    stop_existing
+    echo "Starting Skills Manager desktop on http://127.0.0.1:${DESKTOP_PORT}/"
+    cd "$ROOT_DIR"
+    export SKILLS_MANAGER_DESKTOP_PORT="$DESKTOP_PORT"
+    exec ./scripts/skills-manager-desktop
+    ;;
+  web)
+    stop_existing
+    echo "Starting Skills Manager API on http://127.0.0.1:${API_PORT}"
+    echo "Starting Skills Manager Web on http://127.0.0.1:${WEB_PORT}/"
+    cd "$ROOT_DIR"
+    export SKILLS_MANAGER_API_PORT="$API_PORT"
+    export SKILLS_MANAGER_WEB_PORT="$WEB_PORT"
+    exec ./scripts/skills-manager-dev
+    ;;
+  stop)
+    stop_existing
+    ;;
+  status)
+    show_status
+    ;;
+  -h|--help|help)
+    usage
+    ;;
+  *)
+    usage >&2
+    exit 2
+    ;;
+esac

@@ -7,8 +7,13 @@ Personal collection of AI coding skills. Skills are classified by directory unde
 ```text
 .
 ├── scripts/
-│   ├── skills-linker              # Install/uninstall skills (CLI + fzf TUI)
-│   └── tui                        # Shortcut for `skills-linker tui`
+│   ├── start-local.sh             # Recommended local startup/lifecycle entrypoint
+│   ├── preview.sh                 # Browser preview lifecycle entrypoint
+│   ├── debug.sh                   # Isolated Tauri debug entrypoint
+│   └── skills-manager-*           # Lower-level Skills Manager startup/debug helpers
+├── apps/
+│   ├── skills-manager-tui/        # Install/uninstall skills CLI, fzf TUI, trigger eval tools
+│   └── scripts/                   # Skills Manager check and smoke verification scripts
 └── skills/
     ├── cron/
     │   ├── daily-til/
@@ -56,7 +61,7 @@ Behavior:
 
 - `auto` skills are auto-injected by `skills-linker` when they provide `inject.md` (writes into `~/.claude/CLAUDE.md` / `~/.codex/AGENTS.md`)
 - `cron` skills are installed normally but intentionally not auto-injected; fire from `/cron`, `launchd`, or system `cron`
-- `manual` skills are the ones exposed by `./scripts/ng` and `--with-slash-commands`
+- `manual` skills are the ones exposed by `./apps/skills-manager-tui/ng` and `--with-slash-commands`
 - manual subgroup comes from the second directory level under `skills/manual/`
 
 > Note: the `global/` category was deprecated and merged into `auto/`. The script still recognizes `global` for backward compatibility, but new skills should use `auto/`.
@@ -85,9 +90,9 @@ Recommended manual subdirectories:
 Requires [fzf](https://github.com/junegunn/fzf).
 
 ```bash
-./scripts/tui
+./apps/skills-manager-tui/tui
 # Or allow auto-install via Homebrew when fzf is missing
-./scripts/tui --auto-install-fzf
+./apps/skills-manager-tui/tui --auto-install-fzf
 ```
 
 TUI flow:
@@ -104,26 +109,26 @@ Skills selection supports right-side `SKILL.md` preview. Install defaults to sel
 
 ```bash
 # List supported tools
-./scripts/skills-linker tools
+./apps/skills-manager-tui/skills-linker tools
 
 # List available skills
-./scripts/skills-linker list
+./apps/skills-manager-tui/skills-linker list
 
 # List only manual skills
-./scripts/skills-linker list --category manual
+./apps/skills-manager-tui/skills-linker list --category manual
 
 # Install to Claude Code global skills
-./scripts/skills-linker install --tool claude --scope global \
+./apps/skills-manager-tui/skills-linker install --tool claude --scope global \
   pr personal-coach
 
 # Install to project-level
-./scripts/skills-linker install --tool codex --scope project --project-root .
+./apps/skills-manager-tui/skills-linker install --tool codex --scope project --project-root .
 
 # Uninstall
-./scripts/skills-linker uninstall --tool claude --scope global pr
+./apps/skills-manager-tui/skills-linker uninstall --tool claude --scope global pr
 
 # Check status
-./scripts/skills-linker status --tool claude --scope global
+./apps/skills-manager-tui/skills-linker status --tool claude --scope global
 ```
 
 Options:
@@ -164,16 +169,16 @@ Notes:
 
 ```bash
 # Show the category plan
-./scripts/ng plan
+./apps/skills-manager-tui/ng plan
 
 # List manual skills
-./scripts/ng list
+./apps/skills-manager-tui/ng list
 
 # Pick a manual skill interactively (fzf if installed)
-./scripts/ng
+./apps/skills-manager-tui/ng
 
 # Show how to trigger one specific skill
-./scripts/ng pr
+./apps/skills-manager-tui/ng pr
 ```
 
 ## Creating a New Skill
@@ -217,18 +222,18 @@ kind: prompt_only
 This repo includes a trigger evaluation workflow for testing skill trigger recall/precision.
 
 - Per-skill examples: `skills/**/references/trigger-examples.md`
-- Export + scoring: `scripts/trigger_examples_tool.py`
-- Runner: `scripts/run_trigger_eval.sh`
-- HTML report: `scripts/trigger_eval_report.py`
+- Export + scoring: `apps/skills-manager-tui/trigger_examples_tool.py`
+- Runner: `apps/skills-manager-tui/run_trigger_eval.sh`
+- HTML report: `apps/skills-manager-tui/trigger_eval_report.py`
 
 ```bash
 # Smoke test (perfect predictor)
-./scripts/run_trigger_eval.sh --mode perfect --no-details
+./apps/skills-manager-tui/run_trigger_eval.sh --mode perfect --no-details
 
 # Include non-manual skills in dataset when needed
-python3 ./scripts/trigger_examples_tool.py --include-non-manual summary
+python3 ./apps/skills-manager-tui/trigger_examples_tool.py --include-non-manual summary
 
 # Custom predictor
-./scripts/run_trigger_eval.sh --mode custom \
-  --predict-cmd 'python3 "$ROOT_DIR/scripts/predictor_adapter_template.py" --input "$CASES_FILE" --output "$PREDS_FILE"'
+./apps/skills-manager-tui/run_trigger_eval.sh --mode custom \
+  --predict-cmd 'python3 "$ROOT_DIR/apps/skills-manager-tui/predictor_adapter_template.py" --input "$CASES_FILE" --output "$PREDS_FILE"'
 ```

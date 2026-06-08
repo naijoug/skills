@@ -4,5 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR/apps"
 
+WEB_PORT="${SKILLS_MANAGER_WEB_PORT:-5173}"
+WEB_HOST="${SKILLS_MANAGER_WEB_HOST:-127.0.0.1}"
 export VITE_SKILLS_MANAGER_API_URL="${VITE_SKILLS_MANAGER_API_URL:-http://127.0.0.1:8787}"
-exec pnpm --filter skills-manager-web dev --host 127.0.0.1
+exec pnpm --filter skills-manager-web dev --host "$WEB_HOST" --port "$WEB_PORT" --strictPort

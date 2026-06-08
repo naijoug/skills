@@ -5,6 +5,7 @@ export interface TranslationRequest {
   targetLanguage: string;
   sourceLanguage?: string;
   providerId?: string;
+  sourceMode?: "summary" | "markdown";
 }
 
 export interface TranslationProviderDescriptor {
@@ -19,6 +20,7 @@ export interface TranslationProviderConfigInput {
   providerId: string;
   apiKey?: string;
   model?: string;
+  apiBaseUrl?: string;
 }
 
 export type { SkillTranslation };

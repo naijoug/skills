@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR/apps"
 
 if [[ -z "${SKILLS_MANAGER_LIVE_REPO_URL:-}" ]]; then
   echo "Set SKILLS_MANAGER_LIVE_REPO_URL to a GitHub repository that contains one or more SKILL.md files." >&2
-  echo "Example: SKILLS_MANAGER_LIVE_REPO_URL=https://github.com/owner/repo ./scripts/skills-manager-live-smoke" >&2
+  echo "Example: SKILLS_MANAGER_LIVE_REPO_URL=https://github.com/owner/repo ./apps/scripts/skills-manager-live-smoke" >&2
   exit 2
 fi
 

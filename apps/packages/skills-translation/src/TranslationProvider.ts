@@ -9,6 +9,8 @@ export interface TranslateMarkdownInput {
 export interface TranslationProvider {
   id: string;
   label: string;
+  supportsConfiguration?: boolean;
+  configurationHint?: string;
   configured(): boolean;
   translate(input: TranslateMarkdownInput): Promise<SkillTranslation>;
 }

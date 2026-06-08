@@ -7,9 +7,9 @@ set -euo pipefail
 # 3) score predictions
 #
 # Usage examples:
-#   ./scripts/run_trigger_eval.sh --mode perfect
-#   ./scripts/run_trigger_eval.sh --mode noop
-#   ./scripts/run_trigger_eval.sh \
+#   ./apps/skills-manager-tui/run_trigger_eval.sh --mode perfect
+#   ./apps/skills-manager-tui/run_trigger_eval.sh --mode noop
+#   ./apps/skills-manager-tui/run_trigger_eval.sh \
 #     --mode custom \
 #     --predict-cmd 'python3 /path/to/predict.py --input "$CASES_FILE" --output "$PREDS_FILE"'
 #
@@ -19,8 +19,8 @@ set -euo pipefail
 #   ROOT_DIR    : repo root
 #   SKILLS_DIR  : skills directory
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TOOL="$ROOT_DIR/scripts/trigger_examples_tool.py"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+TOOL="$ROOT_DIR/apps/skills-manager-tui/trigger_examples_tool.py"
 SKILLS_DIR="$ROOT_DIR/skills"
 WORK_DIR="${TMPDIR:-/tmp}/skill-trigger-eval"
 
@@ -61,9 +61,9 @@ Custom predictor contract:
   (The scorer also accepts "predicted_skills".)
 
 Examples:
-  ./scripts/run_trigger_eval.sh --mode perfect
-  ./scripts/run_trigger_eval.sh --mode noop
-  ./scripts/run_trigger_eval.sh \
+  ./apps/skills-manager-tui/run_trigger_eval.sh --mode perfect
+  ./apps/skills-manager-tui/run_trigger_eval.sh --mode noop
+  ./apps/skills-manager-tui/run_trigger_eval.sh \
     --mode custom \
     --predict-cmd 'python3 /path/to/predict.py --input "$CASES_FILE" --output "$PREDS_FILE"'
 EOF
@@ -199,7 +199,7 @@ python3 "$TOOL" "${SCORE_ARGS[@]}"
 
 if [[ -n "$HTML_REPORT" ]]; then
   echo "[4/4] Generating HTML report..."
-  python3 "$ROOT_DIR/scripts/trigger_eval_report.py" \
+  python3 "$ROOT_DIR/apps/skills-manager-tui/trigger_eval_report.py" \
     --csv-dir "$CSV_OUT" \
     --out "$HTML_REPORT"
 fi

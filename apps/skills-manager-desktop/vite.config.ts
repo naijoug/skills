@@ -13,7 +13,7 @@ export default defineConfig({
     ]
   },
   server: {
-    port: 5174,
+    port: Number(process.env.SKILLS_MANAGER_DESKTOP_PORT ?? 5174),
     strictPort: true
   },
   build: {

@@ -10,6 +10,8 @@ export interface OpenAITranslationProviderOptions {
 export class OpenAITranslationProvider implements TranslationProvider {
   readonly id = "openai";
   readonly label = "OpenAI";
+  readonly supportsConfiguration = true;
+  readonly configurationHint = "Use OPENAI_API_KEY or save an OpenAI key in Desktop mode.";
 
   private readonly apiKey?: string;
   private readonly model: string;

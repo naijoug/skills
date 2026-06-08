@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR/apps"
 
 if [[ -z "${OPENAI_API_KEY:-}" ]]; then
   echo "Set OPENAI_API_KEY to run the live OpenAI translation smoke." >&2
-  echo "Optional: SKILLS_MANAGER_OPENAI_SMOKE_TARGET_LANGUAGE=Chinese ./scripts/skills-manager-openai-smoke" >&2
+  echo "Optional: SKILLS_MANAGER_OPENAI_SMOKE_TARGET_LANGUAGE=Chinese ./apps/scripts/skills-manager-openai-smoke" >&2
   exit 2
 fi
 

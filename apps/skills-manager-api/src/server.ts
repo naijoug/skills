@@ -83,7 +83,7 @@ async function route(url: URL, body: unknown, manager: ApiManager): Promise<unkn
     return manager.saveTranslationProviderConfig();
   }
   if (url.pathname === "/api/translate") {
-    return manager.translateSkill(asObject(body) as { skillId: string; targetLanguage: string; providerId?: string });
+    return manager.translateSkill(asObject(body) as { skillId: string; targetLanguage: string; providerId?: string; sourceMode?: "summary" | "markdown" });
   }
   if (url.pathname === "/api/install/targets") {
     return manager.listInstallTargets();

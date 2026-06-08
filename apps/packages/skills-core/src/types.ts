@@ -1,4 +1,4 @@
-export type GroupKind = "local" | "github" | "web-cache" | "github-api";
+export type GroupKind = "local" | "github" | "gitlab" | "web-cache" | "github-api";
 
 export interface SkillGroup {
   id: string;
@@ -28,6 +28,7 @@ export interface SkillDetail extends SkillSummary {
   content: string;
   frontmatter: Record<string, string>;
   manifest: Record<string, string>;
+  relatedFiles: SkillRelatedFile[];
   absolutePath?: string;
 }
 
@@ -35,7 +36,17 @@ export interface SkillFileSource {
   relativePath: string;
   content: string;
   manifestContent?: string;
+  relatedFiles?: SkillRelatedFile[];
   absolutePath?: string;
+}
+
+export type SkillRelatedFileKind = "markdown" | "reference" | "code" | "config" | "asset" | "other";
+
+export interface SkillRelatedFile {
+  relativePath: string;
+  kind: SkillRelatedFileKind;
+  sizeBytes?: number;
+  content?: string;
 }
 
 export interface SkillsLibrary {

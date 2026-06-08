@@ -5,8 +5,10 @@
 - `apps/skills-manager-api/`：Web 端本地 API，负责扫描本仓库 skills、服务端 clone/cache、GitHub API 只读读取、删除导入仓库和翻译代理。
 - `apps/skills-manager-web/`：Vite + React Web App，复用共享 UI。
 - `apps/skills-manager-desktop/`：Tauri 桌面壳，复用共享 UI；Rust command 已接入本地扫描、Git clone/cache、删除导入仓库、详情读取、翻译 provider 配置/调用和 agent 安装/卸载。
+- `apps/skills-manager-tui/`：本地 skill 管理 CLI、fzf TUI、`ng` manual skill helper 和 trigger evaluation 工具。
+- `apps/scripts/`：Skills Manager check 和 smoke verification 脚本。
 - `apps/packages/*`：领域核心、平台适配、UI、翻译 provider、agent 安装抽象。
-- `apps/package.json`、`apps/pnpm-workspace.yaml`、`apps/pnpm-lock.yaml`、`apps/tsconfig.base.json`：Web/Desktop monorepo 的 pnpm 和 TypeScript workspace 根；仓库根目录只保留脚本入口，不放前端 workspace 配置。
+- `apps/package.json`、`apps/pnpm-workspace.yaml`、`apps/pnpm-lock.yaml`、`apps/tsconfig.base.json`：Web/Desktop monorepo 的 pnpm 和 TypeScript workspace 根；仓库根 `scripts/` 只保留本地启动/调试入口，不放 smoke/test 工具或前端 workspace 配置。
 - 旧 Python MVP 已退役并删除；常规开发、验证和发布路径以 monorepo Web/Desktop 为准。
 
 ## 开发启动
@@ -17,6 +19,8 @@
 cd apps
 pnpm install
 ```
+
+以下命令除特别说明外，都从仓库根目录运行。
 
 启动 Web API：
 
@@ -36,10 +40,19 @@ pnpm install
 ./scripts/skills-manager-dev
 ```
 
+常规本地启动推荐使用统一入口：
+
+```bash
+./scripts/start-local.sh          # 桌面端，默认
+./scripts/start-local.sh web      # 浏览器预览
+./scripts/start-local.sh status
+./scripts/start-local.sh stop
+```
+
 在 Web API 和 Web 前端已启动后，运行 smoke 检查：
 
 ```bash
-./scripts/skills-manager-smoke
+./apps/scripts/skills-manager-smoke
 ```
 
 Smoke 会检查 API library、skill detail、translation provider 列表、Web 安装边界、未配置 OpenAI key 时的 `503` 翻译错误路径，以及 Web 首页 HTML。
@@ -47,7 +60,7 @@ Smoke 会检查 API library、skill detail、translation provider 列表、Web �
 如果要由脚本自动启动临时 API/Web、运行 smoke 并清理进程：
 
 ```bash
-./scripts/skills-manager-web-smoke
+./apps/scripts/skills-manager-web-smoke
 ```
 
 自包含 Web smoke 默认使用临时数据目录、API 端口 `8788` 和 Web 端口 `5176`。可用 `SKILLS_MANAGER_WEB_SMOKE_API_PORT`、`SKILLS_MANAGER_WEB_SMOKE_WEB_PORT` 调整端口；设置 `SKILLS_MANAGER_KEEP_WEB_SMOKE_DATA=1` 可保留临时数据和日志目录。
@@ -55,7 +68,7 @@ Smoke 会检查 API library、skill detail、translation provider 列表、Web �
 运行真实 GitHub / 可选真实 OpenAI live smoke：
 
 ```bash
-SKILLS_MANAGER_LIVE_REPO_URL=https://github.com/owner/repo ./scripts/skills-manager-live-smoke
+SKILLS_MANAGER_LIVE_REPO_URL=https://github.com/owner/repo ./apps/scripts/skills-manager-live-smoke
 ```
 
 Live smoke 会启动临时 API、使用真实 GitHub API 导入和刷新一个包含 `SKILL.md` 的仓库、打开导入 skill detail、删除导入仓库。如果 API 环境里存在 `OPENAI_API_KEY`，还会执行一次真实 OpenAI 翻译；设置 `SKILLS_MANAGER_LIVE_TRANSLATE=0` 可跳过真实翻译。私有仓库或更高 rate limit 可通过 `GITHUB_TOKEN` 或 `GH_TOKEN` 提供 GitHub API token。默认使用临时 `.skills-manager-data`，设置 `SKILLS_MANAGER_KEEP_LIVE_DATA=1` 可保留现场。
@@ -65,7 +78,7 @@ Live smoke 会启动临时 API、使用真实 GitHub API 导入和刷新一个�
 运行真实 OpenAI 翻译 smoke，不依赖外部 GitHub 仓库：
 
 ```bash
-OPENAI_API_KEY=sk-... ./scripts/skills-manager-openai-smoke
+OPENAI_API_KEY=sk-... ./apps/scripts/skills-manager-openai-smoke
 ```
 
 OpenAI smoke 会启动临时 API、确认 OpenAI provider 已配置、从本地 skills 中选择内容最短的 skill 并调用 `/api/translate`。可通过 `SKILLS_MANAGER_OPENAI_SMOKE_TARGET_LANGUAGE` 指定目标语言，通过 `SKILLS_MANAGER_OPENAI_SMOKE_SKILL_RELATIVE_PATH` 指定要翻译的本地 skill。
@@ -75,7 +88,7 @@ OpenAI smoke 会启动临时 API、确认 OpenAI provider 已配置、从本地 
 如果端口不是默认值：
 
 ```bash
-SKILLS_MANAGER_API_URL=http://127.0.0.1:8787 SKILLS_MANAGER_WEB_URL=http://127.0.0.1:5173 ./scripts/skills-manager-smoke
+SKILLS_MANAGER_API_URL=http://127.0.0.1:8787 SKILLS_MANAGER_WEB_URL=http://127.0.0.1:5173 ./apps/scripts/skills-manager-smoke
 ```
 
 默认 API 地址是 `http://127.0.0.1:8787`。如果要连接其他 API：
@@ -87,13 +100,13 @@ VITE_SKILLS_MANAGER_API_URL=http://127.0.0.1:8787 ./scripts/skills-manager-web
 启动桌面端：
 
 ```bash
-./scripts/skills-manager-desktop
+./scripts/start-local.sh desktop
 ```
 
 运行桌面发布构建 smoke（编译 Tauri release app，但跳过签名和安装包生成）：
 
 ```bash
-./scripts/skills-manager-desktop-smoke
+./apps/scripts/skills-manager-desktop-smoke
 ```
 
 ## 验证
@@ -102,16 +115,17 @@ VITE_SKILLS_MANAGER_API_URL=http://127.0.0.1:8787 ./scripts/skills-manager-web
 cd apps
 pnpm typecheck
 pnpm test
-cd skills-manager-desktop/src-tauri && cargo check
+cd skills-manager-desktop/src-tauri
+cargo check
 cargo test
-cd ../..
-../scripts/skills-manager-desktop-smoke
+cd ../../..
+./apps/scripts/skills-manager-desktop-smoke
 ```
 
 或直接运行完整检查：
 
 ```bash
-./scripts/skills-manager-check
+./apps/scripts/skills-manager-check
 ```
 
 当前测试覆盖：
@@ -123,11 +137,11 @@ cd ../..
 - `skills-translation`：OpenAI provider 配置检测、Responses API 请求形态、翻译文本提取。
 - `skills-installers`：Codex / ChatGPT / Claude Code / Amp 全局和项目目标目录检测、copy/symlink 安装、mode/conflict policy 校验、卸载、`skills-linker` manifest 维护、可选 slash command wrapper、安装状态、冲突检测。
 - `skills-manager-desktop/src-tauri`：本地扫描、library 构建、Git clone/cache 导入和 refresh、root-level 与子目录 `SKILL.md` 发现、导入仓库删除、桌面 copy/symlink 安装和卸载命令、安装 mode/conflict policy/target id 校验、Codex / ChatGPT / Claude Code / Amp 全局和项目目标支持、`skills-linker` manifest 维护、可选 Codex/ChatGPT/Claude Code slash command wrapper、OpenAI key 本地配置、翻译请求校验、未配置 OpenAI key 的错误路径。
-- `scripts/skills-manager-desktop-smoke`：执行 `tauri build --no-bundle --ci`，验证 Tauri release 编译路径可用，同时避开签名、notarization 和 installer 生成差异。
-- `scripts/skills-manager-live-smoke`：显式 opt-in 的外部依赖检查，覆盖真实 GitHub API 导入/刷新/详情/删除，以及可选真实 OpenAI 翻译。
-- `scripts/skills-manager-openai-smoke`：显式 opt-in 的真实 OpenAI 翻译检查，覆盖 Web API provider 配置和 `/api/translate` 调用路径，不依赖外部 GitHub 仓库。
-- `scripts/skills-manager-web-smoke`：自包含 Web smoke，启动临时 API/Web 后调用 `scripts/skills-manager-smoke`，最后清理进程和临时数据。
-- `scripts/skills-manager-check`：构建后扫描 Web bundle，确认浏览器产物不包含 `OPENAI_API_KEY` 或直接 OpenAI Responses API 调用。
+- `apps/scripts/skills-manager-desktop-smoke`：执行 `tauri build --no-bundle --ci`，验证 Tauri release 编译路径可用，同时避开签名、notarization 和 installer 生成差异。
+- `apps/scripts/skills-manager-live-smoke`：显式 opt-in 的外部依赖检查，覆盖真实 GitHub API 导入/刷新/详情/删除，以及可选真实 OpenAI 翻译。
+- `apps/scripts/skills-manager-openai-smoke`：显式 opt-in 的真实 OpenAI 翻译检查，覆盖 Web API provider 配置和 `/api/translate` 调用路径，不依赖外部 GitHub 仓库。
+- `apps/scripts/skills-manager-web-smoke`：自包含 Web smoke，启动临时 API/Web 后调用 `apps/scripts/skills-manager-smoke`，最后清理进程和临时数据。
+- `apps/scripts/skills-manager-check`：构建后扫描 Web bundle，确认浏览器产物不包含 `OPENAI_API_KEY` 或直接 OpenAI Responses API 调用。
 
 注意：`skills-manager-api` 的 HTTP route smoke 会监听 `127.0.0.1` 随机端口；在受限沙箱里运行时需要允许本地端口绑定。
 
@@ -144,10 +158,10 @@ cd ../..
 - 桌面端支持安装到全局目标 `~/.codex/skills`、`~/.claude/skills`、`~/.agents/skills`，也支持安装到当前项目目标 `{repo}/.codex/skills`、`{repo}/.claude/skills`、`{repo}/.agents/skills`。安装模式支持 copy 和 symlink，冲突策略由 UI 请求决定；同一目标也支持从 UI 触发卸载。ChatGPT 目标作为 Codex alias，使用 `.codex` 路径。桌面后端在 Unix/macOS 使用目录 symlink，在 Windows 使用 directory symlink。
 - 桌面端安装/卸载会拒绝未知 `targetId`，避免前端或外部调用把拼写错误静默执行为空操作。
 - 桌面端安装面板默认使用 copy 模式；切换 skill 时会根据当前 skill 的状态重置目标勾选并清理上一条安装消息，未安装的 skill 不会默认勾选任何目标，只有 manifest 托管的已安装 skill 会预选已安装目标，避免误装到多个 agent 目录。安装状态请求带竞态防护，快速切换 skill 时旧响应不会覆盖当前状态。目标路径存在但没有 manifest 记录时会显示为 conflict，而不是 installed。
-- 桌面端安装会写入目标目录下的 `.skills-linker-manifest.tsv`，格式与 `scripts/skills-linker` 保持一致；卸载或发现目标缺失时会清理对应 manifest 行，方便后续继续使用 CLI/TUI 管理。
+- 桌面端安装会写入目标目录下的 `.skills-linker-manifest.tsv`，格式与 `apps/skills-manager-tui/skills-linker` 保持一致；卸载或发现目标缺失时会清理对应 manifest 行，方便后续继续使用 CLI/TUI 管理。
 - 桌面端卸载默认只删除 manifest 托管的 skill 目录；如果目标目录存在但没有 manifest 条目，会返回 skipped，避免误删用户手动放入的内容。
 - 桌面端安装 `manual/**` skills 时可以选择同步生成 slash command wrapper：Codex / ChatGPT 写入 `.codex/prompts/<skill-name>.md`，Claude Code 写入 `.claude/commands/<skill-name>.md`。wrapper 使用 `skills-linker:slash:<skill-name>` marker，卸载时只清理带 marker 的托管文件。
-- 桌面端安装目录名称使用 `SKILL.md` frontmatter 的 `name` 或 `skill.yaml` 的 `id`，与 `scripts/skills-linker` 的命名约定保持一致。
+- 桌面端安装目录名称使用 `SKILL.md` frontmatter 的 `name` 或 `skill.yaml` 的 `id`，与 `apps/skills-manager-tui/skills-linker` 的命名约定保持一致。
 - 翻译已抽象为 provider，并接入 OpenAI provider；未配置 provider 时 UI 会显示未配置。桌面端会优先读取 `OPENAI_API_KEY`，没有环境变量时读取 `.skills-manager-data/config.json` 中保存的 provider 配置，再调用 OpenAI Responses API。
 - Web 端不接受浏览器侧保存 provider secret；Web 翻译 key 需要通过服务端 `OPENAI_API_KEY` 配置。未配置时 `/api/translate` 会返回 `503`，让 UI 明确呈现 provider 不可用，而不是通用内部错误。
 - 翻译和安装面板会在请求进行中禁用相关控件，避免重复提交；翻译请求和安装状态请求都带异步竞态防护，快速切换 skill 时旧响应不会覆盖当前详情；安装结果会显示 agent 目标 label、状态和后端返回的说明信息。
