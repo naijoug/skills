@@ -71,7 +71,20 @@ REQUIRED_NEAR_MISS_MARKERS = [
     "Concept explanation",
     "Debugging request",
     "Broad API design",
+    "## Scriptable Routing Cases",
+    "trigger-db-public-leak",
+    "trigger-sdk-cause",
+    "no-trigger-syntax",
+    "no-trigger-concept",
+    "narrow-first-vague",
+    "narrow-first-db-error",
 ]
+
+NEAR_MISS_ROUTE_MINIMUMS = {
+    "TRIGGER": 2,
+    "NO_TRIGGER": 2,
+    "NARROW_FIRST": 2,
+}
 
 TRIGGER_EXAMPLE_MINIMUMS = {
     "Positive (Chinese)": 4,
@@ -135,7 +148,7 @@ def main() -> int:
         require(marker in skill, f"SKILL.md missing marker: {marker}", failures)
 
     yaml = files["skill.yaml"]
-    require("version: 1.5.0" in yaml, "skill.yaml version is not 1.5.0", failures)
+    require("version: 1.6.0" in yaml, "skill.yaml version is not 1.6.0", failures)
     for keyword in REQUIRED_TRIGGER_KEYWORDS:
         require(keyword in yaml, f"skill.yaml missing trigger keyword: {keyword}", failures)
 
@@ -167,6 +180,26 @@ def main() -> int:
     near_miss = files["references/near-miss-eval.md"]
     for marker in REQUIRED_NEAR_MISS_MARKERS:
         require(marker in near_miss, f"near-miss eval missing marker: {marker}", failures)
+    routing_cases = section_body(near_miss, "Scriptable Routing Cases")
+    for route, minimum in NEAR_MISS_ROUTE_MINIMUMS.items():
+        count = len(re.findall(rf"`{route}`", routing_cases))
+        require(
+            count >= minimum,
+            f"near-miss scriptable routing cases include fewer than {minimum} {route} rows",
+            failures,
+        )
+    for required_phrase in [
+        "decision table",
+        "public error code",
+        "full P0–P3 decision table",
+        "ask for relative paths",
+        "inventing an implementation",
+    ]:
+        require(
+            required_phrase in routing_cases,
+            f"near-miss scriptable routing cases missing phrase: {required_phrase}",
+            failures,
+        )
 
     if failures:
         for failure in failures:
@@ -175,7 +208,8 @@ def main() -> int:
 
     print(
         "validated ng-review-error-boundary skill: files, triggers, "
-        "trigger examples, near-miss eval, references, and sample markers"
+        "trigger examples, near-miss eval, scriptable routing cases, "
+        "references, and sample markers"
     )
     return 0
 

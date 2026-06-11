@@ -39,6 +39,19 @@ If either side is missing, answer directly or route to a broader skill first.
 | "Improve error messages in this SDK." | Could be copywriting or boundary translation. | Clarify whether internal SDK details must be hidden from callers. |
 | "Should this fallback live here?" | Likely relevant, but missing call chain. | Ask for caller, adapter, and allowed degradation policy. |
 
+## Scriptable Routing Cases
+
+Keep these compact cases stable enough for a simple local checker. They are not a replacement for judgment; they are regression seeds for prompt-routing behavior.
+
+| ID | Prompt | Expected route | Must mention | Must avoid |
+|---|---|---|---|---|
+| `trigger-db-public-leak` | "Review `services/profile` and `handlers/profile`: DB timeout, retry, fallback, and public error code safety." | `TRIGGER` | decision table; retry or fallback; public error code | asking for syntax tutorial |
+| `trigger-sdk-cause` | "This SDK adapter catches provider exceptions and returns default billing status; check classification, fallback ownership, and cause preservation." | `TRIGGER` | classification; fallback ownership; cause preservation | treating it as copywriting only |
+| `no-trigger-syntax` | "Show me Python try/except syntax and how `raise from` works." | `NO_TRIGGER` | syntax explanation | full P0–P3 decision table |
+| `no-trigger-concept` | "Explain the difference between HTTP 400 and 500 in general." | `NO_TRIGGER` | general HTTP explanation | inventing repository paths |
+| `narrow-first-vague` | "Check our errors before launch." | `NARROW_FIRST` | ask for relative paths; boundary concern | inventing an implementation |
+| `narrow-first-db-error` | "Users sometimes see DB_ERROR; should we change it?" | `NARROW_FIRST` | ask for handler/repository path; public response contract | assuming the root cause |
+
 ## Eval Rubric
 
 A routing/eval pass is acceptable when it can label each prompt as one of:
