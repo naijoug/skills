@@ -66,10 +66,12 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
    - Use `TRIGGER`, `NO_TRIGGER`, or `NARROW_FIRST` routing when the request mentions errors but lacks a concrete boundary review target.
    - When tuning triggers, keep the scriptable routing cases in `references/near-miss-eval.md` balanced across trigger, no-trigger, and narrow-first examples.
    - Keep the machine-readable fixture in `references/routing-cases.json` synchronized with the markdown table before changing trigger wording.
+   - Use `scripts/dry_run_routing_cases.py` for a no-model sanity check that the fixture labels still match the documented routing rule.
 
 10. **Run the lightweight regression check after editing this skill**
    - From this skill directory, run `python3 scripts/validate_error_boundary_skill.py`.
-   - The script checks required references, trigger keywords, trigger-example coverage, near-miss eval markers, scriptable routing cases, routing fixture shape, sample-output markers, language probe sections, version metadata, and accidental absolute user paths.
+   - Also run `python3 scripts/dry_run_routing_cases.py` after changing trigger wording or routing fixtures.
+   - The validation script checks required references, trigger keywords, trigger-example coverage, near-miss eval markers, scriptable routing cases, routing fixture shape, dry-run script presence, sample-output markers, language probe sections, version metadata, and accidental absolute user paths.
 
 ## Output Template
 
@@ -130,4 +132,5 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
 - Trigger examples for recall/precision testing: `references/trigger-examples.md`
 - Near-miss routing eval for syntax/concept/debugging/broad-API prompts: `references/near-miss-eval.md`
 - Machine-readable routing fixture for local checks: `references/routing-cases.json`
+- No-model routing dry-run: `scripts/dry_run_routing_cases.py`
 - Local regression check for this skill, including trigger-example coverage: `scripts/validate_error_boundary_skill.py`
