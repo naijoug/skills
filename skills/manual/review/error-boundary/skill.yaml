@@ -1,0 +1,35 @@
+id: ng-review-error-boundary
+version: 1.0.0
+title: Error Boundary Review
+summary: Review cross-boundary error handling for stable classification, context preservation, retry/degrade policy, and safe public error codes
+kind: prompt_only
+tags:
+  - review
+  - error-handling
+  - reliability
+  - retry
+  - degradation
+  - api
+  - service-boundary
+triggers:
+  keywords:
+    - error boundary review
+    - error handling review
+    - error model review
+    - retry policy review
+    - fallback review
+    - public error code
+    - database error leak
+    - sdk error leak
+    - 错误边界
+    - 错误处理审查
+    - 错误码
+    - 重试策略
+    - 降级策略
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - amp
+    - cursor
+    - trae

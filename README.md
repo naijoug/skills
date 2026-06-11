@@ -32,6 +32,7 @@ Personal collection of AI coding skills. Skills are classified by directory unde
         ├── review/
         │   ├── pr/
         │   ├── api-design/
+        │   ├── error-boundary/
         │   └── refactor/
         ├── growth/
         │   ├── personal-coach/

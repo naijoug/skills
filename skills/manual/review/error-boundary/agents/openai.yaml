@@ -1,0 +1,4 @@
+interface:
+  display_name: "Error Boundary Review"
+  short_description: "Review error classification, retry/degrade policy, and public error safety"
+  default_prompt: "Use $ng-review-error-boundary to review this module's error path for stable classification, context preservation, retry/degrade ownership, and safe public error codes."
