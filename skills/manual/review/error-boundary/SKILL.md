@@ -61,9 +61,13 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
    - If the review feels too generic, compare it with `references/sample-review-output.md`.
    - Make sure the final review catches the three frequent misses: public SQL/SDK leakage, lost cause chains, and hidden retry/degrade ownership.
 
-9. **Run the lightweight regression check after editing this skill**
+9. **Check near-miss routing before forcing the workflow**
+   - If the prompt only asks for syntax, concept explanation, broad API design, or debugging, compare it with `references/near-miss-eval.md` before triggering this skill.
+   - Use `TRIGGER`, `NO_TRIGGER`, or `NARROW_FIRST` routing when the request mentions errors but lacks a concrete boundary review target.
+
+10. **Run the lightweight regression check after editing this skill**
    - From this skill directory, run `python3 scripts/validate_error_boundary_skill.py`.
-   - The script checks required references, trigger keywords, trigger-example coverage, sample-output markers, language probe sections, version metadata, and accidental absolute user paths.
+   - The script checks required references, trigger keywords, trigger-example coverage, near-miss eval markers, sample-output markers, language probe sections, version metadata, and accidental absolute user paths.
 
 ## Output Template
 
@@ -122,4 +126,5 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
 - Language-specific probes and red flags: `references/language-probes.md`
 - Sample review output and eval rubric: `references/sample-review-output.md`
 - Trigger examples for recall/precision testing: `references/trigger-examples.md`
+- Near-miss routing eval for syntax/concept/debugging/broad-API prompts: `references/near-miss-eval.md`
 - Local regression check for this skill, including trigger-example coverage: `scripts/validate_error_boundary_skill.py`

@@ -22,12 +22,14 @@ REQUIRED_FILES = [
     "references/trigger-examples.md",
     "references/language-probes.md",
     "references/sample-review-output.md",
+    "references/near-miss-eval.md",
 ]
 
 REQUIRED_SKILL_REFERENCES = [
     "references/language-probes.md",
     "references/sample-review-output.md",
     "references/trigger-examples.md",
+    "references/near-miss-eval.md",
     "scripts/validate_error_boundary_skill.py",
     "Decision Table",
     "P0",
@@ -57,6 +59,19 @@ REQUIRED_SAMPLE_MARKERS = [
 ]
 
 REQUIRED_LANGUAGE_SECTIONS = ["## Go", "## Python", "## Rust", "## TypeScript"]
+
+REQUIRED_NEAR_MISS_MARKERS = [
+    "## Should Trigger",
+    "## Should Not Trigger",
+    "## Ambiguous: Ask or Narrow Before Triggering",
+    "TRIGGER",
+    "NO_TRIGGER",
+    "NARROW_FIRST",
+    "Syntax tutorial",
+    "Concept explanation",
+    "Debugging request",
+    "Broad API design",
+]
 
 TRIGGER_EXAMPLE_MINIMUMS = {
     "Positive (Chinese)": 4,
@@ -120,7 +135,7 @@ def main() -> int:
         require(marker in skill, f"SKILL.md missing marker: {marker}", failures)
 
     yaml = files["skill.yaml"]
-    require("version: 1.4.0" in yaml, "skill.yaml version is not 1.4.0", failures)
+    require("version: 1.5.0" in yaml, "skill.yaml version is not 1.5.0", failures)
     for keyword in REQUIRED_TRIGGER_KEYWORDS:
         require(keyword in yaml, f"skill.yaml missing trigger keyword: {keyword}", failures)
 
@@ -149,6 +164,10 @@ def main() -> int:
     for marker in REQUIRED_SAMPLE_MARKERS:
         require(marker in sample, f"sample output missing marker: {marker}", failures)
 
+    near_miss = files["references/near-miss-eval.md"]
+    for marker in REQUIRED_NEAR_MISS_MARKERS:
+        require(marker in near_miss, f"near-miss eval missing marker: {marker}", failures)
+
     if failures:
         for failure in failures:
             print(f"FAIL: {failure}")
@@ -156,7 +175,7 @@ def main() -> int:
 
     print(
         "validated ng-review-error-boundary skill: files, triggers, "
-        "trigger examples, references, and sample markers"
+        "trigger examples, near-miss eval, references, and sample markers"
     )
     return 0
 
