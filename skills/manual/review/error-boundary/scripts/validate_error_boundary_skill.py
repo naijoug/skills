@@ -11,6 +11,7 @@ validated in a minimal agent/runtime environment.
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 
@@ -23,6 +24,7 @@ REQUIRED_FILES = [
     "references/language-probes.md",
     "references/sample-review-output.md",
     "references/near-miss-eval.md",
+    "references/routing-cases.json",
 ]
 
 REQUIRED_SKILL_REFERENCES = [
@@ -30,6 +32,7 @@ REQUIRED_SKILL_REFERENCES = [
     "references/sample-review-output.md",
     "references/trigger-examples.md",
     "references/near-miss-eval.md",
+    "references/routing-cases.json",
     "scripts/validate_error_boundary_skill.py",
     "Decision Table",
     "P0",
@@ -148,7 +151,7 @@ def main() -> int:
         require(marker in skill, f"SKILL.md missing marker: {marker}", failures)
 
     yaml = files["skill.yaml"]
-    require("version: 1.6.0" in yaml, "skill.yaml version is not 1.6.0", failures)
+    require("version: 1.7.0" in yaml, "skill.yaml version is not 1.7.0", failures)
     for keyword in REQUIRED_TRIGGER_KEYWORDS:
         require(keyword in yaml, f"skill.yaml missing trigger keyword: {keyword}", failures)
 
@@ -201,6 +204,51 @@ def main() -> int:
             failures,
         )
 
+    try:
+        fixture = json.loads(files["references/routing-cases.json"])
+    except json.JSONDecodeError as error:
+        failures.append(f"routing fixture is not valid JSON: {error}")
+        fixture = []
+
+    require(isinstance(fixture, list), "routing fixture must be a list", failures)
+    fixture_by_route = {route: 0 for route in NEAR_MISS_ROUTE_MINIMUMS}
+    fixture_ids: set[str] = set()
+    for index, case in enumerate(fixture):
+        require(isinstance(case, dict), f"routing fixture case {index} is not an object", failures)
+        if not isinstance(case, dict):
+            continue
+        case_id = case.get("id")
+        route = case.get("expected_route")
+        prompt = case.get("prompt")
+        must_mention = case.get("must_mention")
+        must_avoid = case.get("must_avoid")
+        require(isinstance(case_id, str) and bool(case_id), f"routing fixture case {index} missing id", failures)
+        require(case_id not in fixture_ids, f"routing fixture duplicate id: {case_id}", failures)
+        if isinstance(case_id, str):
+            fixture_ids.add(case_id)
+            require(case_id in routing_cases, f"routing fixture id not mirrored in near-miss table: {case_id}", failures)
+        require(route in NEAR_MISS_ROUTE_MINIMUMS, f"routing fixture {case_id} has invalid route: {route}", failures)
+        if route in fixture_by_route:
+            fixture_by_route[route] += 1
+        require(isinstance(prompt, str) and bool(prompt.strip()), f"routing fixture {case_id} missing prompt", failures)
+        require(
+            isinstance(must_mention, list) and all(isinstance(item, str) and item for item in must_mention),
+            f"routing fixture {case_id} must_mention must be a non-empty string list",
+            failures,
+        )
+        require(
+            isinstance(must_avoid, list) and all(isinstance(item, str) and item for item in must_avoid),
+            f"routing fixture {case_id} must_avoid must be a non-empty string list",
+            failures,
+        )
+
+    for route, minimum in NEAR_MISS_ROUTE_MINIMUMS.items():
+        require(
+            fixture_by_route[route] >= minimum,
+            f"routing fixture includes fewer than {minimum} {route} cases",
+            failures,
+        )
+
     if failures:
         for failure in failures:
             print(f"FAIL: {failure}")
@@ -209,7 +257,7 @@ def main() -> int:
     print(
         "validated ng-review-error-boundary skill: files, triggers, "
         "trigger examples, near-miss eval, scriptable routing cases, "
-        "references, and sample markers"
+        "routing fixture, references, and sample markers"
     )
     return 0
 

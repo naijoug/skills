@@ -41,7 +41,7 @@ If either side is missing, answer directly or route to a broader skill first.
 
 ## Scriptable Routing Cases
 
-Keep these compact cases stable enough for a simple local checker. They are not a replacement for judgment; they are regression seeds for prompt-routing behavior.
+Keep these compact cases stable enough for a simple local checker. The human-readable table is mirrored by `references/routing-cases.json`; when adding or renaming a case, update both files in the same commit. They are not a replacement for judgment; they are regression seeds for prompt-routing behavior.
 
 | ID | Prompt | Expected route | Must mention | Must avoid |
 |---|---|---|---|---|

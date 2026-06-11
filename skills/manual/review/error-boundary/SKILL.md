@@ -65,10 +65,11 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
    - If the prompt only asks for syntax, concept explanation, broad API design, or debugging, compare it with `references/near-miss-eval.md` before triggering this skill.
    - Use `TRIGGER`, `NO_TRIGGER`, or `NARROW_FIRST` routing when the request mentions errors but lacks a concrete boundary review target.
    - When tuning triggers, keep the scriptable routing cases in `references/near-miss-eval.md` balanced across trigger, no-trigger, and narrow-first examples.
+   - Keep the machine-readable fixture in `references/routing-cases.json` synchronized with the markdown table before changing trigger wording.
 
 10. **Run the lightweight regression check after editing this skill**
    - From this skill directory, run `python3 scripts/validate_error_boundary_skill.py`.
-   - The script checks required references, trigger keywords, trigger-example coverage, near-miss eval markers, scriptable routing cases, sample-output markers, language probe sections, version metadata, and accidental absolute user paths.
+   - The script checks required references, trigger keywords, trigger-example coverage, near-miss eval markers, scriptable routing cases, routing fixture shape, sample-output markers, language probe sections, version metadata, and accidental absolute user paths.
 
 ## Output Template
 
@@ -128,4 +129,5 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
 - Sample review output and eval rubric: `references/sample-review-output.md`
 - Trigger examples for recall/precision testing: `references/trigger-examples.md`
 - Near-miss routing eval for syntax/concept/debugging/broad-API prompts: `references/near-miss-eval.md`
+- Machine-readable routing fixture for local checks: `references/routing-cases.json`
 - Local regression check for this skill, including trigger-example coverage: `scripts/validate_error_boundary_skill.py`

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "trigger-db-public-leak",
+    "prompt": "Review `services/profile` and `handlers/profile`: DB timeout, retry, fallback, and public error code safety.",
+    "expected_route": "TRIGGER",
+    "must_mention": [
+      "decision table",
+      "retry or fallback",
+      "public error code"
+    ],
+    "must_avoid": [
+      "syntax tutorial"
+    ]
+  },
+  {
+    "id": "trigger-sdk-cause",
+    "prompt": "This SDK adapter catches provider exceptions and returns default billing status; check classification, fallback ownership, and cause preservation.",
+    "expected_route": "TRIGGER",
+    "must_mention": [
+      "classification",
+      "fallback ownership",
+      "cause preservation"
+    ],
+    "must_avoid": [
+      "copywriting only"
+    ]
+  },
+  {
+    "id": "no-trigger-syntax",
+    "prompt": "Show me Python try/except syntax and how `raise from` works.",
+    "expected_route": "NO_TRIGGER",
+    "must_mention": [
+      "syntax explanation"
+    ],
+    "must_avoid": [
+      "full P0–P3 decision table"
+    ]
+  },
+  {
+    "id": "no-trigger-concept",
+    "prompt": "Explain the difference between HTTP 400 and 500 in general.",
+    "expected_route": "NO_TRIGGER",
+    "must_mention": [
+      "general HTTP explanation"
+    ],
+    "must_avoid": [
+      "inventing repository paths"
+    ]
+  },
+  {
+    "id": "narrow-first-vague",
+    "prompt": "Check our errors before launch.",
+    "expected_route": "NARROW_FIRST",
+    "must_mention": [
+      "ask for relative paths",
+      "boundary concern"
+    ],
+    "must_avoid": [
+      "inventing an implementation"
+    ]
+  },
+  {
+    "id": "narrow-first-db-error",
+    "prompt": "Users sometimes see DB_ERROR; should we change it?",
+    "expected_route": "NARROW_FIRST",
+    "must_mention": [
+      "ask for handler/repository path",
+      "public response contract"
+    ],
+    "must_avoid": [
+      "assuming the root cause"
+    ]
+  }
+]
