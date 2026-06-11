@@ -61,6 +61,10 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
    - If the review feels too generic, compare it with `references/sample-review-output.md`.
    - Make sure the final review catches the three frequent misses: public SQL/SDK leakage, lost cause chains, and hidden retry/degrade ownership.
 
+9. **Run the lightweight regression check after editing this skill**
+   - From this skill directory, run `python3 scripts/validate_error_boundary_skill.py`.
+   - The script checks required references, trigger keywords, sample-output markers, language probe sections, version metadata, and accidental absolute user paths.
+
 ## Output Template
 
 ```markdown
@@ -118,3 +122,4 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
 - Language-specific probes and red flags: `references/language-probes.md`
 - Sample review output and eval rubric: `references/sample-review-output.md`
 - Trigger examples for recall/precision testing: `references/trigger-examples.md`
+- Local regression check for this skill: `scripts/validate_error_boundary_skill.py`
