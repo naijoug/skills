@@ -14,8 +14,8 @@
       {
         "label": "main",
         "title": "Skills Manager",
-        "width": 1487,
-        "height": 1058,
+        "width": 1280,
+        "height": 800,
         "minWidth": 1280,
         "minHeight": 720,
         "decorations": true,
@@ -27,7 +27,7 @@
         },
         "shadow": true,
         "theme": "Dark",
-        "backgroundColor": [24, 24, 24, 255]
+        "backgroundColor": [25, 27, 29, 255]
       }
     ],
     "security": {

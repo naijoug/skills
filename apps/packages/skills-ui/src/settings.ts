@@ -70,7 +70,7 @@ export function fontFamilyCssValue(fontFamily: SkillsFontFamily): string {
       return 'Georgia, "Times New Roman", serif';
     case "system":
     default:
-      return 'Inter, "SF Pro Text", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      return '"JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
   }
 }
 
