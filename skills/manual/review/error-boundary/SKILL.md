@@ -38,6 +38,7 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
 3. **Check context preservation**
    - Verify each layer adds "doing what / for whom" context without discarding the root cause.
    - Look for Go `%w`, Python `raise ... from error`, Rust enum variants with source/context, TypeScript `cause` / `inner` fields, or equivalent structured chaining.
+   - When one language dominates the diff, use `references/language-probes.md` for focused red flags and positive patterns.
 
 4. **Check stable classification**
    - Ask whether the caller can classify retryable, degradable, user-correctable, conflict/not-found, and internal failure without parsing strings.
@@ -110,4 +111,5 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
 ## References
 
 - Source checklist in this workspace: `books/tech-cards-handbook/chapters/error-boundary-review-checklist.md`
+- Language-specific probes and red flags: `references/language-probes.md`
 - Trigger examples for recall/precision testing: `references/trigger-examples.md`
