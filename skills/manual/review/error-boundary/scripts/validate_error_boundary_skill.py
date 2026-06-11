@@ -58,6 +58,18 @@ REQUIRED_SAMPLE_MARKERS = [
 
 REQUIRED_LANGUAGE_SECTIONS = ["## Go", "## Python", "## Rust", "## TypeScript"]
 
+TRIGGER_EXAMPLE_MINIMUMS = {
+    "Positive (Chinese)": 4,
+    "Positive (English)": 4,
+    "Negative / Near Miss": 4,
+}
+
+TRIGGER_EXAMPLE_REQUIRED_TERMS = {
+    "Positive (Chinese)": ["错误", "重试", "降级"],
+    "Positive (English)": ["error", "retry", "fallback"],
+    "Negative / Near Miss": ["Syntax tutorial", "Concept explanation", "Debugging request"],
+}
+
 ABSOLUTE_PATH_RE = re.compile(r"/Users/[A-Za-z0-9_.-]+/")
 
 
@@ -68,6 +80,19 @@ def read(relative: str) -> str:
 def require(condition: bool, message: str, failures: list[str]) -> None:
     if not condition:
         failures.append(message)
+
+
+def section_body(markdown: str, heading: str) -> str:
+    pattern = re.compile(
+        rf"^## {re.escape(heading)}\n(?P<body>.*?)(?=^## |\Z)",
+        re.MULTILINE | re.DOTALL,
+    )
+    match = pattern.search(markdown)
+    return match.group("body") if match else ""
+
+
+def bullet_count(markdown: str) -> int:
+    return len(re.findall(r"(?m)^- ", markdown))
 
 
 def main() -> int:
@@ -95,14 +120,21 @@ def main() -> int:
         require(marker in skill, f"SKILL.md missing marker: {marker}", failures)
 
     yaml = files["skill.yaml"]
-    require("version: 1.3.0" in yaml, "skill.yaml version is not 1.3.0", failures)
+    require("version: 1.4.0" in yaml, "skill.yaml version is not 1.4.0", failures)
     for keyword in REQUIRED_TRIGGER_KEYWORDS:
         require(keyword in yaml, f"skill.yaml missing trigger keyword: {keyword}", failures)
 
     triggers = files["references/trigger-examples.md"]
-    require("## Positive (Chinese)" in triggers, "trigger examples missing Chinese positives", failures)
-    require("## Positive (English)" in triggers, "trigger examples missing English positives", failures)
-    require("## Negative / Near Miss" in triggers, "trigger examples missing near misses", failures)
+    for section, minimum in TRIGGER_EXAMPLE_MINIMUMS.items():
+        body = section_body(triggers, section)
+        require(body != "", f"trigger examples missing section: {section}", failures)
+        require(
+            bullet_count(body) >= minimum,
+            f"trigger examples section {section} has fewer than {minimum} bullets",
+            failures,
+        )
+        for term in TRIGGER_EXAMPLE_REQUIRED_TERMS[section]:
+            require(term in body, f"trigger examples section {section} missing term: {term}", failures)
 
     probes = files["references/language-probes.md"]
     for section in REQUIRED_LANGUAGE_SECTIONS:
@@ -122,7 +154,10 @@ def main() -> int:
             print(f"FAIL: {failure}")
         return 1
 
-    print("validated ng-review-error-boundary skill: files, triggers, references, and sample markers")
+    print(
+        "validated ng-review-error-boundary skill: files, triggers, "
+        "trigger examples, references, and sample markers"
+    )
     return 0
 
 
