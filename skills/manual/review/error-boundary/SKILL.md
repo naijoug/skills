@@ -57,6 +57,10 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
    - Produce or update a table with these columns: `底层错误`, `领域错误`, `调用方动作`, `重试/降级策略`, `对外消息`, `证据/测试`.
    - If no table exists, create the minimum table for the reviewed module before recommending broad refactors.
 
+8. **Calibrate against the sample output when uncertain**
+   - If the review feels too generic, compare it with `references/sample-review-output.md`.
+   - Make sure the final review catches the three frequent misses: public SQL/SDK leakage, lost cause chains, and hidden retry/degrade ownership.
+
 ## Output Template
 
 ```markdown
@@ -112,4 +116,5 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
 
 - Source checklist in this workspace: `books/tech-cards-handbook/chapters/error-boundary-review-checklist.md`
 - Language-specific probes and red flags: `references/language-probes.md`
+- Sample review output and eval rubric: `references/sample-review-output.md`
 - Trigger examples for recall/precision testing: `references/trigger-examples.md`
