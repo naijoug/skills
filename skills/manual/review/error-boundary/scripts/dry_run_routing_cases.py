@@ -7,6 +7,7 @@ rules. Run from the skill directory:
 
     python3 scripts/dry_run_routing_cases.py
     python3 scripts/dry_run_routing_cases.py --report
+    python3 scripts/dry_run_routing_cases.py --json
 """
 
 from __future__ import annotations
@@ -91,6 +92,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="print one readable PASS/FAIL line per routing case",
     )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="print machine-readable routing results for CI or agent handoff",
+    )
     return parser.parse_args()
 
 
@@ -104,11 +110,24 @@ def format_case_report(case: dict, actual: str) -> str:
     return f"{status} {case_id}: expected={expected} actual={actual} prompt={prompt}"
 
 
+def format_case_result(case: dict, actual: str) -> dict:
+    expected = case.get("expected_route")
+    return {
+        "id": case.get("id", "<missing-id>"),
+        "expected_route": expected,
+        "actual_route": actual,
+        "passed": actual == expected,
+        "must_mention": case.get("must_mention", []),
+        "must_avoid": case.get("must_avoid", []),
+    }
+
+
 def main() -> int:
     args = parse_args()
     cases = json.loads(FIXTURE.read_text(encoding="utf-8"))
     failures: list[str] = []
     reports: list[str] = []
+    results: list[dict] = []
 
     for case in cases:
         case_id = case.get("id", "<missing-id>")
@@ -116,8 +135,19 @@ def main() -> int:
         expected = case.get("expected_route")
         actual = route_prompt(prompt)
         reports.append(format_case_report(case, actual))
+        results.append(format_case_result(case, actual))
         if actual != expected:
             failures.append(f"{case_id}: expected {expected}, got {actual}")
+
+    if args.json:
+        payload = {
+            "skill": "ng-review-error-boundary",
+            "case_count": len(cases),
+            "failure_count": len(failures),
+            "results": results,
+        }
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 1 if failures else 0
 
     if args.report:
         for report in reports:

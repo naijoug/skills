@@ -36,6 +36,7 @@ REQUIRED_SKILL_REFERENCES = [
     "references/routing-cases.json",
     "scripts/dry_run_routing_cases.py",
     "--report",
+    "--json",
     "scripts/validate_error_boundary_skill.py",
     "Decision Table",
     "P0",
@@ -69,9 +70,13 @@ REQUIRED_LANGUAGE_SECTIONS = ["## Go", "## Python", "## Rust", "## TypeScript"]
 REQUIRED_DRY_RUN_MARKERS = [
     "argparse",
     "--report",
+    "--json",
     "format_case_report",
+    "format_case_result",
     "expected=",
     "actual=",
+    "actual_route",
+    "failure_count",
     "PASS",
     "FAIL",
 ]
@@ -164,7 +169,7 @@ def main() -> int:
         require(marker in skill, f"SKILL.md missing marker: {marker}", failures)
 
     yaml = files["skill.yaml"]
-    require("version: 1.9.0" in yaml, "skill.yaml version is not 1.9.0", failures)
+    require("version: 1.10.0" in yaml, "skill.yaml version is not 1.10.0", failures)
     for keyword in REQUIRED_TRIGGER_KEYWORDS:
         require(keyword in yaml, f"skill.yaml missing trigger keyword: {keyword}", failures)
 
@@ -275,7 +280,7 @@ def main() -> int:
     print(
         "validated ng-review-error-boundary skill: files, triggers, "
         "trigger examples, near-miss eval, scriptable routing cases, "
-        "routing fixture, dry-run report, references, and sample markers"
+        "routing fixture, dry-run report/json, references, and sample markers"
     )
     return 0
 

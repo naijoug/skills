@@ -68,11 +68,13 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
    - Keep the machine-readable fixture in `references/routing-cases.json` synchronized with the markdown table before changing trigger wording.
    - Use `scripts/dry_run_routing_cases.py` for a no-model sanity check that the fixture labels still match the documented routing rule.
    - Add `--report` when you need a readable per-case PASS/FAIL handoff for trigger tuning.
+   - Add `--json` when CI or another agent needs machine-readable `expected_route` / `actual_route` / `passed` results.
 
 10. **Run the lightweight regression check after editing this skill**
    - From this skill directory, run `python3 scripts/validate_error_boundary_skill.py`.
    - Also run `python3 scripts/dry_run_routing_cases.py` after changing trigger wording or routing fixtures.
    - Run `python3 scripts/dry_run_routing_cases.py --report` when a route drifts, so the next editor can see which prompt label failed without opening the fixture first.
+   - Run `python3 scripts/dry_run_routing_cases.py --json` when you need to persist the routing result as an artifact for automation or cross-agent handoff.
    - The validation script checks required references, trigger keywords, trigger-example coverage, near-miss eval markers, scriptable routing cases, routing fixture shape, dry-run script presence, sample-output markers, language probe sections, version metadata, and accidental absolute user paths.
 
 ## Output Template
@@ -134,5 +136,5 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
 - Trigger examples for recall/precision testing: `references/trigger-examples.md`
 - Near-miss routing eval for syntax/concept/debugging/broad-API prompts: `references/near-miss-eval.md`
 - Machine-readable routing fixture for local checks: `references/routing-cases.json`
-- No-model routing dry-run: `scripts/dry_run_routing_cases.py`
+- No-model routing dry-run with readable and JSON outputs: `scripts/dry_run_routing_cases.py`
 - Local regression check for this skill, including trigger-example coverage: `scripts/validate_error_boundary_skill.py`
