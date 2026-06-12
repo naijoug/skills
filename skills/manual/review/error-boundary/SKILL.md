@@ -61,6 +61,7 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
    - If the review feels too generic, compare it with `references/sample-review-output.md`.
    - Make sure the final review catches the three frequent misses: public SQL/SDK leakage, lost cause chains, and hidden retry/degrade ownership.
    - If the user needs a PR review comment, convert the highest-priority finding to the `[error-boundary][P0/P1/P2]` form shown in the sample output and the source checklist.
+   - When public leakage, recovery ownership, and cause preservation need different owners, split them into separate P0/P1/P2 PR comments instead of hiding all risks in one broad comment.
 
 9. **Check near-miss routing before forcing the workflow**
    - If the prompt only asks for syntax, concept explanation, broad API design, or debugging, compare it with `references/near-miss-eval.md` before triggering this skill.
