@@ -52,6 +52,16 @@ Keep these compact cases stable enough for a simple local checker. The human-rea
 | `narrow-first-vague` | "Check our errors before launch." | `NARROW_FIRST` | ask for relative paths; boundary concern | inventing an implementation |
 | `narrow-first-db-error` | "Users sometimes see DB_ERROR; should we change it?" | `NARROW_FIRST` | ask for handler/repository path; public response contract | assuming the root cause |
 
+### Saving a routing artifact
+
+When a trigger change, prompt-router change, CI run, or cross-agent handoff needs a durable record, save the dry-run payload instead of pasting only stdout:
+
+```bash
+python3 scripts/dry_run_routing_cases.py --json --output artifacts/error-boundary-routing.json
+```
+
+The saved JSON artifact should include `skill`, `case_count`, `failure_count`, and per-case `expected_route`, `actual_route`, `passed`, `must_mention`, and `must_avoid`. Treat any non-zero `failure_count` as a routing regression until the fixture, markdown table, and trigger wording are updated together.
+
 ## Eval Rubric
 
 A routing/eval pass is acceptable when it can label each prompt as one of:
@@ -60,4 +70,4 @@ A routing/eval pass is acceptable when it can label each prompt as one of:
 - `NO_TRIGGER`: answer directly or route to a non-error-boundary skill.
 - `NARROW_FIRST`: request the missing module, call chain, or boundary concern before running the workflow.
 
-For `TRIGGER`, the expected answer should mention at least two of: classification, retry, degradation/fallback, cause/context preservation, or public error code safety. For `NO_TRIGGER`, the answer should not force a decision table. For `NARROW_FIRST`, the answer should ask for relative paths or the concrete dependency-to-caller chain rather than inventing implementation details.
+For `TRIGGER`, the expected answer should mention at least two of: classification, retry, degradation/fallback, cause/context preservation, or public error code safety. For `NO_TRIGGER`, the answer should not force a decision table. For `NARROW_FIRST`, the answer should ask for relative paths or the concrete dependency-to-caller chain rather than inventing implementation details. For CI or cross-agent handoff, attach the saved JSON artifact path next to the PR, issue, or notebook entry so the next reviewer can diff route drift without rerunning the prompt manually.

@@ -179,7 +179,7 @@ def main() -> int:
         require(marker in skill, f"SKILL.md missing marker: {marker}", failures)
 
     yaml = files["skill.yaml"]
-    require("version: 1.13.0" in yaml, "skill.yaml version is not 1.13.0", failures)
+    require("version: 1.14.0" in yaml, "skill.yaml version is not 1.14.0", failures)
     for keyword in REQUIRED_TRIGGER_KEYWORDS:
         require(keyword in yaml, f"skill.yaml missing trigger keyword: {keyword}", failures)
 
@@ -230,6 +230,12 @@ def main() -> int:
         "ask for relative paths",
         "inventing an implementation",
         "scripts/dry_run_routing_cases.py",
+        "## Saving a routing artifact",
+        "--json --output artifacts/error-boundary-routing.json",
+        "failure_count",
+        "expected_route",
+        "actual_route",
+        "cross-agent handoff",
     ]:
         require(
             required_phrase in routing_cases,
