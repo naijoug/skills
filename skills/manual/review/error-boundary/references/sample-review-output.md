@@ -100,6 +100,39 @@ Expected decision-table row:
 Suggested tests: assert wrapping preserves the original driver error as `cause` / `inner`; assert logs/traces include profile lookup context; assert public response redaction does not remove operator diagnostics.
 ```
 
+### PR-comments-only mode
+
+Use this mode when the user explicitly asks for comments to paste into a PR, or when a review tool has already summarized the diff and only needs actionable comments. Do not repeat the full decision table unless the user asks for the complete review; in short, omit the full decision table and output 1–3 focused comments tied to one owner each.
+
+```markdown
+## Error Boundary PR Comments
+
+1. `[error-boundary][P0] <public leakage title>`
+   - Evidence: <file/function/line or relative path snippet>
+   - Risk: <what leaks or what client contract becomes unstable>
+   - Expected decision-table row: <underlying signal → domain error → caller action → public code/message → diagnostics location>
+   - Suggested tests: <redaction + diagnostics preservation assertions>
+
+2. `[error-boundary][P1] <classification or recovery ownership title>`
+   - Evidence: <string parsing, hidden retry, silent fallback, adapter-owned degrade>
+   - Risk: <misclassification, retry storm, hidden business policy, untested fallback>
+   - Expected decision-table row: <retryable/degradable signal → typed domain error → owner-owned retry/degrade policy>
+   - Suggested tests: <retry budget, fallback ownership, unknown-error escalation>
+
+3. `[error-boundary][P2] <context preservation title>`
+   - Evidence: <lost cause/source/inner/log context>
+   - Risk: <operators lose root cause after public redaction>
+   - Expected decision-table row: <classified error → public-safe response + preserved cause/source/inner>
+   - Suggested tests: <cause chain and trace/log context assertions>
+```
+
+Rules for this short mode:
+
+- Keep `Evidence`, `Risk`, `Expected decision-table row`, and `Suggested tests` in every comment; omit broad background.
+- Prefer one P0/P1/P2 comment per distinct owner; merge comments only when the same code owner can fix them in one patch.
+- If there is no concrete diff, file, function, or relative path evidence, ask for the missing review target instead of inventing a PR comment.
+- If a full error boundary design is still missing, say that PR-comments-only mode is insufficient and fall back to the full review output shape above.
+
 ### Suggested Tests
 - [ ] Classification test: row-not-found maps to `ProfileMissing`, timeout maps to `ProfileTemporaryUnavailable`, syntax error maps to `ProfileInternalFailure`.
 - [ ] Retry/degrade test: temporary database failure retries with bounded backoff, then handler-owned fallback is explicit.

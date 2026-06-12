@@ -67,9 +67,14 @@ REQUIRED_SAMPLE_MARKERS = [
     "[error-boundary][P0]",
     "[error-boundary][P1]",
     "[error-boundary][P2]",
+    "PR-comments-only mode",
+    "## Error Boundary PR Comments",
+    "1–3 focused comments",
+    "omit the full decision table",
     "timeout recovery is classified by string parsing",
     "root cause chain",
     "Expected decision-table row",
+    "Suggested tests",
     "Eval Rubric",
 ]
 
@@ -179,7 +184,7 @@ def main() -> int:
         require(marker in skill, f"SKILL.md missing marker: {marker}", failures)
 
     yaml = files["skill.yaml"]
-    require("version: 1.14.0" in yaml, "skill.yaml version is not 1.14.0", failures)
+    require("version: 1.15.0" in yaml, "skill.yaml version is not 1.15.0", failures)
     for keyword in REQUIRED_TRIGGER_KEYWORDS:
         require(keyword in yaml, f"skill.yaml missing trigger keyword: {keyword}", failures)
 
