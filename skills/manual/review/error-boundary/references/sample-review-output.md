@@ -52,6 +52,24 @@ async function getProfileResponse(userId: string): Promise<Response> {
 | P1 | Classification / recovery | Timeout detection parses strings and returns fallback immediately inside the handler catch. | Different driver wording breaks behavior; retry/degrade policy is implicit and untested. | Introduce typed adapter errors and a decision table that names retryable/degradable cases. |
 | P2 | Context / typing | The catch block discards the original cause when creating the response. | Operators cannot trace which query or dependency failed from the public error path alone. | Wrap with context and preserve `cause` / `inner` for logs/traces. |
 
+### PR Comment Form
+When this review becomes a PR comment, convert the top finding into the same short form used by `books/tech-cards-handbook/chapters/error-boundary-review-checklist.md`:
+
+```text
+[error-boundary][P0] profile handler exposes raw database errors to API callers
+
+Evidence: profile query + HTTP handler returns `{ code: "DB_ERROR", message: String(error) }` from the catch block.
+Risk: API clients may see SQLSTATE, table/index names, hostnames, driver classes, or stack fragments; replacing the message later may also erase the root cause unless diagnostics are preserved separately.
+Expected decision-table row:
+- Underlying error/signal: row not found; timeout / pool exhausted; SQL syntax / driver bug
+- Classification: typed adapter errors, not `message.includes("timeout")`
+- Domain error: `ProfileMissing` / `ProfileTemporaryUnavailable` / `ProfileInternalFailure`
+- Caller action: degrade only for approved missing-profile cases; retry bounded temporary failures; escalate internal failures
+- Public code/message: `PROFILE_TEMPORARY_UNAVAILABLE` or `INTERNAL`, with no SQL/host/path/driver text
+- Diagnostics location: `cause` / `inner`, structured log, trace span
+Suggested tests: assert public responses do not contain `SQLSTATE`, table names, hostnames, driver classes, or stack fragments; assert logs/traces retain the original driver error as `cause` / `inner`; assert retry/degrade ownership is explicit.
+```
+
 ### Suggested Tests
 - [ ] Classification test: row-not-found maps to `ProfileMissing`, timeout maps to `ProfileTemporaryUnavailable`, syntax error maps to `ProfileInternalFailure`.
 - [ ] Retry/degrade test: temporary database failure retries with bounded backoff, then handler-owned fallback is explicit.
@@ -67,11 +85,13 @@ A good review should:
 - separate public response safety from operator diagnostics;
 - flag string parsing of errors as unstable classification;
 - distinguish retryable temporary failures from degradable not-found cases;
-- require a redaction test and a cause-preservation test.
+- require a redaction test and a cause-preservation test;
+- include a PR comment form for the highest-priority finding when the review is meant to be pasted into code review.
 
 A weak review usually:
 
 - only says "add better error messages";
 - recommends catching all errors and returning `500` without stable codes;
 - accepts fallback inside the database adapter without naming caller ownership;
-- removes the raw error entirely instead of preserving it for logs/traces.
+- removes the raw error entirely instead of preserving it for logs/traces;
+- gives a long narrative finding but no paste-ready `[error-boundary][P0/P1/P2]` comment with evidence, risk, expected decision row, and tests.

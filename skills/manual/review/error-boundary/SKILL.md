@@ -60,6 +60,7 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
 8. **Calibrate against the sample output when uncertain**
    - If the review feels too generic, compare it with `references/sample-review-output.md`.
    - Make sure the final review catches the three frequent misses: public SQL/SDK leakage, lost cause chains, and hidden retry/degrade ownership.
+   - If the user needs a PR review comment, convert the highest-priority finding to the `[error-boundary][P0/P1/P2]` form shown in the sample output and the source checklist.
 
 9. **Check near-miss routing before forcing the workflow**
    - If the prompt only asks for syntax, concept explanation, broad API design, or debugging, compare it with `references/near-miss-eval.md` before triggering this skill.
@@ -133,6 +134,7 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
 - Source checklist in this workspace: `books/tech-cards-handbook/chapters/error-boundary-review-checklist.md`
 - Language-specific probes and red flags: `references/language-probes.md`
 - Sample review output and eval rubric: `references/sample-review-output.md`
+- PR review comment format source: `books/tech-cards-handbook/chapters/error-boundary-review-checklist.md`
 - Trigger examples for recall/precision testing: `references/trigger-examples.md`
 - Near-miss routing eval for syntax/concept/debugging/broad-API prompts: `references/near-miss-eval.md`
 - Machine-readable routing fixture for local checks: `references/routing-cases.json`
