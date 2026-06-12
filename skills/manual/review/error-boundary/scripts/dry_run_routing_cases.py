@@ -6,10 +6,12 @@ that protects the fixture labels from drifting away from the skill's routing
 rules. Run from the skill directory:
 
     python3 scripts/dry_run_routing_cases.py
+    python3 scripts/dry_run_routing_cases.py --report
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -80,17 +82,46 @@ def route_prompt(prompt: str) -> str:
     return "NO_TRIGGER"
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Dry-run ng-review-error-boundary prompt routing fixtures.",
+    )
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="print one readable PASS/FAIL line per routing case",
+    )
+    return parser.parse_args()
+
+
+def format_case_report(case: dict, actual: str) -> str:
+    case_id = case.get("id", "<missing-id>")
+    expected = case.get("expected_route", "<missing-route>")
+    status = "PASS" if actual == expected else "FAIL"
+    prompt = case.get("prompt", "").replace("\n", " ")
+    if len(prompt) > 96:
+        prompt = f"{prompt[:93]}..."
+    return f"{status} {case_id}: expected={expected} actual={actual} prompt={prompt}"
+
+
 def main() -> int:
+    args = parse_args()
     cases = json.loads(FIXTURE.read_text(encoding="utf-8"))
     failures: list[str] = []
+    reports: list[str] = []
 
     for case in cases:
         case_id = case.get("id", "<missing-id>")
         prompt = case.get("prompt", "")
         expected = case.get("expected_route")
         actual = route_prompt(prompt)
+        reports.append(format_case_report(case, actual))
         if actual != expected:
             failures.append(f"{case_id}: expected {expected}, got {actual}")
+
+    if args.report:
+        for report in reports:
+            print(report)
 
     if failures:
         for failure in failures:

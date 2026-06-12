@@ -35,6 +35,7 @@ REQUIRED_SKILL_REFERENCES = [
     "references/near-miss-eval.md",
     "references/routing-cases.json",
     "scripts/dry_run_routing_cases.py",
+    "--report",
     "scripts/validate_error_boundary_skill.py",
     "Decision Table",
     "P0",
@@ -64,6 +65,16 @@ REQUIRED_SAMPLE_MARKERS = [
 ]
 
 REQUIRED_LANGUAGE_SECTIONS = ["## Go", "## Python", "## Rust", "## TypeScript"]
+
+REQUIRED_DRY_RUN_MARKERS = [
+    "argparse",
+    "--report",
+    "format_case_report",
+    "expected=",
+    "actual=",
+    "PASS",
+    "FAIL",
+]
 
 REQUIRED_NEAR_MISS_MARKERS = [
     "## Should Trigger",
@@ -153,7 +164,7 @@ def main() -> int:
         require(marker in skill, f"SKILL.md missing marker: {marker}", failures)
 
     yaml = files["skill.yaml"]
-    require("version: 1.8.0" in yaml, "skill.yaml version is not 1.8.0", failures)
+    require("version: 1.9.0" in yaml, "skill.yaml version is not 1.9.0", failures)
     for keyword in REQUIRED_TRIGGER_KEYWORDS:
         require(keyword in yaml, f"skill.yaml missing trigger keyword: {keyword}", failures)
 
@@ -181,6 +192,10 @@ def main() -> int:
     sample = files["references/sample-review-output.md"]
     for marker in REQUIRED_SAMPLE_MARKERS:
         require(marker in sample, f"sample output missing marker: {marker}", failures)
+
+    dry_run = files["scripts/dry_run_routing_cases.py"]
+    for marker in REQUIRED_DRY_RUN_MARKERS:
+        require(marker in dry_run, f"dry-run script missing marker: {marker}", failures)
 
     near_miss = files["references/near-miss-eval.md"]
     for marker in REQUIRED_NEAR_MISS_MARKERS:
@@ -260,7 +275,7 @@ def main() -> int:
     print(
         "validated ng-review-error-boundary skill: files, triggers, "
         "trigger examples, near-miss eval, scriptable routing cases, "
-        "routing fixture, dry-run script, references, and sample markers"
+        "routing fixture, dry-run report, references, and sample markers"
     )
     return 0
 

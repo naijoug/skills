@@ -67,10 +67,12 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
    - When tuning triggers, keep the scriptable routing cases in `references/near-miss-eval.md` balanced across trigger, no-trigger, and narrow-first examples.
    - Keep the machine-readable fixture in `references/routing-cases.json` synchronized with the markdown table before changing trigger wording.
    - Use `scripts/dry_run_routing_cases.py` for a no-model sanity check that the fixture labels still match the documented routing rule.
+   - Add `--report` when you need a readable per-case PASS/FAIL handoff for trigger tuning.
 
 10. **Run the lightweight regression check after editing this skill**
    - From this skill directory, run `python3 scripts/validate_error_boundary_skill.py`.
    - Also run `python3 scripts/dry_run_routing_cases.py` after changing trigger wording or routing fixtures.
+   - Run `python3 scripts/dry_run_routing_cases.py --report` when a route drifts, so the next editor can see which prompt label failed without opening the fixture first.
    - The validation script checks required references, trigger keywords, trigger-example coverage, near-miss eval markers, scriptable routing cases, routing fixture shape, dry-run script presence, sample-output markers, language probe sections, version metadata, and accidental absolute user paths.
 
 ## Output Template
