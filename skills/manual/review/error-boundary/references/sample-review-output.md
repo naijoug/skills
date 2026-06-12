@@ -133,6 +133,39 @@ Rules for this short mode:
 - If there is no concrete diff, file, function, or relative path evidence, ask for the missing review target instead of inventing a PR comment.
 - If a full error boundary design is still missing, say that PR-comments-only mode is insufficient and fall back to the full review output shape above.
 
+### PR-comments-only mini fixture
+
+Use this mini fixture as the fastest calibration check before producing short PR comments:
+
+```text
+Input:
+User request: "Only give me PR comments for this diff."
+Diff evidence: `services/profile/http.ts` catch block returns `{ code: "DB_ERROR", message: String(error) }`; timeout branch uses `message.includes("timeout")` and returns `{ displayName: "Anonymous" }`; no log, `cause`, `inner`, or trace field keeps the original driver error.
+
+Expected short-mode output:
+## Error Boundary PR Comments
+
+1. `[error-boundary][P0] services/profile/http.ts exposes raw database errors to API callers`
+   - Evidence: `services/profile/http.ts` returns `{ code: "DB_ERROR", message: String(error) }` from the catch block.
+   - Risk: clients may receive SQLSTATE, table names, hostnames, driver class names, or stack fragments; the public API becomes coupled to dependency internals.
+   - Expected decision-table row: database row-not-found / timeout / driver bug → typed profile domain error → caller-owned degrade/retry/escalate → stable public code/message → original driver error in `cause` / `inner` / trace.
+   - Suggested tests: assert public responses omit SQLSTATE/table/host/driver/stack text and assert logs/traces retain the original driver error.
+
+2. `[error-boundary][P1] services/profile/http.ts owns fallback through string parsing instead of a retry/degrade policy`
+   - Evidence: timeout recovery depends on `message.includes("timeout")` and returns an anonymous profile immediately.
+   - Risk: driver wording changes can skip fallback or degrade the wrong failure; retry budget and business ownership are not reviewable.
+   - Expected decision-table row: timeout / pool exhaustion → `ProfileTemporaryUnavailable` → bounded retry, then caller-owned degrade only if product accepts it → `degraded=true` or stable temporary-unavailable code → retry attempts in logs/traces.
+   - Suggested tests: assert timeout and pool exhaustion classify as retryable, unknown driver messages escalate, and fallback ownership is covered by a test.
+```
+
+Fixture expectations:
+
+- Output starts with `## Error Boundary PR Comments`, not the full review table.
+- It contains 1–3 comments and each comment has concrete relative path evidence.
+- It includes at least one P0 public-leakage comment and one P1 classification/recovery comment when both failures are present.
+- It does not invent line numbers, hidden implementation details, or logs/traces that are not visible in the diff evidence.
+- It still names the expected decision-table row inside each comment so the short mode remains anchored to the same error-boundary contract.
+
 ### Suggested Tests
 - [ ] Classification test: row-not-found maps to `ProfileMissing`, timeout maps to `ProfileTemporaryUnavailable`, syntax error maps to `ProfileInternalFailure`.
 - [ ] Retry/degrade test: temporary database failure retries with bounded backoff, then handler-owned fallback is explicit.
