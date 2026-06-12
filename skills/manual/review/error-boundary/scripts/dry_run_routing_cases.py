@@ -8,6 +8,7 @@ rules. Run from the skill directory:
     python3 scripts/dry_run_routing_cases.py
     python3 scripts/dry_run_routing_cases.py --report
     python3 scripts/dry_run_routing_cases.py --json
+    python3 scripts/dry_run_routing_cases.py --json --output /tmp/routing-result.json
 """
 
 from __future__ import annotations
@@ -97,6 +98,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="print machine-readable routing results for CI or agent handoff",
     )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="write JSON routing results to this path; implies --json",
+    )
     return parser.parse_args()
 
 
@@ -122,6 +128,11 @@ def format_case_result(case: dict, actual: str) -> dict:
     }
 
 
+def write_json_output(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
 def main() -> int:
     args = parse_args()
     cases = json.loads(FIXTURE.read_text(encoding="utf-8"))
@@ -139,14 +150,18 @@ def main() -> int:
         if actual != expected:
             failures.append(f"{case_id}: expected {expected}, got {actual}")
 
-    if args.json:
+    if args.json or args.output:
         payload = {
             "skill": "ng-review-error-boundary",
             "case_count": len(cases),
             "failure_count": len(failures),
             "results": results,
         }
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        if args.output:
+            write_json_output(args.output, payload)
+            print(f"wrote routing results to {args.output}")
+        else:
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 1 if failures else 0
 
     if args.report:

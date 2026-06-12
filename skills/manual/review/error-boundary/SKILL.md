@@ -70,12 +70,14 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
    - Use `scripts/dry_run_routing_cases.py` for a no-model sanity check that the fixture labels still match the documented routing rule.
    - Add `--report` when you need a readable per-case PASS/FAIL handoff for trigger tuning.
    - Add `--json` when CI or another agent needs machine-readable `expected_route` / `actual_route` / `passed` results.
+   - Add `--json --output <path>` when the routing result should be saved as an artifact instead of pasted into the conversation.
 
 10. **Run the lightweight regression check after editing this skill**
    - From this skill directory, run `python3 scripts/validate_error_boundary_skill.py`.
    - Also run `python3 scripts/dry_run_routing_cases.py` after changing trigger wording or routing fixtures.
    - Run `python3 scripts/dry_run_routing_cases.py --report` when a route drifts, so the next editor can see which prompt label failed without opening the fixture first.
-   - Run `python3 scripts/dry_run_routing_cases.py --json` when you need to persist the routing result as an artifact for automation or cross-agent handoff.
+   - Run `python3 scripts/dry_run_routing_cases.py --json` when you need a machine-readable routing result for automation or cross-agent handoff.
+   - Run `python3 scripts/dry_run_routing_cases.py --json --output <path>` when CI or another agent needs a saved artifact.
    - The validation script checks required references, trigger keywords, trigger-example coverage, near-miss eval markers, scriptable routing cases, routing fixture shape, dry-run script presence, sample-output markers, language probe sections, version metadata, and accidental absolute user paths.
 
 ## Output Template
