@@ -166,6 +166,32 @@ Fixture expectations:
 - It does not invent line numbers, hidden implementation details, or logs/traces that are not visible in the diff evidence.
 - It still names the expected decision-table row inside each comment so the short mode remains anchored to the same error-boundary contract.
 
+### PR-comments-only insufficient-evidence fixture
+
+Use this anti-fixture when the user asks for PR comments but provides no concrete diff, relative path, function name, or error-flow evidence. Short mode should refuse to invent review comments and should either ask for the missing target or fall back to the full review workflow when enough design context is available.
+
+```text
+Input:
+User request: "Only give me PR comments about our error handling."
+Evidence provided: no diff, no relative path, no function name, no stack trace, no public response contract, no retry/degrade policy.
+
+Expected short-mode output:
+I cannot produce paste-ready `[error-boundary][P0/P1/P2]` PR comments yet because there is no concrete relative path, diff hunk, function, or error-flow evidence to cite. Please provide one of:
+
+- a diff hunk or relative path such as `services/profile/http.ts` plus the relevant catch/return code;
+- the public response contract and the adapter/service code that maps dependency errors;
+- a failing test, log excerpt, or trace span that shows the boundary where raw dependency errors cross outward.
+
+Once the target is concrete, I can output `## Error Boundary PR Comments` with 1–3 focused comments. Until then, I should not invent line numbers, hidden logs, handler names, or implementation details.
+```
+
+Anti-fixture expectations:
+
+- It does not output fake `[error-boundary][P0]` comments without evidence.
+- It names the missing evidence required for short mode: relative path, diff hunk, function, or error-flow evidence.
+- It may offer to run the full error-boundary review only if enough design context is available.
+- It preserves the no-hallucination rule: do not invent line numbers, logs, traces, handler names, or hidden implementation details.
+
 ### Suggested Tests
 - [ ] Classification test: row-not-found maps to `ProfileMissing`, timeout maps to `ProfileTemporaryUnavailable`, syntax error maps to `ProfileInternalFailure`.
 - [ ] Retry/degrade test: temporary database failure retries with bounded backoff, then handler-owned fallback is explicit.

@@ -69,13 +69,17 @@ REQUIRED_SAMPLE_MARKERS = [
     "[error-boundary][P2]",
     "PR-comments-only mode",
     "PR-comments-only mini fixture",
+    "PR-comments-only insufficient-evidence fixture",
     "## Error Boundary PR Comments",
     "1–3 focused comments",
     "omit the full decision table",
     "Only give me PR comments for this diff",
+    "Only give me PR comments about our error handling",
     "services/profile/http.ts",
     "concrete relative path evidence",
+    "no concrete relative path, diff hunk, function, or error-flow evidence",
     "does not invent line numbers",
+    "do not invent line numbers, logs, traces, handler names, or hidden implementation details",
     "hidden implementation details",
     "timeout recovery is classified by string parsing",
     "root cause chain",
@@ -190,7 +194,7 @@ def main() -> int:
         require(marker in skill, f"SKILL.md missing marker: {marker}", failures)
 
     yaml = files["skill.yaml"]
-    require("version: 1.16.0" in yaml, "skill.yaml version is not 1.16.0", failures)
+    require("version: 1.17.0" in yaml, "skill.yaml version is not 1.17.0", failures)
     for keyword in REQUIRED_TRIGGER_KEYWORDS:
         require(keyword in yaml, f"skill.yaml missing trigger keyword: {keyword}", failures)
 
@@ -307,7 +311,7 @@ def main() -> int:
     print(
         "validated ng-review-error-boundary skill: files, triggers, "
         "trigger examples, near-miss eval, scriptable routing cases, "
-        "routing fixture, dry-run report/json/output, references, and sample markers"
+        "routing fixture, dry-run report/json/output, references, and sample markers including insufficient-evidence guard"
     )
     return 0
 
