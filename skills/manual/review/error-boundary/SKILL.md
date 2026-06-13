@@ -76,6 +76,7 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
    - Add `--json` when CI or another agent needs machine-readable `expected_route` / `actual_route` / `passed` results.
    - Add `--json --output <path>` when the routing result should be saved as an artifact instead of pasted into the conversation.
    - If the artifact is for CI or cross-agent handoff, record the output path next to the PR, issue, or notebook entry and treat non-zero `failure_count` as a routing regression.
+   - For PR/CI handoff, copy the compact `CI / agent handoff example` from `references/near-miss-eval.md` so the next reviewer gets artifact path, command, gate, route drift, and PR comment evidence in one place.
 
 10. **Run the lightweight regression check after editing this skill**
    - From this skill directory, run `python3 scripts/validate_error_boundary_skill.py`.
@@ -143,7 +144,7 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
 - Sample review output and eval rubric: `references/sample-review-output.md`
 - PR review comment format source: `books/tech-cards-handbook/chapters/error-boundary-review-checklist.md`
 - Trigger examples for recall/precision testing: `references/trigger-examples.md`
-- Near-miss routing eval and saved routing artifact guidance for syntax/concept/debugging/broad-API prompts: `references/near-miss-eval.md`
+- Near-miss routing eval, saved routing artifact guidance, and CI / agent handoff example for syntax/concept/debugging/broad-API prompts: `references/near-miss-eval.md`
 - Machine-readable routing fixture for local checks: `references/routing-cases.json`
 - No-model routing dry-run with readable and JSON outputs: `scripts/dry_run_routing_cases.py`
 - Local regression check for this skill, including trigger-example coverage: `scripts/validate_error_boundary_skill.py`

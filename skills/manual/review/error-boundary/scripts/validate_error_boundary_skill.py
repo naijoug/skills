@@ -194,7 +194,7 @@ def main() -> int:
         require(marker in skill, f"SKILL.md missing marker: {marker}", failures)
 
     yaml = files["skill.yaml"]
-    require("version: 1.17.0" in yaml, "skill.yaml version is not 1.17.0", failures)
+    require("version: 1.18.0" in yaml, "skill.yaml version is not 1.18.0", failures)
     for keyword in REQUIRED_TRIGGER_KEYWORDS:
         require(keyword in yaml, f"skill.yaml missing trigger keyword: {keyword}", failures)
 
@@ -247,6 +247,11 @@ def main() -> int:
         "scripts/dry_run_routing_cases.py",
         "## Saving a routing artifact",
         "--json --output artifacts/error-boundary-routing.json",
+        "## CI / agent handoff example",
+        "artifact_path",
+        "route_drift",
+        "pr_comment_evidence",
+        "PR comment evidence",
         "failure_count",
         "expected_route",
         "actual_route",

@@ -62,6 +62,26 @@ python3 scripts/dry_run_routing_cases.py --json --output artifacts/error-boundar
 
 The saved JSON artifact should include `skill`, `case_count`, `failure_count`, and per-case `expected_route`, `actual_route`, `passed`, `must_mention`, and `must_avoid`. Treat any non-zero `failure_count` as a routing regression until the fixture, markdown table, and trigger wording are updated together.
 
+### CI / agent handoff example
+
+Use this compact handoff when another agent, CI job, or PR reviewer needs to reproduce routing evidence without rereading this whole reference:
+
+```markdown
+Routing artifact: `artifacts/error-boundary-routing.json`
+Command: `python3 skills/manual/review/error-boundary/scripts/dry_run_routing_cases.py --json --output artifacts/error-boundary-routing.json`
+Expected gate: `failure_count == 0`; every `results[].passed` is `true`.
+If it fails: inspect the failing `id`, compare `expected_route` vs `actual_route`, then update `references/near-miss-eval.md`, `references/routing-cases.json`, and trigger wording in the same change.
+PR comment evidence: quote the relative path or diff hunk that made the review `TRIGGER`; if there is no path/diff/function/error-flow evidence, use `NARROW_FIRST` instead of inventing a paste-ready comment.
+```
+
+Minimum handoff fields:
+
+- `artifact_path`: relative path to the saved JSON artifact.
+- `command`: exact dry-run command used to produce it.
+- `gate`: `failure_count == 0` and all cases passed.
+- `route_drift`: failing case IDs plus `expected_route` / `actual_route`.
+- `pr_comment_evidence`: relative path, diff hunk, function name, or error-flow evidence used for any `[error-boundary][P0/P1/P2]` comment.
+
 ## Eval Rubric
 
 A routing/eval pass is acceptable when it can label each prompt as one of:
