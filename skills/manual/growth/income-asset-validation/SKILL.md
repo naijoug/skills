@@ -99,6 +99,54 @@ First 48-hour metric rule for content-led launches:
 - Treat “100 reads + 0 saves/comments/clicks” as a positioning problem, not as proof that the product is bad.
 - Treat “small reach + high problem-signal density” as a reason to narrow the channel or audience before writing more content.
 
+### 3.6 Package one publishable launch kit before distributing
+
+When the proof vehicle is a written asset, do not stop at “the article is done”. Create a small launch kit that makes publishing and measurement repeatable:
+
+```markdown
+## Launch Kit
+
+### Primary asset
+- File or draft:
+- Audience:
+- Observable behavior to trigger:
+
+### Channel fit
+| Channel | Why it fits | Risk | Adaptation needed |
+| --- | --- | --- | --- |
+|  |  |  |  |
+
+### Title / hook options
+1.
+2.
+3.
+
+### Summary
+One short paragraph that can be pasted into the platform excerpt.
+
+### Tags / communities
+-
+-
+-
+
+### Call to action
+- Low-friction next step:
+- Evidence captured:
+
+### 24-hour data log
+| URL/draft | Reads | Saves | Comments | Sample clicks | Replies/DMs | Paid intent | Next decision |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+|  |  |  |  |  |  |  |  |
+```
+
+Quality bar:
+
+- The CTA asks for one behavior, not three.
+- The title names a concrete pain, mistake, or scenario.
+- The summary can stand alone without internal context.
+- The measurement table is ready before publishing.
+- If no real URL is available yet, record a draft URL or `not published` instead of pretending distribution happened.
+
 ### 4. Design a 7-day validation sprint
 
 ```markdown
