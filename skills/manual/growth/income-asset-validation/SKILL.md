@@ -79,6 +79,26 @@ Choose the lightest vehicle that can create credible evidence:
 
 Rule of thumb: if a human can deliver the outcome in 2-4 hours, validate manually before building a product.
 
+### 3.5 Separate publishable assets from validation evidence
+
+Before declaring an asset “ready”, name the next observable behavior it should cause. A polished landing page, article, sample issue, or template is only a proof vehicle until it creates evidence.
+
+Use this evidence ladder:
+
+| Evidence level | Observable behavior | Interpretation | Next action |
+| --- | --- | --- | --- |
+| L0 Attention | impressions, reads, likes, bookmarks | The topic can attract a surface audience | Improve hook and channel fit; do not build more product yet |
+| L1 Problem signal | comments, replies, concrete pain stories, “I had this in my interview/project” | The audience recognizes the problem | Collect exact wording and turn it into offer copy |
+| L2 Intent | email/form submission, sample request, DM asking for details, waitlist join | The audience wants follow-up | Ask one qualifying question and offer the smallest paid step |
+| L3 Payment signal | pre-order, deposit, paid pilot, booked audit call | The offer may support revenue | Deliver manually; document repeatable workflow before automation |
+
+First 48-hour metric rule for content-led launches:
+
+- Choose 1 primary post and 1 backup post, not 5 channels at once.
+- Record source, title/hook, publish URL or draft URL, impressions/reads, saves, comments, sample clicks, replies/DMs, and paid intent.
+- Treat “100 reads + 0 saves/comments/clicks” as a positioning problem, not as proof that the product is bad.
+- Treat “small reach + high problem-signal density” as a reason to narrow the channel or audience before writing more content.
+
 ### 4. Design a 7-day validation sprint
 
 ```markdown
@@ -175,7 +195,12 @@ For ...
 ### Feedback Evidence Log
 | Source | Observable fact | Inference | Confidence | Current grade | Next validation action |
 | --- | --- | --- | --- | --- | --- |
-|  |  |  |  | record / observe / validate / revise |  |
+|  |  |  |  | L0 / L1 / L2 / L3 |  |
+
+### First 48-Hour Metrics
+| Post | Channel | Hook | URL/draft | Reads | Saves | Comments | Sample clicks | Replies/DMs | Paid intent | Decision |
+| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+|  |  |  |  |  |  |  |  |  |  |  |
 
 ### Kill / Continue Criteria
 - Continue if:
