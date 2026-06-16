@@ -36,9 +36,10 @@ The intended stance is: an AI-era programmer steadily building assets — code, 
 
 1. Get current date/time from the host.
 2. Check git status for the workspace root and relevant sub-repos.
-3. Browse the recent notebook entry and likely target directories.
-4. If the run is unattended or scheduler-delivered, apply `references/unattended-delivery.md` before planning so missing context is resolved by lookup, safe assumptions, or a safer slice rather than questions.
-5. Gather selection inputs before choosing the task:
+3. Apply `references/startup-status-snapshot.md` to preserve a pre-edit boundary between startup-dirty paths and this run's work.
+4. Browse the recent notebook entry and likely target directories.
+5. If the run is unattended or scheduler-delivered, apply `references/unattended-delivery.md` before planning so missing context is resolved by lookup, safe assumptions, or a safer slice rather than questions.
+6. Gather selection inputs before choosing the task:
    - If candidate selection is unclear, compare options against `references/selection-examples.md`.
    - If several repos are already dirty, apply `references/dirty-worktree-selection.md` before choosing a target.
    - If the previous notebook entry names a next step, apply `references/continuation-slice-choice.md` to decide whether to continue, shrink once, or switch assets.
@@ -46,21 +47,21 @@ The intended stance is: an AI-era programmer steadily building assets — code, 
    - If the actual schedule is not hourly, apply `references/cadence-sizing.md` before selecting scope; quarter-hour runs should bias toward tiny continuation slices and focused verification.
    - If web/current-trend scanning is considered, apply `references/trend-scan-to-action.md` first so the scan produces a concrete artifact or is skipped.
    - If several recent runs have expanded the same validation or outreach chain, apply `references/validation-chain-stop-rules.md` before adding another template; stop expanding once the chain is executable and blocked on real evidence.
-6. Form planning that answers:
+7. Form planning that answers:
    - What is the previous/current state?
    - What candidate work exists?
    - What is selected this run?
    - Why select it?
    - What should the next run do?
-7. Execute one selected small task if there is a safe candidate.
-8. If any status check, build, search, or validation output fails or contradicts the plan, apply `references/failure-output-changes-plan.md` before continuing so the failure changes scope, order, target, or handoff.
-9. Verify with the strongest cheap check available; use `references/verification-command-matrix.md` to choose the narrowest reliable command set for docs, skills, tests, product code, config, data, or dependency changes, and to name a focused fallback when broad checks are unsafe or polluted by unrelated state.
-10. Before committing, run the scope, relative-path, metadata, commit-boundary, report-order, and handoff checks in `references/pre-commit-checks.md`; use `references/handoff-quality-checklist.md` to make the next slice specific enough to execute.
-11. Before staging or reporting, apply `references/final-report-evidence-chain.md` so each claim has a change, evidence, and commit/readback link.
-12. If any dirty repo or handoff path was intentionally not touched, apply `references/excluded-boundary-reporting.md` so the notebook and final response name the boundary without claiming it as this run's work.
-13. Commit target repo changes first, then append the notebook entry with the real target hash using `references/notebook-template.md`.
-14. Commit `summaries/...` changes separately; use `references/commit-report-patterns.md` for safe staging, commit message, and hash-reporting patterns.
-15. Final response: summarize selection, actual progress, notebook path, read-back commit hash(es), and next handoff point.
+8. Execute one selected small task if there is a safe candidate.
+9. If any status check, build, search, or validation output fails or contradicts the plan, apply `references/failure-output-changes-plan.md` before continuing so the failure changes scope, order, target, or handoff.
+10. Verify with the strongest cheap check available; use `references/verification-command-matrix.md` to choose the narrowest reliable command set for docs, skills, tests, product code, config, data, or dependency changes, and to name a focused fallback when broad checks are unsafe or polluted by unrelated state.
+11. Before committing, run the scope, relative-path, metadata, commit-boundary, report-order, and handoff checks in `references/pre-commit-checks.md`; use `references/handoff-quality-checklist.md` to make the next slice specific enough to execute.
+12. Before staging or reporting, apply `references/final-report-evidence-chain.md` so each claim has a change, evidence, and commit/readback link.
+13. If any dirty repo or handoff path was intentionally not touched, apply `references/excluded-boundary-reporting.md` so the notebook and final response name the boundary without claiming it as this run's work.
+14. Commit target repo changes first, then append the notebook entry with the real target hash using `references/notebook-template.md`.
+15. Commit `summaries/...` changes separately; use `references/commit-report-patterns.md` for safe staging, commit message, and hash-reporting patterns.
+16. Final response: summarize selection, actual progress, notebook path, read-back commit hash(es), and next handoff point.
 
 ## Selection Heuristics
 
@@ -82,20 +83,21 @@ Avoid work that is:
 
 Use the references in the order that matches the run's current decision point:
 
-1. **Choosing the work:** start with `references/selection-examples.md`; when multiple neighboring repos are already dirty, apply `references/dirty-worktree-selection.md` before editing.
-2. **Running unattended:** if the scheduler says no user is present or delivery is automatic, use `references/unattended-delivery.md` to avoid questions, unsafe assumptions, and separate delivery tools.
-3. **Handling handoffs:** when the previous notebook suggests a continuation, use `references/continuation-slice-choice.md` to continue, shrink once, or explicitly switch assets instead of blindly following stale or overlarge handoffs.
-4. **Triage uncommitted continuations:** if the continuation repo already has dirty files on the suggested handoff path, use `references/uncommitted-continuation-triage.md` before editing or staging, and switch to a clean adjacent slice when authorship is unclear.
-5. **Sizing to cadence:** when the schedule is quarter-hourly, hourly, or daily rather than the default expectation, use `references/cadence-sizing.md` to choose a slice small enough to finish and verify.
-6. **Using current information:** if a web/current-trend scan is tempting, use `references/trend-scan-to-action.md` to require a question, a bounded search, and one concrete artifact.
-7. **Stopping validation-chain sprawl:** when several recent runs expanded one outreach or validation chain, use `references/validation-chain-stop-rules.md` to decide whether the next useful step is real evidence or a different asset.
-8. **Incorporating failures:** when a command or observation fails or contradicts the plan, use `references/failure-output-changes-plan.md` so the failure changes scope, order, target, or handoff instead of being ignored.
-9. **Scoping verification:** after selecting the slice, use `references/verification-command-matrix.md` to pick the cheapest reliable focused, structural, and broad checks.
-10. **Writing the notebook:** use `references/notebook-template.md` for the required sections and `references/handoff-quality-checklist.md` to make the next action specific.
-11. **Checking final evidence:** use `references/final-report-evidence-chain.md` to ensure each notebook/final-response claim has a change, evidence, and commit/readback link.
-12. **Reporting excluded boundaries:** use `references/excluded-boundary-reporting.md` when startup-dirty repos or unclear handoff paths were intentionally left untouched, so the notebook/final response names the boundary without claiming it.
-13. **Preparing the commit:** use `references/pre-commit-checks.md` for scope, path, metadata, diff, and handoff checks before staging.
-14. **Reporting the result:** use `references/commit-report-patterns.md` to keep target repo commits separate from `summaries` and to report commit hashes clearly.
+1. **Capturing startup state:** begin with `references/startup-status-snapshot.md` so startup-dirty paths, clean candidates, and the previous handoff are distinguishable before any edit.
+2. **Choosing the work:** continue with `references/selection-examples.md`; when multiple neighboring repos are already dirty, apply `references/dirty-worktree-selection.md` before editing.
+3. **Running unattended:** if the scheduler says no user is present or delivery is automatic, use `references/unattended-delivery.md` to avoid questions, unsafe assumptions, and separate delivery tools.
+4. **Handling handoffs:** when the previous notebook suggests a continuation, use `references/continuation-slice-choice.md` to continue, shrink once, or explicitly switch assets instead of blindly following stale or overlarge handoffs.
+5. **Triage uncommitted continuations:** if the continuation repo already has dirty files on the suggested handoff path, use `references/uncommitted-continuation-triage.md` before editing or staging, and switch to a clean adjacent slice when authorship is unclear.
+6. **Sizing to cadence:** when the schedule is quarter-hourly, hourly, or daily rather than the default expectation, use `references/cadence-sizing.md` to choose a slice small enough to finish and verify.
+7. **Using current information:** if a web/current-trend scan is tempting, use `references/trend-scan-to-action.md` to require a question, a bounded search, and one concrete artifact.
+8. **Stopping validation-chain sprawl:** when several recent runs expanded one outreach or validation chain, use `references/validation-chain-stop-rules.md` to decide whether the next useful step is real evidence or a different asset.
+9. **Incorporating failures:** when a command or observation fails or contradicts the plan, use `references/failure-output-changes-plan.md` so the failure changes scope, order, target, or handoff instead of being ignored.
+10. **Scoping verification:** after selecting the slice, use `references/verification-command-matrix.md` to pick the cheapest reliable focused, structural, and broad checks.
+11. **Writing the notebook:** use `references/notebook-template.md` for the required sections and `references/handoff-quality-checklist.md` to make the next action specific.
+12. **Checking final evidence:** use `references/final-report-evidence-chain.md` to ensure each notebook/final-response claim has a change, evidence, and commit/readback link.
+13. **Reporting excluded boundaries:** use `references/excluded-boundary-reporting.md` when startup-dirty repos or unclear handoff paths were intentionally left untouched, so the notebook/final response names the boundary without claiming it.
+14. **Preparing the commit:** use `references/pre-commit-checks.md` for scope, path, metadata, diff, and handoff checks before staging.
+15. **Reporting the result:** use `references/commit-report-patterns.md` to keep target repo commits separate from `summaries` and to report commit hashes clearly.
 
 ## Final Response Shape
 
