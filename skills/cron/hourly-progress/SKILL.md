@@ -42,6 +42,7 @@ The intended stance is: an AI-era programmer steadily building assets — code, 
    - If candidate selection is unclear, compare options against `references/selection-examples.md`.
    - If several repos are already dirty, apply `references/dirty-worktree-selection.md` before choosing a target.
    - If the previous notebook entry names a next step, apply `references/continuation-slice-choice.md` to decide whether to continue, shrink once, or switch assets.
+   - If that continuation repo already has uncommitted files on the handoff path, apply `references/uncommitted-continuation-triage.md` before editing or staging anything.
    - If the actual schedule is not hourly, apply `references/cadence-sizing.md` before selecting scope; quarter-hour runs should bias toward tiny continuation slices and focused verification.
    - If web/current-trend scanning is considered, apply `references/trend-scan-to-action.md` first so the scan produces a concrete artifact or is skipped.
    - If several recent runs have expanded the same validation or outreach chain, apply `references/validation-chain-stop-rules.md` before adding another template; stop expanding once the chain is executable and blocked on real evidence.
@@ -83,15 +84,16 @@ Use the references in the order that matches the run's current decision point:
 1. **Choosing the work:** start with `references/selection-examples.md`; when multiple neighboring repos are already dirty, apply `references/dirty-worktree-selection.md` before editing.
 2. **Running unattended:** if the scheduler says no user is present or delivery is automatic, use `references/unattended-delivery.md` to avoid questions, unsafe assumptions, and separate delivery tools.
 3. **Handling handoffs:** when the previous notebook suggests a continuation, use `references/continuation-slice-choice.md` to continue, shrink once, or explicitly switch assets instead of blindly following stale or overlarge handoffs.
-4. **Sizing to cadence:** when the schedule is quarter-hourly, hourly, or daily rather than the default expectation, use `references/cadence-sizing.md` to choose a slice small enough to finish and verify.
-5. **Using current information:** if a web/current-trend scan is tempting, use `references/trend-scan-to-action.md` to require a question, a bounded search, and one concrete artifact.
-6. **Stopping validation-chain sprawl:** when several recent runs expanded one outreach or validation chain, use `references/validation-chain-stop-rules.md` to decide whether the next useful step is real evidence or a different asset.
-7. **Incorporating failures:** when a command or observation fails or contradicts the plan, use `references/failure-output-changes-plan.md` so the failure changes scope, order, target, or handoff instead of being ignored.
-8. **Scoping verification:** after selecting the slice, use `references/verification-command-matrix.md` to pick the cheapest reliable focused, structural, and broad checks.
-9. **Writing the notebook:** use `references/notebook-template.md` for the required sections and `references/handoff-quality-checklist.md` to make the next action specific.
-10. **Checking final evidence:** use `references/final-report-evidence-chain.md` to ensure each notebook/final-response claim has a change, evidence, and commit/readback link.
-11. **Preparing the commit:** use `references/pre-commit-checks.md` for scope, path, metadata, diff, and handoff checks before staging.
-12. **Reporting the result:** use `references/commit-report-patterns.md` to keep target repo commits separate from `summaries` and to report commit hashes clearly.
+4. **Triage uncommitted continuations:** if the continuation repo already has dirty files on the suggested handoff path, use `references/uncommitted-continuation-triage.md` before editing or staging, and switch to a clean adjacent slice when authorship is unclear.
+5. **Sizing to cadence:** when the schedule is quarter-hourly, hourly, or daily rather than the default expectation, use `references/cadence-sizing.md` to choose a slice small enough to finish and verify.
+6. **Using current information:** if a web/current-trend scan is tempting, use `references/trend-scan-to-action.md` to require a question, a bounded search, and one concrete artifact.
+7. **Stopping validation-chain sprawl:** when several recent runs expanded one outreach or validation chain, use `references/validation-chain-stop-rules.md` to decide whether the next useful step is real evidence or a different asset.
+8. **Incorporating failures:** when a command or observation fails or contradicts the plan, use `references/failure-output-changes-plan.md` so the failure changes scope, order, target, or handoff instead of being ignored.
+9. **Scoping verification:** after selecting the slice, use `references/verification-command-matrix.md` to pick the cheapest reliable focused, structural, and broad checks.
+10. **Writing the notebook:** use `references/notebook-template.md` for the required sections and `references/handoff-quality-checklist.md` to make the next action specific.
+11. **Checking final evidence:** use `references/final-report-evidence-chain.md` to ensure each notebook/final-response claim has a change, evidence, and commit/readback link.
+12. **Preparing the commit:** use `references/pre-commit-checks.md` for scope, path, metadata, diff, and handoff checks before staging.
+13. **Reporting the result:** use `references/commit-report-patterns.md` to keep target repo commits separate from `summaries` and to report commit hashes clearly.
 
 ## Final Response Shape
 
