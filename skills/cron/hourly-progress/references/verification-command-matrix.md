@@ -37,6 +37,20 @@ For an isolated Markdown note, skill reference, or notebook entry, use this smal
 
 Use workspace-relative paths in notebook prose, but remember that `git -C <repo>` commands usually need paths relative to that repo root. For example, the workspace path `skills/skills/cron/hourly-progress/SKILL.md` becomes `skills/cron/hourly-progress/SKILL.md` when the command runs with `git -C skills`.
 
+### Markdown bundle by destination
+
+Use the same skeleton above, but tune the focused and structural checks to the destination so the notebook does not overclaim.
+
+| Destination | Focused readback | Structural command | Extra audit | Safe notebook claim |
+| --- | --- | --- | --- | --- |
+| `books/...` chapter or sample | Reread the edited card/sample and the nearest chapter README when the change affects navigation | `git -C books diff --check -- <book-relative-path>` | Confirm the content belongs under `chapters/`, `.drafts/`, or `resources/`; search for absolute paths | The manuscript slice is internally consistent; no site-wide rendering claim unless a build ran |
+| `docs/...` tutorial/article | Reread the edited page and its category `README.md` or sidebar entry if the page should be discoverable | `git -C docs diff --check -- <docs-relative-path>` | If frontmatter or navigation changed, inspect title/order/icon and run a docs build only when safe | The changed page is Markdown/navigation sane for the touched paths; site-wide build remains unproven if skipped |
+| `skills/skills/.../SKILL.md` | Reread trigger/flow/final-response sections that changed | `git -C skills diff --check -- skills/.../SKILL.md` | Check YAML frontmatter fields and links to every required reference | The skill entrypoint is discoverable and internally linked; runtime loading is not claimed unless tested |
+| `skills/skills/.../references/*.md` | Reread the new or changed reference and the entrypoint/reference map that points to it | `git -C skills diff --check -- skills/.../references/<file>.md` | Confirm no duplicate authority conflicts with existing references; verify relative paths only | The reference is formatted, linked, and scoped; broader skill behavior is not claimed |
+| `summaries/hermes/YYYY-MM-DD.md` only | Reread the newest `## HH:mm` block and ensure planning, execution, verification, and handoff fields are present | `git -C summaries diff --check -- hermes/YYYY-MM-DD.md` | Confirm all local paths are relative and non-Hermes files such as other agents' summaries are not staged | The notebook records the run accurately; it is not a substitute for target repo verification |
+
+If a Markdown slice also changes generated config, code examples, or build inputs, leave this table and use the stricter row in the main matrix.
+
 ## Focused fallback checks
 
 Use a focused fallback when the ideal broad check is unsafe, too slow for the cadence, or polluted by unrelated dirty state. A fallback is acceptable only when it still tests the most likely failure introduced by this run.
