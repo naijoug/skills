@@ -89,17 +89,20 @@ Commit the work repo and `summaries/` separately. This keeps the durable noteboo
 
 ## 5. Report-order guard
 
-Do not write final commit hashes, verification claims, or “changed files” lists before the evidence exists. Use this order:
+Do not write final commit hashes, verification claims, or “changed files” lists before the evidence exists. Keep `references/final-report-evidence-chain.md` open while applying this guard, because the final response skeleton should be filled from committed evidence, not from intended work.
+
+Use this order:
 
 1. Run the selected verification checks and save the exact command names/results for the notebook.
 2. Inspect `git diff --check` and the focused diff/path status for only this run's files.
 3. Stage explicit paths; inspect `git diff --cached` for the repo being committed.
-4. Commit the target repo; capture the short hash with `git rev-parse --short HEAD`.
-5. Append/update the notebook with the real verification results and target repo hash.
-6. Stage and commit the `summaries/` notebook; capture its short hash.
-7. Write the final response from the committed state, not from a planned state.
+4. Commit the target repo; capture the short hash and subject with `git rev-parse --short HEAD` plus `git log -1 --pretty=%s`.
+5. Append/update the notebook with the real verification results, target repo hash/subject, and any intentionally excluded dirty boundaries.
+6. Stage and commit the `summaries/` notebook; capture its short hash and subject with the same readback commands.
+7. Re-check `git status --short` for the target repo and `summaries/` so the final response can distinguish clean repos, intentionally excluded startup-dirty paths, and any unresolved files from this run.
+8. Write the final response from the committed state, completing these fields in order: verification evidence -> target commit readback -> notebook commit readback -> excluded boundary -> next handoff.
 
-If a later check changes the file set or invalidates a claim, revise the notebook before committing `summaries/`. Never leave a notebook entry saying “submitted” or naming a hash that was only expected.
+If a later check changes the file set or invalidates a claim, revise the notebook before committing `summaries/`. Never leave a notebook entry saying “submitted” or naming a hash that was only expected. If there is no target repo commit, state the reason in both the notebook and final response instead of inventing a project hash.
 
 ## 6. Handoff check
 
