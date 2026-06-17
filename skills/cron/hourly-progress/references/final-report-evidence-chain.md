@@ -37,6 +37,24 @@ Do not copy commit hashes into the notebook or final response from memory, from 
 
 If the target repo has no commit in this run, write `no target repo commit` and name the reason instead of leaving the commit link implicit. If the notebook itself is committed after the target repo, read back the `summaries` commit hash before producing the final response.
 
+## Final response skeleton
+
+Use this skeleton only after the target repo and `summaries` repo have been committed or explicitly marked as not committed. Keep the wording short, but keep every evidence link visible:
+
+```markdown
+- 本轮选择：<repo/path + 小任务>；原因：<为什么安全/有价值>。
+- 实际推进：<1–3 条具体变更>。
+- Notebook：`summaries/hermes/YYYY-MM-DD.md`。
+- Commits：
+  - <target repo>: `<short_hash>` `<git log -1 --pretty=%s>`，或 `无项目提交（<原因>）`。
+  - summaries: `<short_hash>` `<git log -1 --pretty=%s>`。
+- 验证：<命令 + 结果摘要>。
+- 未接管边界：<启动前 dirty path / 归属未知 path / 无>。
+- 下一段接力：<下一轮打开的相对路径 + 第一条动作>。
+```
+
+Before sending, compare the skeleton against the latest `git status --short` for each mentioned repo. If a repo is still dirty only because of startup-dirty paths, report that boundary; if it is dirty because this run left files unstaged, either finish the commit or change the report to `not committed` with the exact reason.
+
 ## Notebook pattern
 
 In `### 执行记录`, make the evidence chain auditable:
