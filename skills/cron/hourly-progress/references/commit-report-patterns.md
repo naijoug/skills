@@ -1,6 +1,18 @@
 # Commit and Report Patterns for Hourly Progress Runs
 
-Use this reference after verification, after applying `final-report-evidence-chain.md`, and in the same sequence required by `pre-commit-checks.md`'s report-order guard. The goal is to preserve clear ownership in a multi-repo workspace: project work is committed in its own repo, the Hermes notebook is committed in `summaries`, and the final response gives the next run enough context without re-reading every diff.
+Use this reference after verification, after applying `references/final-report-evidence-chain.md`, and in the same sequence required by `references/pre-commit-checks.md`'s report-order guard. The goal is to preserve clear ownership in a multi-repo workspace: project work is committed in its own repo, the Hermes notebook is committed in `summaries`, and the final response gives the next run enough context without re-reading every diff.
+
+## Consistency with the final-response chain
+
+Keep this page as the **mechanics** reference, not a second competing final-report spec:
+
+| Reference | Role | Do not duplicate here |
+| --- | --- | --- |
+| `references/pre-commit-checks.md` | ordering guard before staging, committing, and reporting | full scope/relative-path checklist |
+| `references/final-report-evidence-chain.md` | send-ready evidence skeleton and wording rules | the authoritative final response skeleton |
+| `references/commit-report-patterns.md` | safe staging commands, hash/subject readback commands, and compact report states | new required report fields without updating the skeleton first |
+
+If a future run changes a required final-response field, update `references/final-report-evidence-chain.md` first, then mirror only the necessary command or compact-format detail here.
 
 ## Commit order
 
