@@ -57,11 +57,11 @@ The intended stance is: an AI-era programmer steadily building assets — code, 
 9. If any status check, build, search, or validation output fails or contradicts the plan, apply `references/failure-output-changes-plan.md` before continuing so the failure changes scope, order, target, or handoff.
 10. Verify with the strongest cheap check available; use `references/verification-command-matrix.md` to choose the narrowest reliable command set for docs, skills, tests, product code, config, data, or dependency changes, and to name a focused fallback when broad checks are unsafe or polluted by unrelated state.
 11. Before committing, run the scope, relative-path, metadata, commit-boundary, report-order, and handoff checks in `references/pre-commit-checks.md`; use `references/handoff-quality-checklist.md` to make the next slice specific enough to execute.
-12. Before staging or reporting, apply `references/final-report-evidence-chain.md` so each claim has a change, evidence, and commit/readback link.
+12. Before staging or reporting, apply `references/final-report-evidence-chain.md` so each claim has a change, evidence, and commit/readback link; keep its final response skeleton open as the checklist for the delivered response.
 13. If any dirty repo or handoff path was intentionally not touched, apply `references/excluded-boundary-reporting.md` so the notebook and final response name the boundary without claiming it as this run's work.
 14. Commit target repo changes first, then append the notebook entry with the real target hash using `references/notebook-template.md`.
 15. Commit `summaries/...` changes separately; use `references/commit-report-patterns.md` for safe staging, commit message, and hash-reporting patterns.
-16. Final response: summarize selection, actual progress, notebook path, read-back commit hash(es), and next handoff point.
+16. Final response: fill the skeleton from `references/final-report-evidence-chain.md`, using the read-back hashes and subjects collected with `references/commit-report-patterns.md`. Include verification evidence and intentionally excluded dirty boundaries, not just the completed change.
 
 ## Selection Heuristics
 
@@ -94,17 +94,19 @@ Use the references in the order that matches the run's current decision point:
 9. **Incorporating failures:** when a command or observation fails or contradicts the plan, use `references/failure-output-changes-plan.md` so the failure changes scope, order, target, or handoff instead of being ignored.
 10. **Scoping verification:** after selecting the slice, use `references/verification-command-matrix.md` to pick the cheapest reliable focused, structural, and broad checks.
 11. **Writing the notebook:** use `references/notebook-template.md` for the required sections and `references/handoff-quality-checklist.md` to make the next action specific.
-12. **Checking final evidence:** use `references/final-report-evidence-chain.md` to ensure each notebook/final-response claim has a change, evidence, and commit/readback link.
+12. **Checking final evidence:** use `references/final-report-evidence-chain.md` to ensure each notebook/final-response claim has a change, evidence, and commit/readback link, and keep its final response skeleton as the send-time checklist.
 13. **Reporting excluded boundaries:** use `references/excluded-boundary-reporting.md` when startup-dirty repos or unclear handoff paths were intentionally left untouched, so the notebook/final response names the boundary without claiming it.
 14. **Preparing the commit:** use `references/pre-commit-checks.md` for scope, path, metadata, diff, and handoff checks before staging.
-15. **Reporting the result:** use `references/commit-report-patterns.md` to keep target repo commits separate from `summaries` and to report commit hashes clearly.
+15. **Reporting the result:** use `references/commit-report-patterns.md` to keep target repo commits separate from `summaries`, read back hashes and subjects, then complete the `final-report-evidence-chain.md` skeleton before sending.
 
 ## Final Response Shape
 
-Keep the final response short. Include:
+Keep the final response short, but do not shorten away evidence. Use the `references/final-report-evidence-chain.md` skeleton and the hash-readback commands in `references/commit-report-patterns.md`. Include:
 
-- 本轮选择
-- 实际推进
+- 本轮选择（repo/path + 小任务）
+- 实际推进（具体变更，不写泛泛“已优化”）
 - Notebook 路径
-- Commit hash（如有，分别列出 repo）
-- 下一段接力点
+- Commits（分别列出 target repo 与 `summaries` 的 read-back hash 和 subject；无项目提交时说明原因）
+- 验证（命令 + 结果摘要）
+- 未接管边界（启动前 dirty path 或“无”）
+- 下一段接力点（相对路径 + 第一条动作）
