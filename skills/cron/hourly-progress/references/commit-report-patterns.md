@@ -77,6 +77,8 @@ Use one of these states for every relevant repo:
 
 ## Final response template
 
+For the full evidence-preserving skeleton, prefer `final-report-evidence-chain.md`'s `## Final response skeleton`. This shorter template is acceptable only when verification evidence and unowned-boundary wording are already recorded in the notebook and will not be lost from the delivered response.
+
 ```text
 本轮选择：<one sentence>
 实际推进：<one sentence with changed asset/code/content>
@@ -84,6 +86,8 @@ Notebook：summaries/hermes/YYYY-MM-DD.md
 Commits：
 - <repo>: <hash> <commit subject>
 - summaries: <hash> <commit subject>
+验证：<command/result summary, not just "checked">
+未接管边界：<startup-dirty paths or 无>
 下一段接力：<specific next slice>
 ```
 
