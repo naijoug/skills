@@ -97,7 +97,7 @@ Use the references in the order that matches the run's current decision point:
 12. **Checking final evidence:** use `references/final-report-evidence-chain.md` to ensure each notebook/final-response claim has a change, evidence, and commit/readback link, and keep its final response skeleton as the send-time checklist.
 13. **Reporting excluded boundaries:** use `references/excluded-boundary-reporting.md` when startup-dirty repos or unclear handoff paths were intentionally left untouched, so the notebook/final response names the boundary without claiming it.
 14. **Preparing the commit:** use `references/pre-commit-checks.md` for scope, path, metadata, diff, and handoff checks before staging.
-15. **Reporting the result:** use `references/commit-report-patterns.md` to keep target repo commits separate from `summaries`, read back hashes and subjects, then complete the `final-report-evidence-chain.md` skeleton before sending.
+15. **Reporting the result:** use `references/commit-report-patterns.md` to keep target repo commits separate from `summaries`, read back hashes and subjects, and check its consistency map when report-field expectations seem duplicated; then complete the `final-report-evidence-chain.md` skeleton before sending.
 
 ## Final Response Shape
 
