@@ -161,6 +161,34 @@ A dirty repo can hide other agents' work or the user's manual edits. The hourly 
 - Before commit, run `git -C <repo> diff --cached --name-only` and confirm staged paths are limited to this run.
 - Read back the notebook entry and confirm it uses workspace-relative paths and names the resume condition.
 
+## Example 7: Handoff Includes Verification Destination
+
+**Observed state**
+
+- The target repo is clean and the previous handoff names a specific reference file.
+- `references/handoff-quality-checklist.md` now requires a verification destination from `references/verification-command-matrix.md`.
+- The proposed next task is Markdown-only, so the next run should not overclaim runtime skill loading or site-wide rendering.
+
+**Decision**
+
+Write the handoff as an executable packet that includes the next path, first action, destination row, focused verification, fallback, and claim boundary.
+
+**Why**
+
+A command alone is not enough. Naming the destination row tells the next run what the verification can and cannot prove, which keeps notebook claims aligned with the actual check.
+
+**Good handoff produced by this run**
+
+> Next run: inspect `skills/skills/cron/hourly-progress/references/selection-examples.md` first; if `git -C skills status --short` is clean and no example already covers verification destinations, add one small example. Verification destination: `skills/skills/.../references/*.md` in `skills/skills/cron/hourly-progress/references/verification-command-matrix.md`; focused check: read back the new example plus `git -C skills diff --check -- skills/cron/hourly-progress/references/selection-examples.md`; claim boundary: this proves the reference is formatted, linked, and scoped, not runtime skill loading. Fallback: if the file is dirty in overlapping lines, do not edit it; switch to `books/tech-cards-handbook/chapters/ai-agent/README.md` index consistency or write a blocker-only notebook entry.
+
+**What makes it good**
+
+- **First action:** starts with one path and one status command.
+- **Verification destination:** names the exact matrix row, not just a generic command.
+- **Focused verification:** pairs readback with `git diff --check` for the touched reference.
+- **Claim boundary:** states what the Markdown/reference row proves and what it does not prove.
+- **Fallback:** avoids editing overlapping dirty lines and gives a concrete alternate path.
+
 ## Commit Boundary Checklist
 
 Before committing, answer yes to all:
