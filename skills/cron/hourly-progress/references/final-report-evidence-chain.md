@@ -37,6 +37,8 @@ Do not copy commit hashes into the notebook or final response from memory, from 
 
 If the target repo has no commit in this run, write `no target repo commit` and name the reason instead of leaving the commit link implicit. If the notebook itself is committed after the target repo, read back the `summaries` commit hash before producing the final response.
 
+Pair this read-back with `references/pre-commit-checks.md`'s Report-order guard: keep the skeleton open before committing, record target repo hash/subject and intentionally excluded dirty boundaries in the notebook, then commit `summaries`, read back its hash/subject, and only then send the final response. The send-ready order is `verification evidence -> target commit readback -> notebook commit readback -> excluded boundary -> next handoff`.
+
 ## Final response skeleton
 
 Use this skeleton only after the target repo and `summaries` repo have been committed or explicitly marked as not committed. Keep the wording short, but keep every evidence link visible:
