@@ -53,8 +53,11 @@ Minimum shape:
 1. **Target file or command:** name the first path to read or the first command to run.
 2. **Start condition:** say what status check must pass before editing, such as `git -C skills status --short` showing no unrelated changes.
 3. **Done condition:** describe the observable outcome, not just the activity.
-4. **Focused verification:** give the cheapest reliable command or readback standard.
-5. **Fallback:** say what to do if the target repo/path is already dirty in overlapping files.
+4. **Verification destination:** name the row or bundle from `skills/skills/cron/hourly-progress/references/verification-command-matrix.md` that fits the target, such as `skills/skills/.../references/*.md`, `books/...`, or `summaries/hermes/YYYY-MM-DD.md`.
+5. **Focused verification:** give the cheapest reliable command or readback standard from that destination row.
+6. **Fallback:** say what to do if the target repo/path is already dirty in overlapping files.
+
+Treat the destination as a guardrail for the next run's claim. If the next slice only edits a skill reference, the handoff should point to the skill-reference row and should not imply runtime skill loading or product behavior. If the next slice edits `books/...`, the handoff should point to the book manuscript row and should not imply site-wide rendering unless a build is planned.
 
 Examples:
 
@@ -95,7 +98,8 @@ Before committing the notebook, scan `下一段计划` and `后续接力`:
 - Does it name at least one relative path?
 - Can the next run start with one obvious command or file read?
 - Is the task small enough for one hourly beat?
-- Is there a verification command or review standard?
+- Does it name a verification destination from `skills/skills/cron/hourly-progress/references/verification-command-matrix.md`?
+- Is there a verification command or review standard that matches that destination?
 - Are dirty-worktree boundaries stated when relevant?
 
 If not, rewrite the handoff before committing.
