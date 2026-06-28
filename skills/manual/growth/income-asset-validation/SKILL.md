@@ -209,6 +209,49 @@ Avoid:
 - "A productivity platform"
 - "An all-in-one learning system"
 
+### 6. Shape an AI coding audit offer
+
+For AI-era programmer income experiments, a fixed-scope audit is often a better first sale than a tool. It lets you sell judgment, verification discipline, and a concrete report before building automation.
+
+Use this offer builder:
+
+```markdown
+## AI Coding Audit Offer
+
+### Buyer
+- Role:
+- Repo/project type:
+- Current AI coding pain:
+- Why now:
+
+### Scope boundary
+- Included: one repo, one workflow, one 60-90 minute review, one written report
+- Excluded: production code changes, secrets handling, long-running support, broad transformation
+- Access needed: read-only repo sample, existing CI/test command list, recent failed agent run if available
+
+### Audit checklist
+| Area | Evidence to inspect | Output |
+| --- | --- | --- |
+| Dirty workspace safety | `git status`, branch rules, generated files | Boundary risks and isolation recommendation |
+| Verification coverage | scripts, CI, smoke tests, docs build | Minimal verification command ladder |
+| Agent handoff quality | prompts, notebook, PR template, final report | Handoff field gaps and template suggestions |
+| Failure recovery | recent failed run, logs, rollback path | First recovery command and stop rule |
+| Productization fit | repeated pain, team size, budget signal | Continue / narrow / stop recommendation |
+
+### Deliverable
+- 1-page executive summary
+- 5-10 prioritized fixes
+- command ladder for the next safe AI-assisted change
+- one reusable template: checklist, prompt, notebook entry, or report skeleton
+
+### Validation metric
+- Continue if the buyer asks for implementation help, a second repo audit, or a team version.
+- Narrow if they only value one area such as CI command discovery or agent handoff templates.
+- Stop if they only want free tooling advice and will not share a real workflow sample.
+```
+
+Price only after the scope is narrow. A first paid pilot can be inexpensive, but it should still require the buyer to contribute a real repo sample or failed workflow; otherwise the experiment measures curiosity, not demand.
+
 ## Output Template
 
 ```markdown
