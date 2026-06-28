@@ -252,6 +252,8 @@ Use this offer builder:
 
 Price only after the scope is narrow. A first paid pilot can be inexpensive, but it should still require the buyer to contribute a real repo sample or failed workflow; otherwise the experiment measures curiosity, not demand.
 
+Reference sample: `references/ai-coding-audit-sample-report.md` shows a one-page report structure, risk table, command ladder, and continue/narrow/stop criteria for this offer.
+
 ## Output Template
 
 ```markdown
