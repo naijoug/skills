@@ -1,0 +1,26 @@
+id: ng-review-next-safe-command-ladder
+version: 1.0.0
+title: Next Safe Command Ladder
+summary: Turn an AI-assisted coding or review task into the next smallest verifiable command sequence with pass, fail, escalation, and stop conditions
+kind: prompt_only
+tags:
+  - review
+  - verification
+  - ai-coding
+  - testing
+triggers:
+  keywords:
+    - next safe command
+    - command ladder
+    - verification ladder
+    - what should I run next
+    - AI coding audit
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity

@@ -1,0 +1,2 @@
+prompt:
+  default_prompt: "Use $ng-review-next-safe-command-ladder to turn this change or review finding into the next smallest safe verification sequence with pass/fail meanings, escalation, and stop conditions."
