@@ -52,3 +52,12 @@ I would not start by asking for "all tests". The current highest risk is that th
 
 Run the reducer/selector focused tests first, then typecheck, then one board smoke. If the focused tests fail, Narrow to the failing state branch and do not spend time on full CI yet. If they pass, CI becomes confirmation rather than the first source of evidence.
 ```
+
+## Companion Public Report
+
+When turning this internal review note into a reader-facing or client-facing artifact, use the public mock report shape in `docs/documents/trending/ai/ai-coding-audit-mock-report.md`:
+
+- keep Scope and Excluded boundaries visible;
+- collapse internal reasoning into Top Risks and Evidence;
+- preserve `Why this first`, `Pass means`, `Fail means`, and stop conditions in the command ladder;
+- end with `Continue / Narrow / Stop` so the next owner knows whether to expand, shrink, or abandon the path.

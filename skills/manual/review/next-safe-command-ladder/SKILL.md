@@ -126,3 +126,4 @@ Current evidence: files are isolated and `docs/` was clean before this task
 
 - Trigger examples: `references/trigger-examples.md`
 - AI coding audit example: `references/ai-coding-audit-example.md`
+- Public mock report path: `docs/documents/trending/ai/ai-coding-audit-mock-report.md`
