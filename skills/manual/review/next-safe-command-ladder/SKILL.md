@@ -125,3 +125,4 @@ Current evidence: files are isolated and `docs/` was clean before this task
 ## References
 
 - Trigger examples: `references/trigger-examples.md`
+- AI coding audit example: `references/ai-coding-audit-example.md`
