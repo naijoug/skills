@@ -1,0 +1,31 @@
+id: ng-review-audit-evidence-boundary
+version: 1.0.0
+title: Audit Evidence Boundary
+summary: Separate publishable audit claims from private proof, unverified assumptions, and stop conditions before writing reports or anonymous cases
+kind: prompt_only
+tags:
+  - review
+  - audit
+  - evidence
+  - ai-coding
+  - privacy
+triggers:
+  keywords:
+    - audit evidence
+    - evidence boundary
+    - anonymous case
+    - publishable case
+    - don't invent evidence
+    - AI coding audit case
+    - 脱敏案例
+    - 证据边界
+    - 不要编造案例
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity
