@@ -114,3 +114,4 @@ Core principle: never make a report more convincing by inventing clients, metric
 - Anonymous case evidence example: `references/anonymous-case-evidence-example.md`
 - Related command ladder skill: `skills/skills/manual/review/next-safe-command-ladder/`
 - Public anonymous case skeleton: `docs/documents/trending/ai/anonymous-ai-coding-audit-case-skeleton.md`
+- Observation-to-skill checklist: `docs/documents/trending/ai/ai-coding-audit-observation-to-skill-checklist.md`
