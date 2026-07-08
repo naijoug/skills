@@ -56,8 +56,8 @@ describe("skills-core", () => {
     const sources = readLocalSkillSources();
     const library = buildLibrary([group], new Map([[group.id, sources]]));
 
-    expect(library.groups).toEqual([{ ...group, skillCount: 24 }]);
-    expect(library.skills).toHaveLength(24);
+    expect(library.groups).toEqual([{ ...group, skillCount: sources.length }]);
+    expect(library.skills).toHaveLength(sources.length);
     expect(library.skills.map((skill) => skill.title)).toEqual(
       expect.arrayContaining(["API Design Review", "Ref Pack Builder", "In English"])
     );
