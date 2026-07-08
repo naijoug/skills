@@ -1,0 +1,30 @@
+id: ng-review-monorepo-test-entrypoint-drift
+version: 1.0.0
+title: Monorepo Test Entrypoint Drift
+summary: Diagnose when monorepo tests, typechecks, or package scripts resolve different code from different cwd, aliases, or built dist artifacts
+kind: prompt_only
+tags:
+  - review
+  - monorepo
+  - testing
+  - verification
+  - ai-coding
+triggers:
+  keywords:
+    - monorepo test drift
+    - workspace test differs from package test
+    - stale dist
+    - source vs dist
+    - package alias
+    - Vitest alias
+    - 测试入口漂移
+    - 工作区测试
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity
