@@ -3,25 +3,34 @@ import type { SkillDetail, SkillFileSource, SkillGroup, SkillSummary } from "./t
 
 export function parseSimpleYaml(text: string): Record<string, string> {
   const values: Record<string, string> = {};
+  let listKey = "";
   for (const line of text.split(/\r?\n/)) {
     const stripped = line.trim();
     if (!stripped || stripped.startsWith("#") || !stripped.includes(":")) {
+      if (stripped.startsWith("- ") && listKey) {
+        values[listKey] = compactDescription(`${values[listKey] || ""} ${stripYamlQuotes(stripped.slice(2).trim())}`);
+      }
       continue;
     }
     const [rawKey, ...rest] = stripped.split(":");
     const key = rawKey.trim();
-    let value = rest.join(":").trim();
-    if (
-      value.length >= 2 &&
-      ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'")))
-    ) {
-      value = value.slice(1, -1);
-    }
+    const value = stripYamlQuotes(rest.join(":").trim());
     if (key) {
       values[key] = value;
+      listKey = value ? "" : key;
     }
   }
   return values;
+}
+
+function stripYamlQuotes(value: string): string {
+  if (
+    value.length >= 2 &&
+    ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'")))
+  ) {
+    return value.slice(1, -1);
+  }
+  return value;
 }
 
 export function splitFrontmatter(markdown: string): {
@@ -109,6 +118,7 @@ export function parseSkillFile(group: SkillGroup, source: SkillFileSource): Skil
   );
   const name = compactDescription(frontmatter.name || manifest.id || title);
   const description = compactDescription(frontmatter.description || manifest.summary || firstParagraph(source.content));
+  const searchText = compactDescription([...Object.values(manifest), ...Object.values(frontmatter), source.relativePath].join(" "));
 
   return {
     id: encodeSkillId(group.id, source.relativePath),
@@ -116,6 +126,7 @@ export function parseSkillFile(group: SkillGroup, source: SkillFileSource): Skil
     title,
     description,
     category: categoryFor(source.relativePath),
+    searchText,
     relativePath: source.relativePath,
     relativeDir,
     groupId: group.id,

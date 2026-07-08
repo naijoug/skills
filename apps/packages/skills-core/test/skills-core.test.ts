@@ -7,6 +7,7 @@ import {
   decodeSkillId,
   encodeSkillId,
   parseSkillFile,
+  parseSimpleYaml,
   searchSkills,
   type SkillFileSource,
   type SkillGroup
@@ -42,6 +43,31 @@ describe("skills-core", () => {
     expect(detail.title).toBe("API Design Review");
     expect(detail.description).toBe("Review API contracts");
     expect(detail.category).toBe("manual/review");
+  });
+
+  it("indexes manifest list keywords for search", () => {
+    expect(parseSimpleYaml(["tags:", "  - growth", "  - verification"].join("\n"))).toEqual({
+      tags: "growth verification"
+    });
+
+    const source: SkillFileSource = {
+      relativePath: "manual/business/single-channel-offer-publish/SKILL.md",
+      content: ["---", "name: ng-business-single-channel-offer-publish", "---", "", "# Single-Channel Offer Publish"].join("\n"),
+      manifestContent: [
+        "id: ng-business-single-channel-offer-publish",
+        "title: Single-Channel Offer Publish",
+        "summary: Publish one authorized offer channel",
+        "triggers:",
+        "  keywords:",
+        "    - 单渠道发布",
+        "    - contact path"
+      ].join("\n")
+    };
+    const library = buildLibrary([group], new Map([[group.id, [source]]]));
+
+    expect(searchSkills(library.skills, { query: "单渠道发布" }).map((skill) => skill.name)).toEqual([
+      "ng-business-single-channel-offer-publish"
+    ]);
   });
 
   it("round-trips stable skill ids", () => {

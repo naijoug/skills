@@ -17,6 +17,7 @@ export interface SkillSummary {
   title: string;
   description: string;
   category: string;
+  searchText?: string;
   relativePath: string;
   relativeDir: string;
   groupId: string;

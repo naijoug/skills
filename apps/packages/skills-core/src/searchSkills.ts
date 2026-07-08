@@ -20,7 +20,8 @@ export function searchSkills(skills: SkillSummary[], options: SkillSearchOptions
       skill.description,
       skill.category,
       skill.groupName,
-      skill.relativePath
+      skill.relativePath,
+      skill.searchText
     ]
       .join(" ")
       .toLowerCase();
