@@ -19,6 +19,18 @@ describe("selection helpers", () => {
     expect(skillsForView(library, "all", "formatter")).toEqual([skillA]);
   });
 
+  it("keeps manifest keyword search available through the UI selection helper", () => {
+    const publishSkill: SkillSummary = {
+      ...skillB,
+      searchText: "channel authorization contact path 单渠道发布 observation window"
+    };
+    const library = libraryWith([localGroup, repoGroup], [skillA, publishSkill]);
+
+    expect(skillsForView(library, "all", "单渠道发布")).toEqual([publishSkill]);
+    expect(skillsForView(library, repoGroup.id, "contact path")).toEqual([publishSkill]);
+    expect(skillsForView(library, localGroup.id, "单渠道发布")).toEqual([]);
+  });
+
   it("keeps the selected skill only when it remains visible, otherwise falls back to the first visible skill", () => {
     const library = libraryWith([localGroup, repoGroup], [skillA, skillB]);
 
