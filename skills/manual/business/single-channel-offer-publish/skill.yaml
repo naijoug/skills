@@ -1,0 +1,31 @@
+id: ng-business-single-channel-offer-publish
+version: 1.0.0
+title: Single-Channel Offer Publish
+summary: Publish a paid offer only after explicit authorization, with one channel, one contact path, one observation window, and evidence logging
+kind: prompt_only
+tags:
+  - business
+  - offer
+  - publishing
+  - authorization
+  - income
+  - launch
+  - evidence
+triggers:
+  keywords:
+    - single-channel offer publish
+    - publish offer
+    - channel authorization
+    - contact path
+    - observation window
+    - offer authorization
+    - 单渠道发布
+    - 发布授权
+    - 收费 offer
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - amp
+    - trae

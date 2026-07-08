@@ -1,0 +1,29 @@
+id: ng-growth-ai-coding-hypothesis-validation
+version: 1.0.0
+title: AI Coding Hypothesis Validation
+summary: Write a falsifiable human hypothesis before agent-assisted code or docs changes, then decide from real verification output
+kind: prompt_only
+tags:
+  - growth
+  - ai-coding
+  - deliberate-practice
+  - verification
+  - hypothesis
+  - engineering-judgment
+triggers:
+  keywords:
+    - human hypothesis before agent
+    - AI coding hypothesis
+    - hypothesis validation
+    - deliberate practice
+    - verification output changed the plan
+    - failure output drill
+    - AI 编程假设
+    - 假设验证
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - amp
+    - trae
