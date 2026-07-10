@@ -47,6 +47,7 @@ The intended stance is: an AI-era programmer steadily building assets — code, 
    - If the actual schedule is not hourly, apply `references/cadence-sizing.md` before selecting scope; quarter-hour runs should bias toward tiny continuation slices and focused verification.
    - If web/current-trend scanning is considered, apply `references/trend-scan-to-action.md` first so the scan produces a concrete artifact or is skipped.
    - If several recent runs have expanded the same validation or outreach chain, apply `references/validation-chain-stop-rules.md` before adding another template; stop expanding once the chain is executable and blocked on real evidence.
+   - If a product, content, service, or income experiment still lacks a real payment/signup/sample/contact link or channel authorization, apply `references/no-link-validation-before-launch.md` before writing more launch material or implying an external publish.
    - If a code/project repo has just been brought back to a green baseline and the next step may be asset work, apply `references/green-baseline-before-asset-switch.md` before deciding whether to keep coding or switch.
 7. Form planning that answers:
    - What is the previous/current state?
@@ -92,14 +93,15 @@ Use the references in the order that matches the run's current decision point:
 6. **Sizing to cadence:** when the schedule is quarter-hourly, hourly, or daily rather than the default expectation, use `references/cadence-sizing.md` to choose a slice small enough to finish and verify.
 7. **Using current information:** if a web/current-trend scan is tempting, use `references/trend-scan-to-action.md` to require a question, a bounded search, and one concrete artifact.
 8. **Stopping validation-chain sprawl:** when several recent runs expanded one outreach or validation chain, use `references/validation-chain-stop-rules.md` to decide whether the next useful step is real evidence or a different asset.
-9. **Switching after green baseline:** when a code repo has just been made green, use `references/green-baseline-before-asset-switch.md` to confirm the baseline, stop mechanical polishing, and capture one reusable asset.
-10. **Incorporating failures:** when a command or observation fails or contradicts the plan, use `references/failure-output-changes-plan.md` so the failure changes scope, order, target, or handoff instead of being ignored.
-11. **Scoping verification:** after selecting the slice, use `references/verification-command-matrix.md` to pick the cheapest reliable focused, structural, and broad checks.
-12. **Writing the notebook:** use `references/notebook-template.md` for the required sections and `references/handoff-quality-checklist.md` to make the next action specific.
-13. **Checking final evidence:** use `references/final-report-evidence-chain.md` to ensure each notebook/final-response claim has a change, evidence, and commit/readback link, and keep its final response skeleton as the send-time checklist.
-14. **Reporting excluded boundaries:** use `references/excluded-boundary-reporting.md` when startup-dirty repos or unclear handoff paths were intentionally left untouched, so the notebook/final response names the boundary without claiming it.
-15. **Preparing the commit:** use `references/pre-commit-checks.md` for scope, path, metadata, diff, and handoff checks before staging.
-16. **Reporting the result:** use `references/commit-report-patterns.md` to keep target repo commits separate from `summaries`, read back hashes and subjects, and check its consistency map when report-field expectations seem duplicated; then complete the `final-report-evidence-chain.md` skeleton before sending.
+9. **Handling no-link launches:** when an income/content/service experiment lacks a real payment, signup, sample, contact link, or channel authorization, use `references/no-link-validation-before-launch.md` to stop fake-launch language and choose link replacement, manual validation, readiness proof, or a different asset.
+10. **Switching after green baseline:** when a code repo has just been made green, use `references/green-baseline-before-asset-switch.md` to confirm the baseline, stop mechanical polishing, and capture one reusable asset.
+11. **Incorporating failures:** when a command or observation fails or contradicts the plan, use `references/failure-output-changes-plan.md` so the failure changes scope, order, target, or handoff instead of being ignored.
+12. **Scoping verification:** after selecting the slice, use `references/verification-command-matrix.md` to pick the cheapest reliable focused, structural, and broad checks.
+13. **Writing the notebook:** use `references/notebook-template.md` for the required sections and `references/handoff-quality-checklist.md` to make the next action specific.
+14. **Checking final evidence:** use `references/final-report-evidence-chain.md` to ensure each notebook/final-response claim has a change, evidence, and commit/readback link, and keep its final response skeleton as the send-time checklist.
+15. **Reporting excluded boundaries:** use `references/excluded-boundary-reporting.md` when startup-dirty repos or unclear handoff paths were intentionally left untouched, so the notebook/final response names the boundary without claiming it.
+16. **Preparing the commit:** use `references/pre-commit-checks.md` for scope, path, metadata, diff, and handoff checks before staging.
+17. **Reporting the result:** use `references/commit-report-patterns.md` to keep target repo commits separate from `summaries`, read back hashes and subjects, and check its consistency map when report-field expectations seem duplicated; then complete the `final-report-evidence-chain.md` skeleton before sending.
 
 ## Final Response Shape
 
