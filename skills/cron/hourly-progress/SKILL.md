@@ -43,6 +43,7 @@ The intended stance is: an AI-era programmer steadily building assets — code, 
    - If candidate selection is unclear, compare options against `references/selection-examples.md`.
    - If several repos are already dirty, apply `references/dirty-worktree-selection.md` before choosing a target.
    - If the previous notebook entry names a next step, apply `references/continuation-slice-choice.md` to decide whether to continue, shrink once, or switch assets.
+   - If recent notebook entries repeat the same decision, stop rule, verification command, or handoff pattern, apply `references/worklog-asset-extraction.md` before creating another docs/book/skill/script surface.
    - If that continuation repo already has uncommitted files on the handoff path, apply `references/uncommitted-continuation-triage.md` before editing or staging anything.
    - If the actual schedule is not hourly, apply `references/cadence-sizing.md` before selecting scope; quarter-hour runs should bias toward tiny continuation slices and focused verification.
    - If web/current-trend scanning is considered, apply `references/trend-scan-to-action.md` first so the scan produces a concrete artifact or is skipped.
@@ -88,7 +89,7 @@ Use the references in the order that matches the run's current decision point:
 1. **Capturing startup state:** begin with `references/startup-status-snapshot.md` so startup-dirty paths, clean candidates, and the previous handoff are distinguishable before any edit.
 2. **Choosing the work:** continue with `references/selection-examples.md`; when multiple neighboring repos are already dirty, apply `references/dirty-worktree-selection.md` before editing.
 3. **Running unattended:** if the scheduler says no user is present or delivery is automatic, use `references/unattended-delivery.md` to avoid questions, unsafe assumptions, and separate delivery tools.
-4. **Handling handoffs:** when the previous notebook suggests a continuation, use `references/continuation-slice-choice.md` to continue, shrink once, or explicitly switch assets instead of blindly following stale or overlarge handoffs.
+4. **Handling handoffs and repeated notebook signals:** when the previous notebook suggests a continuation, use `references/continuation-slice-choice.md` to continue, shrink once, or explicitly switch assets instead of blindly following stale or overlarge handoffs; when several recent entries repeat the same stop rule, verification command, or handoff pattern, use `references/worklog-asset-extraction.md` to decide whether to create a reusable surface or stop extracting.
 5. **Triage uncommitted continuations:** if the continuation repo already has dirty files on the suggested handoff path, use `references/uncommitted-continuation-triage.md` before editing or staging, and switch to a clean adjacent slice when authorship is unclear.
 6. **Sizing to cadence:** when the schedule is quarter-hourly, hourly, or daily rather than the default expectation, use `references/cadence-sizing.md` to choose a slice small enough to finish and verify.
 7. **Using current information:** if a web/current-trend scan is tempting, use `references/trend-scan-to-action.md` to require a question, a bounded search, and one concrete artifact.
