@@ -1,0 +1,30 @@
+id: ng-review-agent-release-gate
+version: 1.0.0
+title: Agent Release Gate
+summary: Map Agent evaluation evidence, release controls, and safety gates into an auditable pass/warn/block rollout decision
+kind: prompt_only
+tags:
+  - review
+  - ai-agent
+  - release
+  - verification
+  - safety
+triggers:
+  keywords:
+    - agent release gate
+    - agent launch review
+    - pass warn block
+    - release evidence map
+    - safety gate
+    - canary rollout
+    - AI Agent 上线
+    - 发布门禁
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity
