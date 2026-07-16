@@ -105,6 +105,10 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 - The report uses relative paths and redacted evidence links; no local absolute paths, secrets, or customer data
 - The final handoff can be copied into a release report without adding undocumented claims
 
+## Examples
+
+- Filled `warn` gate for a read-only support-agent canary: `skills/skills/manual/review/agent-release-gate/references/filled-example.md`
+
 ## References
 
 - Agent release evidence field map: `docs/documents/trending/ai/agent-release-evidence-field-map.md`
