@@ -43,7 +43,12 @@ Core principle: catch behavior risk and unclear intent before asking others to s
 - Error messages and debugability
 - Rollout/feature flag/fallback considerations
 
-5. Reviewer experience pass
+5. Evidence boundary pass
+- Which findings are `confirmed`, `dismissed`, or `unknown` from the inspected diff and real commands?
+- Do validation notes use repo-relative paths and portable command names instead of machine-local absolute paths?
+- Is every `tests passed`, `no regression`, or `safe to merge` claim backed by actual output, or downgraded to a next check?
+
+6. Reviewer experience pass
 - PR title/description clarity
 - Context, screenshots, repro steps, known limitations
 
@@ -61,6 +66,12 @@ Core principle: catch behavior risk and unclear intent before asking others to s
 - [ ] Test gap:
 - [ ] Readability issue:
 - [ ] Operability issue:
+- [ ] Evidence boundary issue:
+
+### Evidence Ledger
+| Claim / finding | Status | Evidence | Next check |
+| --- | --- | --- | --- |
+|  | confirmed / dismissed / unknown | `git diff -- <paths>` / test command / review note |  |
 
 ### PR Description Notes
 - Repro / validation steps:
@@ -72,6 +83,8 @@ Core principle: catch behavior risk and unclear intent before asking others to s
 
 - At least one regression-risk thought process is documented
 - Tests are evaluated for quality, not just existence
+- Evidence claims are labeled `confirmed`, `dismissed`, or `unknown`
+- Validation evidence uses repo-relative paths and does not expose local absolute paths
 - Diff noise is called out and reduced when possible
 - Reviewer context is prepared, not assumed
 
