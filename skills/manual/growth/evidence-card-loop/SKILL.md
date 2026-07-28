@@ -180,6 +180,22 @@ Return:
 4. An Evidence Card with reusable checklist or prompt asset.
 ```
 
+## Small PR Checklist: Catalog or README Entry
+
+Use this checklist when the diff only adds a directory entry, sidebar item, catalog link, or README bullet. These changes look low risk, but they often fail because the target page is missing, untracked, or owned by a different dirty change.
+
+```text
+For each new catalog/sidebar/README entry:
+1. Target exists: does the linked file or route exist at the named relative path?
+2. Target is owned: is the target tracked or intentionally included in the same change set?
+3. Target has metadata: does it include required frontmatter, title, order, or export fields for this repo?
+4. Entry format matches neighbors: relative link style, ordering, punctuation, icons, and language are consistent.
+5. Minimal verification ran: git diff --check -- <entry-file> and the repo-specific markdown/link/build check when available.
+6. Risk labels are explicit: confirmed / dismissed / unknown, especially when the target page is untracked or the full build was not run.
+```
+
+If the target file is present but untracked, do not silently fix or submit it unless ownership is clear. Record the risk as confirmed and ask for or establish change ownership first.
+
 ## Related Assets
 
 - `docs/documents/trending/ai/ai-programmer-evidence-card-loop.md`
