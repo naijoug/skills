@@ -158,8 +158,31 @@ Verification method:
 Help me complete the smallest useful slice, then produce an evidence card with: AI participation, human judgment, verification evidence, reusable asset, and Continue / Narrow / Switch / Stop decision. Do not invent results or feedback.
 ```
 
+## PR Review Prompt
+
+Use this variant when the real task is a code review. It keeps AI in the role of risk analyst instead of merge decision maker.
+
+```text
+Use the Evidence Card Loop for a PR review.
+
+Real task: Review <branch / PR / diff> for <one narrow risk area>.
+Input materials: <git diff -- paths>, related tests, issue/spec links.
+Excluded materials: secrets, customer data, private logs, unrelated dirty files.
+Allowed AI actions: summarize the diff, list risk hypotheses, suggest focused tests/checks, mark uncertainty.
+Disallowed AI actions: do not directly edit code, run destructive commands, decide merge/reject, or state unverified risks as facts.
+Human approval points: I decide which risks are real, whether to request changes, which tests to run, and whether to merge.
+Verification method: git diff --check -- <paths>; relevant tests; manual requirement replay; label each risk confirmed / dismissed / unknown.
+
+Return:
+1. A short review summary.
+2. A risk table with evidence and confirmed / dismissed / unknown status.
+3. The smallest extra test or manual check you recommend.
+4. An Evidence Card with reusable checklist or prompt asset.
+```
+
 ## Related Assets
 
+- `docs/documents/trending/ai/ai-programmer-evidence-card-loop.md`
 - `skills/skills/manual/growth/ai-coding-hypothesis-validation/`
 - `skills/skills/manual/review/audit-evidence-boundary/`
 - `books/ai-personal-growth/chapters/10-30-day-action-handbook.md`
