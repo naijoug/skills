@@ -196,9 +196,27 @@ For each new catalog/sidebar/README entry:
 
 If the target file is present but untracked, do not silently fix or submit it unless ownership is clear. Record the risk as confirmed and ask for or establish change ownership first.
 
+## Packaging Output Hygiene Checklist
+
+Use this checklist when a script produces a zip, tarball, PDF, starter kit, prompt pack, or any deliverable that may be copied to a customer, download page, or portfolio proof artifact. The goal is to prove the package is reproducible and that the output directory contains only final artifacts.
+
+```text
+For each packaging script or command:
+1. Clean boundary: record git status first and only touch owned script/test/doc paths.
+2. Temporary staging: build intermediate folders under mktemp or an ignored work directory, not inside the final --out-dir.
+3. Stable archive shape: confirm the artifact preserves the expected top-level folder and key README/example files.
+4. Output directory hygiene: after the command finishes, assert --out-dir contains the final artifact only; no staging directory or stray logs.
+5. Portable output: logs, docs, and evidence cards use relative artifact names or caller-provided paths, not local absolute paths.
+6. Regression proof: run git diff --check -- <changed-files> plus a smoke test that checks artifact existence, archive contents, and absence of leftovers.
+7. Risk labels: mark leftover files, untracked outputs, skipped builds, or ownership uncertainty as confirmed / dismissed / unknown.
+```
+
+Do not clean unknown residual files just to make the run look green. If leftovers existed before the task or belong to another change, record the boundary and fix the packaging script/test in a clean temporary output directory instead.
+
 ## Related Assets
 
 - `docs/documents/trending/ai/ai-programmer-evidence-card-loop.md`
+- `docs/documents/trending/ai/delivery-package-output-cleanliness.md`
 - `skills/skills/manual/growth/ai-coding-hypothesis-validation/`
 - `skills/skills/manual/review/audit-evidence-boundary/`
 - `books/ai-personal-growth/chapters/10-30-day-action-handbook.md`
