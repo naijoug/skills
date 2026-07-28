@@ -44,6 +44,16 @@ Do-not-publish boundary:
 
 If any line is blank, the decision is `Wait for authorization`. Stop external actions and ask for the missing line in the final report or handoff note.
 
+When the user has not authorized a channel yet, do not compensate by creating more launch assets. Surface only a minimal authorization request that asks for:
+
+1. Channel and account.
+2. Contact path.
+3. Target audience or 1-3 authorized targets.
+4. Observation window, such as 24h or 48h.
+5. Boundary: free checklist, diagnostic request, configuration service note, or keep waiting.
+
+If any of these five fields is still missing, return to product-proof, code-quality, docs, or skill work instead of expanding landing pages, packages, outreach variants, or pricing promises.
+
 ### 2. Select exactly one channel
 
 Use this table to prevent accidental multi-channel launch:
