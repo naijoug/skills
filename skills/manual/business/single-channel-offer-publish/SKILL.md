@@ -36,7 +36,7 @@ Do not publish until these six lines are filled from user-provided or already re
 ```text
 Offer:
 Channel authorization:
-Posting account / identity:
+Account / identity:
 Contact path:
 Observation window:
 Do-not-publish boundary:
@@ -136,7 +136,7 @@ Do not optimize the offer again until the observation window ends or the user gi
 ### Authorization packet
 - Offer:
 - Channel authorization:
-- Posting account / identity:
+- Account / identity:
 - Contact path:
 - Observation window:
 - Do-not-publish boundary:
