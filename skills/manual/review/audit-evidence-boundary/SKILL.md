@@ -14,6 +14,7 @@ Core principle: never make a report more convincing by inventing clients, metric
 ## When to Use
 
 - Writing an AI coding audit report, PR review summary, or agent final report that will be shared outside the immediate workspace
+- Reviewing a PR self-review, release note, or final report that says `tests passed`, `no regression`, `safe to merge`, or `production risk`
 - Converting a private review into an anonymous case, public sample, sales asset, or portfolio post
 - Checking whether a claim has enough proof to say `Pass means`, `Fail means`, `Top risk`, or `Recommended fix`
 - Redacting paths, logs, screenshots, customer details, hostnames, tokens, user data, or organization-specific vocabulary
@@ -58,6 +59,12 @@ Core principle: never make a report more convincing by inventing clients, metric
    - Publish only if the public-safe summary still preserves at least one concrete piece of evidence.
    - Narrow if the evidence supports only one lesson, command, risk, or checklist item.
    - Stop if redaction removes all proof or approval is missing.
+
+7. **For PR self-review handoffs, keep the evidence ledger attached.**
+   - Use `confirmed` only when the finding points to an inspected diff hunk, command output, reviewer note, or trace.
+   - Use `dismissed` only when a concrete check ruled the risk out, not because the risk “seems unlikely”.
+   - Use `unknown` when the next check is clear but not yet run.
+   - Prefer repo-relative paths such as `src/...` or `tests/...`; do not paste machine-local absolute paths into publishable review notes.
 
 ## Evidence Ledger Template
 
@@ -107,11 +114,13 @@ Core principle: never make a report more convincing by inventing clients, metric
 - `Pass means` / `Fail means` statements only appear when command results or equivalent evidence exist
 - The final recommendation says whether to `Continue`, `Narrow`, or `Stop`, not just “looks good”
 - The decision can be summarized as `Continue / Narrow / Stop` for handoff consistency
+- PR review and self-review claims use `confirmed` / `dismissed` / `unknown`, not unqualified confidence words
 
 ## References
 
 - Trigger examples: `references/trigger-examples.md`
 - Anonymous case evidence example: `references/anonymous-case-evidence-example.md`
 - Related command ladder skill: `skills/skills/manual/review/next-safe-command-ladder/`
+- Related PR self-review skill: `skills/skills/manual/review/pr/`
 - Public anonymous case skeleton: `docs/documents/trending/ai/anonymous-ai-coding-audit-case-skeleton.md`
 - Observation-to-skill checklist: `docs/documents/trending/ai/ai-coding-audit-observation-to-skill-checklist.md`

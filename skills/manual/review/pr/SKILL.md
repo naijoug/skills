@@ -97,3 +97,4 @@ Core principle: catch behavior risk and unclear intent before asking others to s
 ## References
 
 - Trigger examples for recall/precision testing: `references/trigger-examples.md`
+- Related evidence boundary skill: `skills/skills/manual/review/audit-evidence-boundary/`
