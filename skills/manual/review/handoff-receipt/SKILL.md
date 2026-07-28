@@ -82,6 +82,26 @@ Core principle: a handoff is only useful if it separates `Owned changes` from `A
 | `Stop` | Ownership, authorization, or proof is unclear enough that action may mix unrelated work | Do not edit or commit; request clarification or preserve state |
 | `Switch` | The current track is blocked but another clean, valuable track exists | Move to the clean track and record why |
 
+## Large Dirty Diff Intake
+
+Use this mini-procedure when the next task is a large pre-existing dirty diff, such as a chapter rewrite, generated migration, or broad formatting pass.
+
+1. **Measure before deciding.** Record `git diff --stat -- <paths>` and, when useful, `git diff --numstat -- <paths>` before reading the content. A 300-line insert/delete pattern is already an ownership signal.
+2. **Sample the diff shape.** Read enough hunks to classify the change as `content addition`, `format-only rewrite`, `mixed content + formatting`, `generated output`, or `unknown`.
+3. **Separate repair from ownership.** A small validation repair inside an already dirty file can be verified, but do not commit it unless you can isolate it from the pre-existing diff or you explicitly own the whole file.
+4. **Check companions.** If README, appendix, index, lockfile, or generated files changed with the main file, treat them as one ownership set until proven otherwise.
+5. **Pick the receipt decision.** Use `Continue` only when you can own and verify the whole set; use `Narrow` for read-only assessment or a non-committed local repair; use `Stop` when the diff would require user authorization; use `Switch` when a cleaner valuable task is available.
+
+Receipt add-on:
+
+```markdown
+- Dirty diff size: `<insertions>/<deletions>` across `<paths>`
+- Diff shape: content addition / format-only rewrite / mixed / generated / unknown
+- Companion paths:
+- Safe to commit now: yes / no, because
+- Smallest next safe command:
+```
+
 ## Quality Checklist
 
 - `Owned changes` contains relative paths only
