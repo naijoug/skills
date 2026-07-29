@@ -20,6 +20,7 @@ This is a redacted example showing how to turn launch-review evidence into a gat
 
 | Evidence | Field | Status | Link / ID | Owner / next action |
 | --- | --- | --- | --- | --- |
+| Workspace boundary | `status_snapshot`, `owned_release_paths`, `avoided_dirty_paths` | clean for release paths; unrelated dirty docs avoided | `git status --short -- prompts/support-agent policies/support-readonly evals/support-agent runbooks/support-agent` -> no output; avoided `docs/drafts/support-copy.md` | `release-owner`: keep avoided draft out of release proof |
 | Golden Tasks | `golden_tasks_version`, `evaluation_summary` | present | `evals/support-agent/golden-tasks-v12.md`, 42/44 pass | `eval-owner`: classify two misses before write-tool rollout |
 | Failed cases | `evidence.failed_case_ids` | present, non-blocking for read-only scope | `GT-018`, `GT-037` | `prompt-owner`: add retrieval disambiguation case |
 | Safe traces | `evidence.safe_trace_links` | present and redacted | `runs/2026-07-16/safe-traces/support-agent-readonly.md` | `release-owner`: keep trace sample attached to report |
@@ -43,6 +44,7 @@ The release object is reproducible, audit events exist, rollback is rehearsed, a
 ## Common mistakes avoided
 
 - It does not say “tests passed” without naming versions and evidence IDs.
+- It does not treat unrelated dirty drafts as release evidence; the workspace boundary names the release paths and avoided path.
 - It does not allow write tools just because they are present in the agent codebase.
 - It does not hide unresolved failed cases; it maps them to disabled scope and re-entry conditions.
 - It does not include customer data, secret values, or local absolute paths.

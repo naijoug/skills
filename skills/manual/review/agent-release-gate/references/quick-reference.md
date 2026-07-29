@@ -2,6 +2,17 @@
 
 Use this one-page checklist during a release review meeting. It compresses the full skill into the minimum fields needed to decide `pass`, `warn`, or `block` without inventing evidence.
 
+## 0. Workspace evidence boundary must be frozen
+
+Before reading evaluation output, record the repo or release-package status. Do not let unowned dirty prompts, policies, generated artifacts, or handoff notes become release proof by accident.
+
+| Field | Required proof | If missing or unowned |
+| --- | --- | --- |
+| `status_snapshot` | Narrow `git status --short` or equivalent for release paths | `block` production if changed files are required for the gate |
+| `owned_release_paths` | Paths intentionally reviewed or changed for this release | Keep outside the evidence map until ownership is clear |
+| `avoided_dirty_paths` | Pre-existing dirty paths plus one-line reason | `warn` only for read-only/demo scope; `block` for production |
+| Large dirty diff receipt | Diff size, sampled shape, companion paths, and `Continue / Narrow / Stop / Switch` decision | Do not trust the diff as release evidence; write/receive the receipt first |
+
 ## 1. Release object must be reproducible
 
 Do not decide the gate until these versions are named:
@@ -30,6 +41,7 @@ Do not decide the gate until these versions are named:
 Default to `block` when any enabled path has one of these signals:
 
 - Release object cannot be reproduced from versions or hashes.
+- Release package depends on unowned dirty prompts, policies, generated artifacts, or handoff files.
 - Forbidden tool call happened during evaluation.
 - Sensitive data appears in a trace or report that will be shared.
 - Enabled write tool lacks approval binding for exact action parameters.
@@ -62,6 +74,7 @@ A useful `warn` decision usually has this shape:
 Before handing off the gate report, confirm:
 
 - Every enabled capability has a proof link or evidence ID.
+- The workspace boundary lists owned release paths and avoided dirty paths.
 - Every missing proof narrows scope instead of being hand-waved.
 - `warn` and `block` both include a next safe command/check.
 - Paths are relative and traces are redacted.
