@@ -28,6 +28,11 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 
 ## Procedure
 
+0. **Freeze the workspace evidence boundary.**
+   - Run the narrowest status command for the repo or release package before interpreting evaluation results.
+   - If release files, prompts, policies, generated artifacts, or handoff notes are already dirty and unowned, do not fold them into the gate. Use `block` for production release or `warn` only for a smaller read-only/demo scope.
+   - For a large pre-existing dirty diff, require a handoff receipt with diff size, sampled shape, companion paths, and `Continue / Narrow / Stop / Switch` before trusting the changed files as release evidence.
+
 1. **Name the release object.**
    - Record `release_id`, agent version, model version, prompt hash, tool schema version, retrieval/index version, and policy version.
    - If any version cannot be identified, default to `block` for production and allow only local/demo review.
@@ -69,6 +74,7 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 ### Evidence map
 | Evidence | Field | Status | Link / ID | Owner / next action |
 | --- | --- | --- | --- | --- |
+| Workspace boundary | `status_snapshot`, `owned_release_paths`, `avoided_dirty_paths` | clean / owned / unowned-dirty |  |  |
 | Golden Tasks | `golden_tasks_version`, `evaluation_summary` | present / missing / failed |  |  |
 | Failed cases | `evidence.failed_case_ids` | present / none / unresolved |  |  |
 | Safe traces | `evidence.safe_trace_links` | present / missing / redaction needed |  |  |
@@ -93,12 +99,14 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 | Golden Tasks pass but write-tool approval evidence is partial | `warn` | allow read-only rollout; keep write tools disabled |
 | Failed cases are unresolved but not on enabled path | `warn` | restrict affected tenants, tools, or intents |
 | Release object lacks prompt/model/tool versions | `block` | cannot release because result is not reproducible |
+| Release package has unowned dirty prompts, policies, generated artifacts, or handoff files | `block` | production gate cannot rely on mixed-ownership evidence; first write/receive a handoff receipt or narrow to demo/read-only review |
 | Forbidden tool call, sensitive trace leak, or missing audit for enabled write tool | `block` | fix, rerun safety suite, then re-enter review |
 | Rollback switch missing or owner unknown | `warn` or `block` | `block` for external traffic or high-risk tools |
 
 ## Quality Checklist
 
 - The decision names the release object and versions, not just “current agent”
+- The workspace boundary names clean, owned, and avoided dirty release paths before claiming a gate decision
 - Every `pass` has Golden Tasks, safe traces, audit events, and rollback evidence where relevant
 - Every `warn` has explicit disabled tools, tenants, traffic, or capabilities
 - Every `block` has a concrete re-entry condition and first safe check
@@ -119,5 +127,5 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 - Agent 90-minute release review template: `docs/documents/trending/ai/agent-release-90-minute-review-template.md`
 - AI Agent best practices release report chapter: `books/ai-agent-best-practices/chapters/09-deployment-monitoring.md`
 - AI Agent best practices safety gate chapter: `books/ai-agent-best-practices/chapters/10-safety-ethics.md`
-- Related handoff skill: `skills/skills/manual/review/handoff-receipt/`
+- Related handoff skill: `skills/skills/manual/review/handoff-receipt/` (use its Large Dirty Diff Intake before trusting large pre-existing release diffs)
 - Related evidence boundary skill: `skills/skills/manual/review/audit-evidence-boundary/`
