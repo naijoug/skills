@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createSkillsManagerServer } from "../src/server";
+import { readSkillSources } from "../src/apiManager";
 
 const repoRoot = join(import.meta.dirname, "../../..");
 const tempDirs: string[] = [];
@@ -24,8 +25,9 @@ describe("skills-manager-api server", () => {
       await expect(getJson(`${baseUrl}/health`)).resolves.toEqual({ ok: true });
 
       const library = await getJson(`${baseUrl}/api/library`);
-      expect(library.groups).toEqual([expect.objectContaining({ id: "local:workspace", skillCount: 24 })]);
-      expect(library.skills).toHaveLength(24);
+      const expectedLocalSkillCount = (await readSkillSources(join(repoRoot, "skills"))).length;
+      expect(library.groups).toEqual([expect.objectContaining({ id: "local:workspace", skillCount: expectedLocalSkillCount })]);
+      expect(library.skills).toHaveLength(expectedLocalSkillCount);
 
       const detail = await getJson(`${baseUrl}/api/skills/detail?id=${encodeURIComponent(library.skills[0].id)}`);
       expect(detail).toMatchObject({ id: library.skills[0].id, content: expect.any(String) });

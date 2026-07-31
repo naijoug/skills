@@ -44,13 +44,18 @@ if ! curl -L -sS --fail "${API_URL}/health" >/dev/null 2>&1; then
   exit 1
 fi
 
-node --input-type=module - "$API_URL" "$SKILLS_MANAGER_LIVE_REPO_URL" <<'NODE'
-const [, , apiUrl, repoUrl] = process.argv;
+node --input-type=module - "$API_URL" "$SKILLS_MANAGER_LIVE_REPO_URL" "${SKILLS_MANAGER_LIVE_REPO_SOURCE:-github-api}" <<'NODE'
+const [, , apiUrl, repoUrl, repositorySource] = process.argv;
 
-const imported = await postJson("/api/repositories", { url: repoUrl, source: "github-api" });
-const importedGroup = imported.groups.find((group) => group.kind === "github-api" && group.skillCount > 0);
+if (!new Set(["github-api", "server-cache"]).has(repositorySource)) {
+  throw new Error(`Unsupported SKILLS_MANAGER_LIVE_REPO_SOURCE: ${repositorySource}`);
+}
+
+const imported = await postJson("/api/repositories", { url: repoUrl, source: repositorySource });
+const expectedKind = repositorySource === "github-api" ? "github-api" : "web-cache";
+const importedGroup = imported.groups.find((group) => group.kind === expectedKind && group.skillCount > 0);
 if (!importedGroup) {
-  throw new Error(`Expected ${repoUrl} to import at least one SKILL.md through the GitHub API path`);
+  throw new Error(`Expected ${repoUrl} to import at least one SKILL.md through the ${repositorySource} path`);
 }
 
 const importedSkill = imported.skills.find((skill) => skill.groupId === importedGroup.id);
@@ -95,7 +100,7 @@ if (removed.groups.some((group) => group.id === importedGroup.id)) {
   throw new Error(`Remove repository did not remove ${importedGroup.id}`);
 }
 
-console.log(`Live GitHub API OK: ${importedGroup.name}, ${importedGroup.skillCount} skills`);
+console.log(`Live GitHub import OK (${repositorySource}): ${importedGroup.name}, ${importedGroup.skillCount} skills`);
 
 async function getJson(path) {
   const response = await fetch(`${apiUrl}${path}`);

@@ -18,7 +18,7 @@ export interface SkillsUserSettings {
 }
 
 export const defaultSkillsUserSettings: SkillsUserSettings = {
-  theme: "dark",
+  theme: "light",
   fontFamily: "system",
   textScale: "standard",
   compactLists: false,
@@ -70,7 +70,7 @@ export function fontFamilyCssValue(fontFamily: SkillsFontFamily): string {
       return 'Georgia, "Times New Roman", serif';
     case "system":
     default:
-      return '"JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
+      return '"SF Pro Text", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
   }
 }
 
@@ -86,7 +86,7 @@ export function fontSizeCssValue(textScale: SkillsTextScale): string {
   }
 }
 
-function normalizeSkillsUserSettings(value: unknown): SkillsUserSettings {
+export function normalizeSkillsUserSettings(value: unknown): SkillsUserSettings {
   if (!value || typeof value !== "object") {
     return defaultSkillsUserSettings;
   }

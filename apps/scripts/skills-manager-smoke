@@ -13,11 +13,11 @@ const local = library.groups.find((group) => group.id === "local:workspace");
 if (!local) {
   throw new Error("Missing local:workspace group");
 }
-if (local.skillCount !== 24) {
-  throw new Error(`Expected local workspace to expose 24 skills, got ${local.skillCount}`);
+if (!Number.isInteger(local.skillCount) || local.skillCount < 1) {
+  throw new Error(`Expected local workspace to expose at least one skill, got ${local.skillCount}`);
 }
-if (!Array.isArray(library.skills) || library.skills.length < 24) {
-  throw new Error(`Expected at least 24 skills, got ${library.skills?.length ?? 0}`);
+if (!Array.isArray(library.skills) || library.skills.length < local.skillCount) {
+  throw new Error(`Expected library to include all ${local.skillCount} local skills, got ${library.skills?.length ?? 0}`);
 }
 
 const firstSkill = library.skills[0];

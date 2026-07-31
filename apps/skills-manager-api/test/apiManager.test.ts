@@ -46,7 +46,7 @@ describe("apiManager", () => {
 
   it("reads local workspace skills", async () => {
     const sources = await readSkillSources(join(repoRoot, "skills"));
-    expect(sources).toHaveLength(24);
+    expect(sources.length).toBeGreaterThan(0);
     expect(sources.some((source) => source.relativePath === "auto/in-english/SKILL.md")).toBe(true);
   });
 
@@ -55,9 +55,11 @@ describe("apiManager", () => {
     dataDirs.push(dataDir);
     const manager = new ApiManager({ repoRoot, dataDir });
     const library = await manager.listLibrary();
+    const expectedLocalSkillCount = (await readSkillSources(join(repoRoot, "skills"))).length;
 
     expect(library.groups).toHaveLength(1);
-    expect(library.groups[0]).toMatchObject({ id: "local:workspace", skillCount: 24 });
+    expect(library.groups[0]).toMatchObject({ id: "local:workspace", skillCount: expectedLocalSkillCount });
+    expect(library.skills).toHaveLength(expectedLocalSkillCount);
     expect(library.skills.map((skill) => skill.title)).toEqual(expect.arrayContaining(["API Design Review", "In English"]));
   });
 

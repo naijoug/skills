@@ -33,3 +33,15 @@ skills/manual/tool/search/workspace/
 
 # Local Skills Manager imports/cache
 .skills-manager-data/
+
+# Local QA workspace
+.qa/
+
+# Local macOS signing secrets (public .cer files remain trackable)
+apps/skills-manager-desktop/src-tauri/certificates/*.p12
+apps/skills-manager-desktop/src-tauri/certificates/*.pfx
+apps/skills-manager-desktop/src-tauri/certificates/*.p8
+apps/skills-manager-desktop/src-tauri/certificates/*.key
+apps/skills-manager-desktop/src-tauri/certificates/*.mobileprovision
+apps/skills-manager-desktop/src-tauri/certificates/*.provisionprofile
+apps/skills-manager-desktop/src-tauri/certificates/.env*

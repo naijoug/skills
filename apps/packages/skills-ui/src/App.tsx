@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { ChevronDown, Code2, Download, Filter, Globe2, Moon, MoreVertical, RefreshCw, Search, Share2 } from "lucide-react";
+import { ChevronDown, Languages, Link2, MoreHorizontal, RefreshCw, Search, Share2, SlidersHorizontal } from "lucide-react";
 import type { SkillDetail, SkillSummary, SkillsLibrary } from "@skills-manager/core";
 import type { ImportRepositoryInput, SkillsAdapter } from "@skills-manager/platform";
 import { mockAdapter } from "@skills-manager/platform";
@@ -51,6 +51,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
   const [repositorySource, setRepositorySource] = useState<NonNullable<ImportRepositoryInput["source"]>>(repositorySources[0].id);
   const [repositoriesOpen, setRepositoriesOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [status, setStatus] = useState("Loading library...");
   const [busyAction, setBusyAction] = useState<"loading" | "importing" | "refreshing" | "removing" | "selecting" | "">("loading");
   const selectionRequestId = useRef(0);
@@ -58,12 +59,14 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
   const shellStyle = {
     "--skills-font-family": fontFamilyCssValue(settings.fontFamily),
     "--skills-font-size": fontSizeCssValue(settings.textScale),
-    "--skills-row-height": settings.compactLists ? "44px" : "48px",
+    "--skills-row-height": settings.compactLists ? "58px" : "68px",
+    "--skills-local-section-height": settings.compactLists ? "348px" : "408px",
     "--skills-group-heading-height": settings.compactLists ? "32px" : "34px"
   } as CSSProperties;
 
   useEffect(() => {
     saveSkillsUserSettings(settings);
+    document.documentElement.dataset.skillsTheme = settings.theme;
   }, [settings]);
 
   useEffect(() => {
@@ -296,117 +299,10 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
       aria-busy={busyAction ? "true" : "false"}
       style={shellStyle}
     >
-      <header className="skills-topbar" data-tauri-drag-region="true">
-        <div className="skills-topbar-drag-surface" data-tauri-drag-region="true" aria-hidden="true" />
-        <div className="skills-topbrand">
-          <div className="skills-brand-mark" data-tauri-drag-region="true" aria-hidden="true">
-            <Code2 size={24} strokeWidth={2.2} />
-          </div>
-          <div className="skills-topbrand-copy" data-tauri-drag-region="true">
-            <strong data-tauri-drag-region="true">Skills Manager</strong>
-          </div>
-          <button
-            className="skills-kbd-action"
-            type="button"
-            aria-label="Focus skill search"
-            onClick={() => searchInputRef.current?.focus()}
-            data-tauri-drag-region="false"
-          >
-            ⌘K
-          </button>
-        </div>
-        <div className="skills-top-actions">
-          <button
-            className="skills-primary-action split"
-            type="button"
-            disabled={!selectedDetail}
-            onClick={() => {
-              setPrimaryView("library");
-              setActiveDetailTab("install");
-            }}
-            data-tauri-drag-region="false"
-          >
-            <Download size={18} />
-            <span>Install</span>
-            <span className="skills-action-divider" aria-hidden="true" />
-            <ChevronDown size={16} />
-          </button>
-          <button
-            className="skills-secondary-action"
-            type="button"
-            disabled={!selectedDetail}
-            onClick={() => {
-              setPrimaryView("library");
-              setActiveDetailTab(activeDetailTab === "markdown" ? "markdown" : "summary");
-            }}
-            data-tauri-drag-region="false"
-          >
-            <Globe2 size={18} />
-            <span>Translate</span>
-          </button>
-          <button
-            className="skills-secondary-action"
-            type="button"
-            disabled={!selectedDetail}
-            onClick={() => void exportGistBundle()}
-            data-tauri-drag-region="false"
-          >
-            <Share2 size={17} />
-            <span>Gist</span>
-          </button>
-          <button
-            className="skills-secondary-action"
-            type="button"
-            disabled={Boolean(busyAction)}
-            onClick={() => void refreshRepositories()}
-            data-tauri-drag-region="false"
-          >
-            <RefreshCw size={16} />
-            <span>{busyAction === "refreshing" ? "Checking" : "Newer"}</span>
-          </button>
-          <div className="skills-more-wrap" data-tauri-drag-region="false">
-            <button
-              className="skills-secondary-action"
-              type="button"
-              disabled={!selectedDetail}
-              onClick={() => setMoreMenuOpen((open) => !open)}
-              aria-expanded={moreMenuOpen}
-            >
-              <MoreVertical size={18} />
-              <span>More</span>
-            </button>
-            {moreMenuOpen && selectedDetail ? (
-              <div className="skills-more-menu" role="menu">
-                <button type="button" role="menuitem" onClick={() => showDetailTab("summary")}>
-                  Summary
-                </button>
-                <button type="button" role="menuitem" onClick={() => showDetailTab("markdown")}>
-                  Markdown
-                </button>
-                <button type="button" role="menuitem" onClick={() => showDetailTab("files")}>
-                  Files
-                </button>
-                <button type="button" role="menuitem" onClick={copySelectedSkillPath}>
-                  Copy path
-                </button>
-              </div>
-            ) : null}
-          </div>
-          <button
-            className="skills-secondary-action"
-            type="button"
-            onClick={() => updateSettings({ theme: settings.theme === "dark" ? "light" : "dark" })}
-            data-tauri-drag-region="false"
-          >
-            <Moon size={17} />
-            <span>{settings.theme === "dark" ? "Dark" : "Light"}</span>
-            <ChevronDown size={15} />
-          </button>
-        </div>
-      </header>
       <GroupSidebar
         groups={library.groups}
         totalSkills={library.skills.length}
+        selectedGroupId={selectedGroupId}
         activeView={primaryView}
         repositoriesOpen={repositoriesOpen}
         platformLabel={platformLabel}
@@ -415,6 +311,10 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
         onSelectGroup={(groupId) => void selectGroup(groupId)}
         onOpenRepositories={openRepositories}
         onOpenSettings={openSettings}
+        onImportRepository={() => {
+          setPrimaryView("library");
+          setRepositoriesOpen(true);
+        }}
       />
       <section className="skills-list-pane">
         {primaryView === "settings" ? (
@@ -428,13 +328,17 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
                 <span className="skills-search-kbd">⌘K</span>
               </div>
               <button className="skills-filter-action" type="button" aria-label="Open repository filters" onClick={openRepositories}>
-                <Filter size={19} />
+                <SlidersHorizontal size={19} />
               </button>
             </div>
             <div className="skills-list-meta">
               <span>{visibleSkills.length} skills</span>
-              <button type="button">
-                Sorted by: <strong>Name</strong>
+              <button
+                type="button"
+                aria-label={`Sort skills by name ${sortDirection === "asc" ? "descending" : "ascending"}`}
+                onClick={() => setSortDirection((current) => (current === "asc" ? "desc" : "asc"))}
+              >
+                <strong>Name</strong>
                 <ChevronDown size={14} />
               </button>
             </div>
@@ -467,7 +371,12 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
               </div>
             ) : null}
             {status ? <div className="skills-status">{status}</div> : null}
-            <SkillList groups={library.groups} skills={visibleSkills} selectedSkillId={selectedSkillId} onSelectSkill={selectSkill} />
+            <SkillList
+              skills={visibleSkills}
+              selectedSkillId={selectedSkillId}
+              sortDirection={sortDirection}
+              onSelectSkill={selectSkill}
+            />
           </>
         )}
       </section>
@@ -487,7 +396,57 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
             activeTab={activeDetailTab}
             platformLabel={platformLabel}
             capabilityText={capabilityText}
+            updatedAt={selectedDetailGroup?.updatedAt}
             onActiveTabChange={setActiveDetailTab}
+            detailActions={
+              <div className="skills-detail-actions">
+                <button
+                  className="skills-primary-action"
+                  type="button"
+                  disabled={!selectedDetail}
+                  onClick={() => setActiveDetailTab("install")}
+                >
+                  <span>Manage installs</span>
+                </button>
+                <button className="skills-icon-action" type="button" disabled={!selectedDetail} onClick={copySelectedSkillPath} aria-label="Copy skill path">
+                  <Link2 size={18} />
+                </button>
+                <div className="skills-more-wrap">
+                  <button
+                    className="skills-icon-action"
+                    type="button"
+                    disabled={!selectedDetail}
+                    onClick={() => setMoreMenuOpen((open) => !open)}
+                    aria-expanded={moreMenuOpen}
+                    aria-label="More skill actions"
+                  >
+                    <MoreHorizontal size={20} />
+                  </button>
+                  {moreMenuOpen && selectedDetail ? (
+                    <div className="skills-more-menu" role="menu">
+                      <button type="button" role="menuitem" onClick={() => showDetailTab("summary")}>
+                        Overview
+                      </button>
+                      <button type="button" role="menuitem" onClick={() => showDetailTab("markdown")}>
+                        Markdown
+                      </button>
+                      <button type="button" role="menuitem" onClick={() => showDetailTab("files")}>
+                        Files
+                      </button>
+                      <button type="button" role="menuitem" onClick={() => showDetailTab("summary")}>
+                        <Languages size={15} /> Translate
+                      </button>
+                      <button type="button" role="menuitem" onClick={() => void exportGistBundle()}>
+                        <Share2 size={15} /> Export Gist bundle
+                      </button>
+                      <button type="button" role="menuitem" disabled={Boolean(busyAction)} onClick={() => void refreshRepositories()}>
+                        <RefreshCw size={15} /> {busyAction === "refreshing" ? "Refreshing" : "Refresh repositories"}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            }
             installPanel={
               selectedDetail ? (
                 <InstallPanel adapter={adapter} skillId={selectedDetail.id} confirmActions={settings.confirmInstallActions} />

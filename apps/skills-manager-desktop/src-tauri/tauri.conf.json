@@ -33,5 +33,12 @@
     "security": {
       "csp": null
     }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["dmg"],
+    "macOS": {
+      "signingIdentity": "Developer ID Application: Honoululu Inc. (N7VU72TZB8)"
+    }
   }
 }

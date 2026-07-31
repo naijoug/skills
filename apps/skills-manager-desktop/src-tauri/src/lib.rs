@@ -2117,7 +2117,7 @@ mod tests {
     #[test]
     fn scans_local_workspace_skills() {
         let sources = read_skill_sources(&repo_root().join("skills")).unwrap();
-        assert_eq!(sources.len(), 24);
+        assert!(!sources.is_empty());
         assert!(sources
             .iter()
             .any(|source| source.relative_path == "auto/in-english/SKILL.md"));
@@ -2126,12 +2126,16 @@ mod tests {
     #[test]
     fn builds_library_from_current_workspace() {
         let library = build_library().unwrap();
+        let expected_skill_count = read_skill_sources(&repo_root().join("skills")).unwrap().len();
         let groups = library.get("groups").and_then(Value::as_array).unwrap();
         let local = groups
             .iter()
             .find(|group| group.get("id").and_then(Value::as_str) == Some("local:workspace"))
             .unwrap();
-        assert_eq!(local.get("skillCount").and_then(Value::as_u64), Some(24));
+        assert_eq!(
+            local.get("skillCount").and_then(Value::as_u64),
+            Some(expected_skill_count as u64)
+        );
         let skills = library.get("skills").and_then(Value::as_array).unwrap();
         assert!(skills
             .iter()

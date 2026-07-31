@@ -91,6 +91,22 @@ PORT=15192 HOST=127.0.0.1 ./scripts/debug.sh
 Use `debug.sh` only when you need an isolated debug port or temporary Tauri dev
 URL override. For normal local startup, use `./scripts/start-local.sh`.
 
+## Signed macOS DMG
+
+```bash
+./scripts/package-macos.sh
+```
+
+The packaging script requires the configured Developer ID Application identity
+in the macOS Keychain, builds an Apple Silicon DMG, signs both the app and disk
+image, and verifies the image checksum. Public certificate metadata and setup
+notes are stored in
+`apps/skills-manager-desktop/src-tauri/certificates/README.md`.
+
+Notarization is automatic when the supported Apple notarization environment
+variables are available. Without those credentials, the output is Developer ID
+signed but not notarized.
+
 ## Lower-Level Entrypoints
 
 These scripts are kept for direct local debugging and are used by the higher

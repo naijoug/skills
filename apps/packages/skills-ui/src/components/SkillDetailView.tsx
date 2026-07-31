@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Circle, Clock3, FileCode2, Folder, GitBranch, Lightbulb, Link2, ListChecks, Monitor, Target, Users } from "lucide-react";
+import { CheckCircle2, FileCode2, Lightbulb, Link2, ListChecks, Monitor, Target } from "lucide-react";
 import type { SkillDetail, SkillRelatedFile } from "@skills-manager/core";
 
 export type SkillDetailTab = "summary" | "markdown" | "files" | "install";
@@ -9,6 +9,8 @@ export interface SkillDetailViewProps {
   activeTab: SkillDetailTab;
   platformLabel: string;
   capabilityText: string;
+  updatedAt?: string;
+  detailActions?: ReactNode;
   installPanel?: ReactNode;
   summaryTranslationPanel?: ReactNode;
   markdownTranslationPanel?: ReactNode;
@@ -16,10 +18,9 @@ export interface SkillDetailViewProps {
 }
 
 const detailTabs: Array<{ id: SkillDetailTab; label: string }> = [
-  { id: "summary", label: "Summary" },
+  { id: "summary", label: "Overview" },
   { id: "markdown", label: "Markdown" },
-  { id: "files", label: "Files" },
-  { id: "install", label: "Install" }
+  { id: "files", label: "Files" }
 ];
 
 export function SkillDetailView({
@@ -27,6 +28,8 @@ export function SkillDetailView({
   activeTab,
   platformLabel,
   capabilityText,
+  updatedAt,
+  detailActions,
   installPanel,
   summaryTranslationPanel,
   markdownTranslationPanel,
@@ -45,35 +48,24 @@ export function SkillDetailView({
     <article className="skills-detail">
       <header className="skills-detail-header">
         <div className="skills-detail-title-row">
-          <div>
-            <div className="skills-detail-name">
-              <h2>{detail.title}</h2>
-              <span>Installed</span>
-            </div>
-            <p>{detail.description || detail.name}</p>
+          <div className="skills-detail-name">
+            <FileCode2 size={28} strokeWidth={1.7} aria-hidden="true" />
+            <h2>{detail.title}</h2>
           </div>
-          <div className="skills-capability-card">
-            <Monitor size={22} />
-            <div>
-              <strong>{platformLabel}</strong>
-              <span>
-                <Circle size={8} fill="currentColor" strokeWidth={0} />
-                {capabilityText}
-              </span>
-            </div>
-          </div>
+          {detailActions}
         </div>
-        <div className="skills-meta-stack">
-          <div className="skills-meta-grid">
-            <MetaItem icon={<Folder size={18} />} value={formatPath(detail.relativeDir)} />
-            <MetaItem value={formatCategory(detail.category)} variant="chip" />
-            <MetaItem icon={<Users size={18} />} value={detail.groupName} />
-          </div>
-          <div className="skills-meta-grid secondary">
-            <MetaItem icon={<GitBranch size={18} />} value={repositoryLabel(detail)} />
-            <span className="skills-meta-separator" aria-hidden="true" />
-            <MetaItem icon={<Clock3 size={17} />} value="Updated 3 days ago" />
-          </div>
+        <div className="skills-detail-status-line" title={`${platformLabel}: ${capabilityText}`}>
+          <span className="installed"><CheckCircle2 size={18} /> Installed</span>
+          <span aria-hidden="true">·</span>
+          <span className="category">{formatCategory(detail.category)}</span>
+          <span aria-hidden="true">·</span>
+          <span><Monitor size={16} /> {detail.groupName}</span>
+        </div>
+        <p className="skills-detail-description">{detail.description || detail.name}</p>
+        <div className="skills-detail-path-row">
+          <code>{formatPath(detail.relativeDir || detail.relativePath)}</code>
+          <span aria-hidden="true">·</span>
+          <span>{formatUpdatedAt(updatedAt)}</span>
         </div>
       </header>
 
@@ -88,6 +80,11 @@ export function SkillDetailView({
             {tab.label}
           </button>
         ))}
+        {activeTab === "install" ? (
+          <button className="active" type="button" onClick={() => onActiveTabChange("install")}>
+            Install
+          </button>
+        ) : null}
       </nav>
 
       <div className="skills-tab-panel">
@@ -173,15 +170,6 @@ function formatBytes(value: number): string {
     return `${(value / 1024).toFixed(1)} KB`;
   }
   return `${(value / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function MetaItem({ icon, value, variant }: { icon?: ReactNode; value: string; variant?: "chip" }) {
-  return (
-    <div className={`skills-meta-item ${variant === "chip" ? "chip" : ""}`}>
-      {icon}
-      <strong>{value}</strong>
-    </div>
-  );
 }
 
 function SkillSummaryView({ detail }: { detail: SkillDetail }) {
@@ -281,18 +269,19 @@ function cleanSummaryLine(line: string): string {
   return line.trim().replace(/^>\s?/, "").replace(/`/g, "");
 }
 
-function repositoryLabel(detail: SkillDetail): string {
-  if (detail.groupName === "core-skills") {
-    return "acme/skills";
-  }
-  if (detail.groupKind === "github" || detail.groupKind === "github-api") {
-    return detail.groupName;
-  }
-  return "acme/skills";
-}
-
 function formatPath(value: string): string {
   return value.replace(/\./g, "/");
+}
+
+function formatUpdatedAt(value?: string): string {
+  if (!value) {
+    return "Local skill";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Repository updated";
+  }
+  return `Updated ${new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(date)}`;
 }
 
 function formatCategory(value: string): string {

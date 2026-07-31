@@ -1,4 +1,4 @@
-import { AppWindow, Globe2, Monitor, Palette, RotateCcw, ShieldCheck, Type as TypeIcon } from "lucide-react";
+import { AppWindow, Globe2, Monitor, Moon, Palette, RotateCcw, ShieldCheck, Sun, Type as TypeIcon } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { TranslationProviderDescriptor } from "@skills-manager/core";
 import type { SkillsAdapter } from "@skills-manager/platform";
@@ -135,17 +135,28 @@ function AppearanceSettings({
   onSettingsChange(settings: Partial<SkillsUserSettings>): void;
 }) {
   return (
-    <div className="skills-setting-grid">
-      <SettingSelect
-        icon={<Palette size={17} />}
-        label="Theme"
-        value={settings.theme}
-        onChange={(value) => onSettingsChange({ theme: value as SkillsTheme })}
-        options={[
-          ["dark", "Dark"],
-          ["light", "Light"]
-        ]}
-      />
+    <div className="skills-setting-stack">
+      <fieldset className="skills-theme-setting">
+        <legend>Color mode</legend>
+        <p>Choose the appearance used across Skills Manager.</p>
+        <div className="skills-theme-options">
+          <ThemeChoice
+            active={settings.theme === "light"}
+            description="Bright, calm surfaces for daytime work."
+            icon={<Sun size={20} />}
+            label="Light"
+            onClick={() => onSettingsChange({ theme: "light" as SkillsTheme })}
+          />
+          <ThemeChoice
+            active={settings.theme === "dark"}
+            description="Low-glare surfaces for focused work."
+            icon={<Moon size={20} />}
+            label="Dark"
+            onClick={() => onSettingsChange({ theme: "dark" as SkillsTheme })}
+          />
+        </div>
+      </fieldset>
+      <div className="skills-setting-grid">
       <SettingSelect
         icon={<TypeIcon size={17} />}
         label="Interface font"
@@ -176,7 +187,30 @@ function AppearanceSettings({
         checked={settings.compactLists}
         onChange={(compactLists) => onSettingsChange({ compactLists })}
       />
+      </div>
     </div>
+  );
+}
+
+function ThemeChoice({
+  active,
+  description,
+  icon,
+  label,
+  onClick
+}: {
+  active: boolean;
+  description: string;
+  icon: ReactNode;
+  label: string;
+  onClick(): void;
+}) {
+  return (
+    <button className={`skills-theme-choice ${active ? "active" : ""}`} type="button" aria-pressed={active} onClick={onClick}>
+      <span>{icon}</span>
+      <strong>{label}</strong>
+      <small>{description}</small>
+    </button>
   );
 }
 
