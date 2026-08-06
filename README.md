@@ -32,7 +32,13 @@ Personal collection of AI coding skills. Skills are classified by directory unde
         ├── review/
         │   ├── pr/
         │   ├── api-design/
+        │   ├── agent-release-gate/
+        │   ├── audit-evidence-boundary/
+        │   ├── bounded-probe-before-workaround/
         │   ├── error-boundary/
+        │   ├── handoff-receipt/
+        │   ├── monorepo-test-entrypoint-drift/
+        │   ├── next-safe-command-ladder/
         │   └── refactor/
         ├── growth/
         │   ├── personal-coach/
