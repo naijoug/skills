@@ -63,6 +63,14 @@ def predict_case(case: dict, mode: str = "keyword-demo") -> list[str]:
         out.append("weekly-retro")
     if any(k in p for k in ["debugging kata", "incident practice", "调试练习", "drill"]):
         out.append("debugging-kata")
+    if any(
+        k in p
+        for k in [
+            "搜一下", "查一下", "搜索 transformer", "研究一下", "找几篇", "帮我查查", "帮我了解一下",
+            "search for", "search recent", "research ", "look up", "find out", "find reliable references",
+        ]
+    ):
+        out.append("search")
 
     # stable de-dup preserving order
     seen = set()
