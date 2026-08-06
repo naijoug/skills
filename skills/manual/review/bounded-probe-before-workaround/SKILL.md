@@ -117,6 +117,7 @@ Core principle: treat a prior note like “may hang” or “might need `CI=true
 
 ## References
 
+- Trigger examples: `references/trigger-examples.md`
 - Source method card: `docs/documents/trending/ai/bounded-probe-before-workaround.md`
 - Related command ladder skill: `skills/skills/manual/review/next-safe-command-ladder/`
 - Related handoff receipt skill: `skills/skills/manual/review/handoff-receipt/`
