@@ -1,0 +1,30 @@
+id: ng-review-bounded-probe-before-workaround
+version: 1.0.0
+title: Bounded Probe Before Workaround
+summary: Verify suspected hangs or intermittent tool failures with a safe time-bounded probe before changing scripts, CI config, or release workflow
+kind: prompt_only
+tags:
+  - review
+  - verification
+  - ai-coding
+  - debugging
+  - handoff
+triggers:
+  keywords:
+    - bounded probe
+    - before workaround
+    - suspected hang
+    - command might hang
+    - flaky command
+    - needs timeout
+    - CI=true
+    - dry run before patch
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity
