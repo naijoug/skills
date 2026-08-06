@@ -1,8 +1,6 @@
 # Trigger Examples — debug-loom
 
-## Positive (should trigger)
-
-### Chinese
+## Positive (Chinese)
 
 - "帮这个项目生成 debug.sh 和 debug-loom" (full bootstrap)
 - "我现在开三个终端看日志，能不能自动化？" (multi-service log unification)
@@ -13,7 +11,7 @@
 - "自动收集本地调试日志并诊断" (centralized logs + doctor)
 - "AI 帮我看日志、改代码、重启服务、再跑一遍" (fix-and-retest loop)
 
-### English
+## Positive (English)
 
 - "Create a debug-loom for this repo" (full bootstrap)
 - "Generate per-service debug.sh scripts" (per-service script patterns)
@@ -22,7 +20,7 @@
 - "Add start/stop/status/logs/doctor to this project" (CLI scaffolding)
 - "Design a service-by-mode launch matrix" (matrix design)
 
-## Negative (should NOT trigger)
+## Negative / Near Miss
 
 - "帮我写一个单元测试" (test authoring, not debug orchestration)
 - "部署到生产" (deployment, not local debug)
@@ -31,3 +29,8 @@
 - "设计 API" (api-design)
 - "做代码 review" (pr review)
 - "Fix this one bug in login.ts" (single targeted fix, not a workflow)
+
+## Narrow first
+
+- "调试一下这个项目" — first identify whether the user needs one bug fix, log inspection, or a repeatable local orchestration workflow.
+- "本地环境跑不起来" — first inspect existing startup scripts and logs; use this skill only if the fix should become a reusable start/stop/doctor loop.
