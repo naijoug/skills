@@ -73,6 +73,10 @@ In `### 执行记录`, make the evidence chain auditable:
 - 后续接力：下一次优先 ...；第一条验证命令是 ...。
 ```
 
+## Startup-dirty boundary check
+
+Before using the skeleton, compare the target paths against the startup snapshot, not just the final `git status`. A file that was already dirty when the run began can be reported as useful context, but it is not this run's completed work unless the prompt explicitly asked to recover it or the evidence chain proves same-run ownership. When in doubt, leave the file unstaged and cite `references/uncommitted-continuation-triage.md` in the handoff.
+
 ## Stop conditions
 
 Stop and repair the report before committing `summaries` if any of these are true:
