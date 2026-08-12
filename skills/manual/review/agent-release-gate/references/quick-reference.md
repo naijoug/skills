@@ -48,7 +48,28 @@ Default to `block` when any enabled path has one of these signals:
 - Enabled high-risk tool lacks audit events.
 - Rollback switch is missing, unowned, or untested for the planned scope.
 
-## 4. Decision rules
+## 4. External publish push/send/deploy gate
+
+Use this quick gate before any action that can publish externally, including `push`, deploy, social post, email send, or public artifact upload.
+
+| Layer | Required proof | If missing |
+| --- | --- | --- |
+| Field gate | Explicit canonical review note path; every hard field is `Go`; `Final decision: Publish` is present | `block`; do not auto-pick the latest note |
+| Fixture gate | Checker covers dry-run sample, rehearsal-only pass, missing hard gate, auto-evidence review, wrong-date note, and publish-all-go | `block`; add the smallest missing fixture before wiring publish |
+| Environment gate | Positive fixture runs with temp repo/output, stubbed tools, no production token, no real remote, no deploy/post/send CLI, no production artifact dir | `block`; isolate the fixture before trusting a green result |
+| Guard helper | Blocking tests assert non-zero exit, actionable guard message, and no build / commit / upload / push log before the guard | `warn` or `block`; a generic non-zero exit only proves “some failure” |
+
+Minimum handoff wording:
+
+```markdown
+- External publish gate: `pass` / `block`
+- Canonical review note: `path/to/review-note.md`
+- Fixture matrix: dry-run sample / rehearsal-only pass / missing hard gate / auto-evidence review / wrong-date note / publish-all-go
+- Environment boundary: temp output, stubbed deploy/send tools, no inherited production credentials or remotes
+- First real publish command remains disabled until the three layers are green in the same release run.
+```
+
+## 5. Decision rules
 
 | Decision | Use when | Required wording |
 | --- | --- | --- |
@@ -56,7 +77,7 @@ Default to `block` when any enabled path has one of these signals:
 | `warn` | Low-risk subset is supported, but some tenants, tools, intents, traffic, or write actions lack proof | Name allowed scope, disabled scope, and upgrade proof |
 | `block` | Reproducibility, safety, approval, audit, or rollback is missing for an enabled path | Name re-entry condition and first safe command/check |
 
-## 5. `warn` scope pattern
+## 6. `warn` scope pattern
 
 A useful `warn` decision usually has this shape:
 
@@ -69,7 +90,7 @@ A useful `warn` decision usually has this shape:
 - Next safe command/check: `[non-destructive verification command]`
 ```
 
-## 6. Final self-check
+## 7. Final self-check
 
 Before handing off the gate report, confirm:
 
@@ -78,4 +99,6 @@ Before handing off the gate report, confirm:
 - Every missing proof narrows scope instead of being hand-waved.
 - `warn` and `block` both include a next safe command/check.
 - Paths are relative and traces are redacted.
+- External publish has field, fixture, and environment gates before any real push/send/deploy.
+- Blocking helpers prove the intended guard by checking exit status, concrete reason, and absence of build / commit / upload / push logs.
 - The report can be copied into a release note without adding undocumented claims.
