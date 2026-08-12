@@ -57,7 +57,13 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
    - `warn`: read-only or low-risk scope is supported, but some tools, tenants, traffic, or write actions remain disabled.
    - `block`: release object is unreproducible, a forbidden action occurred, sensitive data leaked, approval/audit evidence is missing for enabled write tools, or rollback cannot be executed.
 
-6. **Write the restriction, not just the decision.**
+6. **For external publication, split the gate into three layers before any push/send/deploy.**
+   - Field gate: canonical review note path is explicitly selected, hard fields are `Go`, and `Final decision: Publish` is present.
+   - Fixture gate: checker regression fixtures cover dry-run sample, rehearsal-only pass, missing hard gate, auto-evidence review, wrong-date note, and publish-all-go.
+   - Environment gate: positive fixtures run in temporary or stubbed boundaries without production token, real remote, deployment CLI, external post/send, or production artifact directory.
+   - A blocking helper must assert all three signals together: non-zero exit, actionable guard message, and no build / commit / upload / push log before the guard.
+
+7. **Write the restriction, not just the decision.**
    - For `warn`, list exactly what remains disabled and what proof would upgrade it.
    - For `block`, list the re-entry condition and the first safe command/check.
 
@@ -100,6 +106,8 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 | Failed cases are unresolved but not on enabled path | `warn` | restrict affected tenants, tools, or intents |
 | Release object lacks prompt/model/tool versions | `block` | cannot release because result is not reproducible |
 | Release package has unowned dirty prompts, policies, generated artifacts, or handoff files | `block` | production gate cannot rely on mixed-ownership evidence; first write/receive a handoff receipt or narrow to demo/read-only review |
+| External publish path has no canonical review note, checker fixture matrix, or isolated positive fixture | `block` | stop before push/send/deploy; create field gate, run fixtures, and prove no production token/remote/CLI is inherited |
+| Guard test only checks non-zero exit | `warn` or `block` | require non-zero exit, actionable reason, and no build / commit / upload / push log before trusting the guard |
 | Forbidden tool call, sensitive trace leak, or missing audit for enabled write tool | `block` | fix, rerun safety suite, then re-enter review |
 | Rollback switch missing or owner unknown | `warn` or `block` | `block` for external traffic or high-risk tools |
 
@@ -112,6 +120,8 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 - Every `block` has a concrete re-entry condition and first safe check
 - The report uses relative paths and redacted evidence links; no local absolute paths, secrets, or customer data
 - The final handoff can be copied into a release report without adding undocumented claims
+- External publish approval is split into field, fixture, and environment gates before any real push/send/deploy
+- Guard helpers prove the intended block, not just “some failure”, by checking exit status, concrete reason, and absence of build / commit / upload / push logs
 
 ## Quick Reference
 
