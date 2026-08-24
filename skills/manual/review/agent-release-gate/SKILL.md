@@ -129,7 +129,7 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 
 ## Examples
 
-- Filled `warn` gate for a read-only support-agent canary: `skills/skills/manual/review/agent-release-gate/references/filled-example.md`
+- Filled `warn` gate for a read-only support-agent canary plus an external publish `block` gate: `skills/skills/manual/review/agent-release-gate/references/filled-example.md`
 
 ## References
 
