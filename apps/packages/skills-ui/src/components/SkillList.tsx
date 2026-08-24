@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Circle, FileCode2 } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronRight, FileCode2 } from "lucide-react";
 import type { SkillSummary } from "@skills-manager/core";
 
 export interface SkillListProps {
@@ -69,10 +69,20 @@ export function SkillList({ skills, selectedSkillId, sortDirection, onSelectSkil
                   >
                     <FileCode2 className="skills-row-icon" size={20} strokeWidth={1.7} />
                     <span className="skills-row-copy">
-                      <strong>{skill.title}</strong>
+                      <span className="skills-row-title-line">
+                        <strong>{skill.title}</strong>
+                        <span className="skills-row-category">{formatCategory(skill.category)}</span>
+                      </span>
                       <small>{rowDescription(skill)}</small>
+                      <span className="skills-row-meta" aria-label={`${skill.groupName}, ${skill.relativePath}`}>
+                        <span>{sourceLabel(skill)}</span>
+                        <span aria-hidden="true">·</span>
+                        <code>{formatPath(skill.relativeDir || skill.relativePath)}</code>
+                      </span>
                     </span>
-                    <Circle className="skills-row-status" size={8} fill="currentColor" strokeWidth={0} aria-hidden="true" />
+                    <span className="skills-row-status" title={skill.groupKind === "local" ? "Local skill" : "Imported skill"}>
+                      <CheckCircle2 size={15} strokeWidth={1.9} aria-hidden="true" />
+                    </span>
                   </button>
                 ))}
               </div>
@@ -90,4 +100,20 @@ function compareSkills(left: SkillSummary, right: SkillSummary): number {
 
 function rowDescription(skill: SkillSummary): string {
   return skill.description || skill.relativeDir.replace(/\./g, "/") || skill.name;
+}
+
+function sourceLabel(skill: SkillSummary): string {
+  return skill.groupKind === "local" ? "Local" : skill.groupName;
+}
+
+function formatPath(value: string): string {
+  return value.replace(/\./g, "/");
+}
+
+function formatCategory(value: string): string {
+  return value
+    .split(/[-/]/)
+    .filter(Boolean)
+    .map((part) => part[0]?.toUpperCase() + part.slice(1))
+    .join(" ");
 }

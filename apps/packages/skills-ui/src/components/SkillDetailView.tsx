@@ -54,18 +54,15 @@ export function SkillDetailView({
           </div>
           {detailActions}
         </div>
-        <div className="skills-detail-status-line" title={`${platformLabel}: ${capabilityText}`}>
-          <span className="installed"><CheckCircle2 size={18} /> Installed</span>
-          <span aria-hidden="true">·</span>
-          <span className="category">{formatCategory(detail.category)}</span>
-          <span aria-hidden="true">·</span>
-          <span><Monitor size={16} /> {detail.groupName}</span>
-        </div>
         <p className="skills-detail-description">{detail.description || detail.name}</p>
-        <div className="skills-detail-path-row">
-          <code>{formatPath(detail.relativeDir || detail.relativePath)}</code>
-          <span aria-hidden="true">·</span>
+        <div className="skills-detail-meta-grid" title={`${platformLabel}: ${capabilityText}`}>
+          <span className="installed"><CheckCircle2 size={16} /> Installed</span>
+          <span className="category">{formatCategory(detail.category)}</span>
+          <span><Monitor size={15} /> {detail.groupName}</span>
           <span>{formatUpdatedAt(updatedAt)}</span>
+        </div>
+        <div className="skills-detail-path-row" aria-label="Skill path">
+          <code>{formatPath(detail.relativeDir || detail.relativePath)}</code>
         </div>
       </header>
 

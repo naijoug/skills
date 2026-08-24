@@ -578,7 +578,7 @@ html[data-skills-theme="dark"] #root {
 
 .skills-row {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr) 10px;
+  grid-template-columns: 28px minmax(0, 1fr) 22px;
   width: 100%;
   min-height: var(--skills-row-height, 68px);
   align-items: center;
@@ -615,11 +615,19 @@ html[data-skills-theme="dark"] #root {
 .skills-row-copy {
   display: grid;
   min-width: 0;
-  gap: 2px;
+  gap: 4px;
+}
+
+.skills-row-title-line {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
 }
 
 .skills-row-copy strong,
-.skills-row-copy small {
+.skills-row-copy small,
+.skills-row-meta code {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -636,7 +644,39 @@ html[data-skills-theme="dark"] #root {
   font-weight: 400;
 }
 
+.skills-row-category {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 999px;
+  padding: 1px 7px;
+  background: var(--surface-soft);
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 560;
+  line-height: 1.6;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skills-row-meta {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-subtle);
+  font-size: 11px;
+}
+
+.skills-row-meta code {
+  min-width: 0;
+  color: inherit;
+  font-family: "SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 .skills-row-status {
+  display: grid;
+  place-items: center;
   color: var(--success);
 }
 
@@ -769,7 +809,8 @@ html[data-skills-theme="dark"] #root {
   color: var(--text);
 }
 
-.skills-detail-status-line {
+.skills-detail-status-line,
+.skills-detail-meta-grid {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -779,23 +820,41 @@ html[data-skills-theme="dark"] #root {
   font-size: 13px;
 }
 
-.skills-detail-status-line > span {
+.skills-detail-status-line > span,
+.skills-detail-meta-grid > span {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
-.skills-detail-status-line .installed {
+.skills-detail-status-line .installed,
+.skills-detail-meta-grid .installed {
   color: var(--success);
   font-weight: 570;
 }
 
-.skills-detail-status-line .category {
+.skills-detail-status-line .category,
+.skills-detail-meta-grid .category {
   min-height: 25px;
   padding: 2px 9px;
   border-radius: 7px;
   background: var(--surface-soft);
   color: var(--text-muted);
+}
+
+.skills-detail-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  gap: 8px 10px;
+  margin-top: 20px;
+}
+
+.skills-detail-meta-grid > span {
+  min-height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  background: var(--surface-raised);
 }
 
 .skills-detail-description {
