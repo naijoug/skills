@@ -321,6 +321,13 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
           <SettingsListPane activeSection={activeSettingsSection} onActiveSectionChange={setActiveSettingsSection} />
         ) : (
           <>
+            <header className="skills-library-header">
+              <div>
+                <p>Skill library</p>
+                <h1>Your skills</h1>
+              </div>
+              <span>{library.skills.length} total</span>
+            </header>
             <div className="skills-search-row">
               <div className="skills-search-box">
                 <Search className="skills-search-icon" size={18} />

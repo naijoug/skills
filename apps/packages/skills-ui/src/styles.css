@@ -46,7 +46,7 @@ html[data-skills-theme="dark"] #root {
   --radius-lg: 14px;
 
   display: grid;
-  grid-template-columns: 268px 376px minmax(0, 1fr);
+  grid-template-columns: 236px minmax(360px, 42vw) minmax(360px, 1fr);
   width: 100vw;
   height: 100vh;
   min-width: 980px;
@@ -325,18 +325,55 @@ html[data-skills-theme="dark"] #root {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto minmax(0, 1fr);
   min-width: 0;
   overflow: hidden;
   border-right: 1px solid var(--border);
   background: var(--list-surface);
 }
 
+.skills-library-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 26px 22px 4px;
+}
+
+.skills-library-header p {
+  margin: 0 0 2px;
+  color: var(--text-subtle);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.skills-library-header h1 {
+  margin: 0;
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 680;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.skills-library-header > span {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 9px;
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 560;
+}
+
 .skills-search-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 42px;
   gap: 10px;
-  padding: 26px 20px 16px;
+  padding: 16px 20px 14px;
 }
 
 .skills-search-box {
@@ -612,7 +649,8 @@ html[data-skills-theme="dark"] #root {
 .skills-detail-pane {
   min-width: 0;
   overflow: hidden;
-  background: var(--canvas);
+  padding: 14px 14px 14px 0;
+  background: var(--list-surface);
 }
 
 .skills-detail {
@@ -621,6 +659,10 @@ html[data-skills-theme="dark"] #root {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--canvas);
+  box-shadow: 0 18px 50px rgba(31, 32, 29, 0.06);
 }
 
 .skills-detail-header {
@@ -1438,7 +1480,7 @@ html[data-skills-theme="dark"] #root {
 
 @media (max-width: 1220px) {
   .skills-shell {
-    grid-template-columns: 224px 336px minmax(0, 1fr);
+    grid-template-columns: 224px minmax(332px, 40vw) minmax(340px, 1fr);
   }
 
   .skills-detail-header {
@@ -1463,7 +1505,7 @@ html[data-skills-theme="dark"] #root {
 
 @media (max-width: 1040px) {
   .skills-shell {
-    grid-template-columns: 196px 320px minmax(0, 1fr);
+    grid-template-columns: 208px minmax(308px, 42vw) minmax(320px, 1fr);
   }
 
   .skills-sidebar-brand {
