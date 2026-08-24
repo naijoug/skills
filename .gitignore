@@ -34,7 +34,9 @@ skills/manual/tool/search/workspace/
 # Local Skills Manager imports/cache
 .skills-manager-data/
 
-# Local QA workspace
+# Local design/uploads workspaces
+.design/
+.uploads/
 .qa/
 
 # Local macOS signing secrets (public .cer files remain trackable)
