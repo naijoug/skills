@@ -389,7 +389,7 @@ html[data-skills-theme="dark"] #root {
   border: 1px solid var(--border-strong);
   border-radius: 11px;
   outline: 0;
-  padding: 0 42px 0 45px;
+  padding: 0 104px 0 45px;
   background: var(--surface-raised);
   color: var(--text);
   box-shadow: 0 1px 1px rgba(20, 20, 18, 0.02);
@@ -415,9 +415,25 @@ html[data-skills-theme="dark"] #root {
 .skills-search-kbd {
   position: absolute;
   right: 11px;
-  display: none;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
   color: var(--text-subtle);
   font-size: 11px;
+  pointer-events: none;
+}
+
+.skills-search-kbd kbd {
+  min-width: 26px;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-soft);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 610;
+  line-height: 1.35;
+  text-align: center;
 }
 
 .skills-filter-action,

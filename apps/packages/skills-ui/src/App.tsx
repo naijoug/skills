@@ -98,6 +98,21 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
     }
   }, [status]);
 
+  useEffect(() => {
+    function handleSearchShortcut(event: KeyboardEvent): void {
+      if (!shouldFocusSearchFromShortcut(event)) {
+        return;
+      }
+      event.preventDefault();
+      setPrimaryView("library");
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+    }
+
+    window.addEventListener("keydown", handleSearchShortcut);
+    return () => window.removeEventListener("keydown", handleSearchShortcut);
+  }, []);
+
   const visibleSkills = useMemo(() => {
     return skillsForView(library, selectedGroupId, query);
   }, [library.skills, query, selectedGroupId]);
@@ -331,8 +346,17 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
             <div className="skills-search-row">
               <div className="skills-search-box">
                 <Search className="skills-search-icon" size={18} />
-                <input ref={searchInputRef} value={query} onChange={(event) => void updateQuery(event.target.value)} placeholder="Search skills..." />
-                <span className="skills-search-kbd">⌘K</span>
+                <input
+                  ref={searchInputRef}
+                  value={query}
+                  onChange={(event) => void updateQuery(event.target.value)}
+                  placeholder="Search skills..."
+                  aria-label="Search skills"
+                />
+                <span className="skills-search-kbd" aria-hidden="true">
+                  <kbd>⌘K</kbd>
+                  <kbd>Ctrl K</kbd>
+                </span>
               </div>
               <button className="skills-filter-action" type="button" aria-label="Open repository filters" onClick={openRepositories}>
                 <SlidersHorizontal size={19} />
@@ -486,6 +510,27 @@ function initialSettingsSection(): SettingsSectionId {
   }
   const section = window.location.hash.replace(/^#settings\/?/, "");
   return section === "browser" || section === "translation" || section === "desktop" || section === "appearance" ? section : "appearance";
+}
+
+export function shouldFocusSearchFromShortcut(event: Pick<KeyboardEvent, "key" | "metaKey" | "ctrlKey" | "altKey" | "shiftKey" | "target">): boolean {
+  if (event.key.toLowerCase() !== "k" || event.altKey || event.shiftKey || (!event.metaKey && !event.ctrlKey)) {
+    return false;
+  }
+  if (isEditableShortcutTarget(event.target)) {
+    return false;
+  }
+  return true;
+}
+
+function isEditableShortcutTarget(target: EventTarget | null): boolean {
+  if (typeof HTMLElement === "undefined") {
+    return false;
+  }
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+  const tagName = target.tagName.toLowerCase();
+  return target.isContentEditable || tagName === "input" || tagName === "textarea" || tagName === "select";
 }
 
 async function writeTextOrDownload(text: string, fileName: string): Promise<"clipboard" | "download"> {
