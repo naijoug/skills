@@ -10,6 +10,21 @@ import type {
 } from "@skills-manager/core";
 import type { ResolvedSkillSource } from "./AgentToolInstaller";
 
+const MANIFEST_FILENAME = ".skills-linker-manifest.json";
+const LEGACY_MANIFEST_FILENAME = ".skills-linker-manifest.tsv";
+
+interface SkillManifest {
+  version: 1;
+  skills: Record<string, SkillManifestEntry>;
+}
+
+interface SkillManifestEntry {
+  mode: InstallMode;
+  source: string;
+  installedAt: string;
+  updatedAt: string;
+}
+
 export function destinationFor(target: InstallTarget, skill: ResolvedSkillSource): string {
   return join(target.skillsDir, skill.installName);
 }
@@ -163,38 +178,77 @@ export async function uninstallSkillSources(input: {
 
 async function upsertManifest(target: InstallTarget, skill: ResolvedSkillSource, mode: InstallMode): Promise<void> {
   await mkdir(target.skillsDir, { recursive: true });
-  const manifestPath = join(target.skillsDir, ".skills-linker-manifest.tsv");
-  const existing = await readManifestLines(manifestPath);
-  const nextLines = existing.filter((line) => line.split("\t")[0] !== skill.installName);
-  nextLines.push([skill.installName, mode, skill.sourceDir, new Date().toISOString().replace(/\.\d{3}Z$/, "Z")].join("\t"));
-  await writeFile(manifestPath, `${nextLines.join("\n")}\n`, "utf8");
+  const manifest = await readManifest(target);
+  const now = nowIso();
+  manifest.skills[skill.installName] = {
+    mode,
+    source: skill.sourceDir,
+    installedAt: manifest.skills[skill.installName]?.installedAt ?? now,
+    updatedAt: now
+  };
+  await writeManifest(target, manifest);
 }
 
 async function removeManifestEntry(target: InstallTarget, skill: ResolvedSkillSource): Promise<void> {
-  const manifestPath = join(target.skillsDir, ".skills-linker-manifest.tsv");
-  const existing = await readManifestLines(manifestPath);
-  if (!existing.length) {
-    return;
-  }
-  const nextLines = existing.filter((line) => line.split("\t")[0] !== skill.installName);
-  if (nextLines.length) {
-    await writeFile(manifestPath, `${nextLines.join("\n")}\n`, "utf8");
-  } else {
-    await rm(manifestPath, { force: true });
-  }
+  const manifest = await readManifest(target);
+  delete manifest.skills[skill.installName];
+  await writeManifest(target, manifest);
 }
 
 async function hasManifestEntry(target: InstallTarget, skill: ResolvedSkillSource): Promise<boolean> {
-  const manifestPath = join(target.skillsDir, ".skills-linker-manifest.tsv");
-  return (await readManifestLines(manifestPath)).some((line) => line.split("\t")[0] === skill.installName);
+  return Boolean((await readManifest(target)).skills[skill.installName]);
 }
 
-async function readManifestLines(path: string): Promise<string[]> {
+async function readManifest(target: InstallTarget): Promise<SkillManifest> {
+  const manifestPath = join(target.skillsDir, MANIFEST_FILENAME);
+  const legacyManifestPath = join(target.skillsDir, LEGACY_MANIFEST_FILENAME);
   try {
-    return (await readFile(path, "utf8")).split(/\r?\n/).filter(Boolean);
+    const parsed = JSON.parse(await readFile(manifestPath, "utf8")) as Partial<SkillManifest>;
+    return {
+      version: 1,
+      skills: parsed.skills && typeof parsed.skills === "object" && !Array.isArray(parsed.skills) ? parsed.skills : {}
+    };
   } catch {
-    return [];
+    return { version: 1, skills: await readLegacyManifest(legacyManifestPath) };
   }
+}
+
+async function writeManifest(target: InstallTarget, manifest: SkillManifest): Promise<void> {
+  const manifestPath = join(target.skillsDir, MANIFEST_FILENAME);
+  const legacyManifestPath = join(target.skillsDir, LEGACY_MANIFEST_FILENAME);
+  if (!Object.keys(manifest.skills).length) {
+    await rm(manifestPath, { force: true });
+    await rm(legacyManifestPath, { force: true });
+    return;
+  }
+  await writeFile(manifestPath, `${JSON.stringify({ version: 1, skills: manifest.skills }, null, 2)}\n`, "utf8");
+  await rm(legacyManifestPath, { force: true });
+}
+
+async function readLegacyManifest(path: string): Promise<Record<string, SkillManifestEntry>> {
+  try {
+    const skills: Record<string, SkillManifestEntry> = {};
+    for (const line of (await readFile(path, "utf8")).split(/\r?\n/).filter(Boolean)) {
+      const [id, mode, source, timestamp] = line.split("\t");
+      if (!id) {
+        continue;
+      }
+      const installedAt = timestamp || nowIso();
+      skills[id] = {
+        mode: mode === "symlink" ? "symlink" : "copy",
+        source: source || "",
+        installedAt,
+        updatedAt: installedAt
+      };
+    }
+    return skills;
+  } catch {
+    return {};
+  }
+}
+
+function nowIso(): string {
+  return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
 async function installSlashCommand(target: InstallTarget, skill: ResolvedSkillSource, overwrite: boolean): Promise<void> {

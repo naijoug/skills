@@ -76,9 +76,17 @@ describe("agent installers", () => {
       expect.objectContaining({ skillId: skill.skillId, targetId: target.id, status: "installed" })
     ]);
     await expect(readFile(join(target.skillsDir, "ng-tool-test", "SKILL.md"), "utf8")).resolves.toContain("Test Skill");
-    await expect(readFile(join(target.skillsDir, ".skills-linker-manifest.tsv"), "utf8")).resolves.toMatch(
-      /^ng-tool-test\tcopy\t.+source-skill\t\d{4}-\d{2}-\d{2}T/
-    );
+    const manifest = JSON.parse(await readFile(join(target.skillsDir, ".skills-linker-manifest.json"), "utf8"));
+    expect(manifest).toMatchObject({
+      version: 1,
+      skills: {
+        "ng-tool-test": {
+          mode: "copy",
+          source: sourceDir
+        }
+      }
+    });
+    expect(manifest.skills["ng-tool-test"].installedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     await expect(readFile(join(target.slashCommandsDir!, "ng-tool-test.md"), "utf8")).resolves.toContain(
       "skills-linker:slash:ng-tool-test"
     );
@@ -98,7 +106,7 @@ describe("agent installers", () => {
     const uninstalled = await uninstallSkillSources({ skills: [skill], targets: [target], withSlashCommands: true });
     expect(uninstalled.items).toEqual([expect.objectContaining({ status: "uninstalled" })]);
     await expect(readFile(join(target.slashCommandsDir!, "ng-tool-test.md"), "utf8")).rejects.toThrow();
-    await expect(readFile(join(target.skillsDir, ".skills-linker-manifest.tsv"), "utf8")).rejects.toThrow();
+    await expect(readFile(join(target.skillsDir, ".skills-linker-manifest.json"), "utf8")).rejects.toThrow();
     await expect(getInstallStatusForTargets([skill], [target])).resolves.toEqual([
       expect.objectContaining({ installed: false, conflict: false })
     ]);
@@ -132,11 +140,44 @@ describe("agent installers", () => {
     expect(installed.items).toEqual([expect.objectContaining({ status: "installed" })]);
     expect((await lstat(join(target.skillsDir, "ng-tool-test"))).isSymbolicLink()).toBe(true);
     await expect(readFile(join(target.skillsDir, "ng-tool-test", "SKILL.md"), "utf8")).resolves.toContain("Test Skill");
-    await expect(readFile(join(target.skillsDir, ".skills-linker-manifest.tsv"), "utf8")).resolves.toContain("ng-tool-test\tsymlink\t");
+    await expect(readFile(join(target.skillsDir, ".skills-linker-manifest.json"), "utf8")).resolves.toContain('"mode": "symlink"');
 
     const uninstalled = await uninstallSkillSources({ skills: [skill], targets: [target] });
     expect(uninstalled.items).toEqual([expect.objectContaining({ status: "uninstalled" })]);
     await expect(lstat(join(target.skillsDir, "ng-tool-test"))).rejects.toThrow();
+  });
+
+  it("reads legacy TSV manifests and migrates them on write", async () => {
+    const home = await tempHome();
+    const sourceDir = join(home, "source-skill");
+    await mkdir(sourceDir, { recursive: true });
+    await writeFile(join(sourceDir, "SKILL.md"), "# Test Skill\n", "utf8");
+
+    const target = (await new CodexInstaller(home).detectTargets())[0];
+    const skill: ResolvedSkillSource = {
+      skillId: "local%3Aworkspace::manual%2Ftool%2Ftest%2FSKILL.md",
+      sourceDir,
+      installName: "ng-tool-test",
+      relativePath: "manual/tool/test/SKILL.md",
+      category: "manual/tool"
+    };
+
+    await mkdir(join(target.skillsDir, "ng-tool-test"), { recursive: true });
+    await writeFile(join(target.skillsDir, "ng-tool-test", "SKILL.md"), "# Test Skill\n", "utf8");
+    await writeFile(
+      join(target.skillsDir, ".skills-linker-manifest.tsv"),
+      `ng-tool-test\tcopy\t${sourceDir}\t2026-01-01T00:00:00Z\n`,
+      "utf8"
+    );
+
+    await expect(getInstallStatusForTargets([skill], [target])).resolves.toEqual([
+      expect.objectContaining({ installed: true, conflict: false })
+    ]);
+
+    const uninstalled = await uninstallSkillSources({ skills: [skill], targets: [target] });
+    expect(uninstalled.items).toEqual([expect.objectContaining({ status: "uninstalled" })]);
+    await expect(readFile(join(target.skillsDir, ".skills-linker-manifest.tsv"), "utf8")).rejects.toThrow();
+    await expect(readFile(join(target.skillsDir, ".skills-linker-manifest.json"), "utf8")).rejects.toThrow();
   });
 
   it("rejects unsupported install modes and conflict policies", async () => {
