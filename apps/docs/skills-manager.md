@@ -158,7 +158,7 @@ cd ../../..
 - 桌面端支持安装到全局目标 `~/.codex/skills`、`~/.claude/skills`、`~/.agents/skills`，也支持安装到当前项目目标 `{repo}/.codex/skills`、`{repo}/.claude/skills`、`{repo}/.agents/skills`。安装模式支持 copy 和 symlink，冲突策略由 UI 请求决定；同一目标也支持从 UI 触发卸载。ChatGPT 目标作为 Codex alias，使用 `.codex` 路径。桌面后端在 Unix/macOS 使用目录 symlink，在 Windows 使用 directory symlink。
 - 桌面端安装/卸载会拒绝未知 `targetId`，避免前端或外部调用把拼写错误静默执行为空操作。
 - 桌面端安装面板默认使用 copy 模式；切换 skill 时会根据当前 skill 的状态重置目标勾选并清理上一条安装消息，未安装的 skill 不会默认勾选任何目标，只有 manifest 托管的已安装 skill 会预选已安装目标，避免误装到多个 agent 目录。安装状态请求带竞态防护，快速切换 skill 时旧响应不会覆盖当前状态。目标路径存在但没有 manifest 记录时会显示为 conflict，而不是 installed。
-- 桌面端安装会写入目标目录下的 `.skills-linker-manifest.tsv`，格式与 `apps/skills-manager-tui/skills-linker` 保持一致；卸载或发现目标缺失时会清理对应 manifest 行，方便后续继续使用 CLI/TUI 管理。
+- 桌面端安装会写入目标目录下的 `.skills-linker-manifest.json`，格式与 `apps/skills-manager-tui/skills-linker` 保持一致；卸载或发现目标缺失时会清理对应 manifest 条目，方便后续继续使用 CLI/TUI 管理。旧 `.skills-linker-manifest.tsv` 仅作为迁移输入读取，下一次写入后会移除。
 - 桌面端卸载默认只删除 manifest 托管的 skill 目录；如果目标目录存在但没有 manifest 条目，会返回 skipped，避免误删用户手动放入的内容。
 - 桌面端安装 `manual/**` skills 时可以选择同步生成 slash command wrapper：Codex / ChatGPT 写入 `.codex/prompts/<skill-name>.md`，Claude Code 写入 `.claude/commands/<skill-name>.md`。wrapper 使用 `skills-linker:slash:<skill-name>` marker，卸载时只清理带 marker 的托管文件。
 - 桌面端安装目录名称使用 `SKILL.md` frontmatter 的 `name` 或 `skill.yaml` 的 `id`，与 `apps/skills-manager-tui/skills-linker` 的命名约定保持一致。

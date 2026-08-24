@@ -206,7 +206,7 @@ Desktop 边界：
 - 补齐 ChatGPT alias：共享 installer、mock adapter 和 Tauri 桌面端增加 `chatgpt-global` target，路径复用 `~/.codex/skills` / `~/.codex/prompts`，与 `skills-linker` 中 ChatGPT alias to Codex 的约定一致。
 - 补齐导入仓库生命周期：共享 adapter 增加 `removeRepository`，Web API 和 Tauri 桌面端支持删除导入仓库 metadata 并清理本地 cache；UI 在选中导入 group 时提供删除入口，本地 workspace group 不允许删除。
 - 补齐 project scope 安装目标：共享 installer、mock adapter 和 Tauri 桌面端增加当前项目级 Codex / ChatGPT / Claude Code / Amp targets，对齐 `skills-linker --scope project` 的路径约定。
-- 补齐 `skills-linker` manifest 兼容：共享 installer 和 Tauri 桌面安装会写 `.skills-linker-manifest.tsv`，卸载/缺失路径会清理对应条目，使 CLI/TUI 后续可以识别托管安装。
+- 补齐 `skills-linker` manifest 兼容：共享 installer 和 Tauri 桌面安装会写 `.skills-linker-manifest.json`，卸载/缺失路径会清理对应条目，使 CLI/TUI 后续可以识别托管安装；旧 `.skills-linker-manifest.tsv` 仅作为迁移输入读取。
 - 加强卸载安全边界：共享 installer 和 Tauri 桌面卸载默认只删除 manifest 托管的目标；未托管但路径存在时返回 skipped，避免误删手动安装内容。
 - 加固 Web GitHub API 导入/刷新：`github-api` 路径先读取仓库 metadata 的默认分支，再按默认分支读取 tree，并将默认分支写入本地 `library.json`；刷新时会重新同步默认分支，避免依赖固定分支名或 `HEAD` 约定。
 - 收紧安装 UI 默认选择：安装面板不再默认勾选所有 agent 目标；仅在 skill 已安装时预选已安装目标，避免误装到多个全局/项目目录。

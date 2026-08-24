@@ -4,7 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 DEFAULT_SKILLS_ROOT="$ROOT_DIR/skills"
 DEFAULT_PROJECT_ROOT="$PWD"
-MANIFEST_FILENAME=".skills-linker-manifest.tsv"
+MANIFEST_FILENAME=".skills-linker-manifest.json"
+LEGACY_MANIFEST_FILENAME=".skills-linker-manifest.tsv"
 
 usage() {
   cat <<'EOF'
@@ -257,13 +258,108 @@ manifest_path() {
   echo "$target_dir/$MANIFEST_FILENAME"
 }
 
+legacy_manifest_path() {
+  local target_dir="$1"
+  echo "$target_dir/$LEGACY_MANIFEST_FILENAME"
+}
+
+manifest_json() {
+  local action="$1"
+  local target_dir="$2"
+  local skill_id="${3:-}"
+  local mode="${4:-}"
+  local source="${5:-}"
+  node - "$action" "$target_dir" "$skill_id" "$mode" "$source" <<'NODE'
+const fs = require("fs");
+const path = require("path");
+
+const [action, targetDir, skillId, mode, source] = process.argv.slice(2);
+const jsonPath = path.join(targetDir, ".skills-linker-manifest.json");
+const legacyPath = path.join(targetDir, ".skills-linker-manifest.tsv");
+
+function nowIso() {
+  return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
+function readLegacySkills() {
+  if (!fs.existsSync(legacyPath)) {
+    return {};
+  }
+  const skills = {};
+  for (const line of fs.readFileSync(legacyPath, "utf8").split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    const [id, legacyMode, legacySource, timestamp] = line.split("\t");
+    if (!id) continue;
+    const time = timestamp || nowIso();
+    skills[id] = {
+      mode: legacyMode || "copy",
+      source: legacySource || "",
+      installedAt: time,
+      updatedAt: time,
+    };
+  }
+  return skills;
+}
+
+function readManifest() {
+  if (fs.existsSync(jsonPath)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+      return {
+        version: parsed && Number.isInteger(parsed.version) ? parsed.version : 1,
+        skills: parsed && parsed.skills && typeof parsed.skills === "object" && !Array.isArray(parsed.skills)
+          ? parsed.skills
+          : {},
+      };
+    } catch {
+      return { version: 1, skills: {} };
+    }
+  }
+  return { version: 1, skills: readLegacySkills() };
+}
+
+function writeManifest(manifest) {
+  const skills = manifest.skills || {};
+  fs.mkdirSync(targetDir, { recursive: true });
+  if (Object.keys(skills).length === 0) {
+    fs.rmSync(jsonPath, { force: true });
+    fs.rmSync(legacyPath, { force: true });
+    return;
+  }
+  fs.writeFileSync(jsonPath, `${JSON.stringify({ version: 1, skills }, null, 2)}\n`, "utf8");
+  fs.rmSync(legacyPath, { force: true });
+}
+
+const manifest = readManifest();
+if (action === "get-mode") {
+  const entry = manifest.skills[skillId];
+  if (entry && typeof entry.mode === "string") {
+    process.stdout.write(entry.mode);
+  }
+} else if (action === "upsert") {
+  const previous = manifest.skills[skillId];
+  const time = nowIso();
+  manifest.skills[skillId] = {
+    mode,
+    source,
+    installedAt: previous && typeof previous.installedAt === "string" ? previous.installedAt : time,
+    updatedAt: time,
+  };
+  writeManifest(manifest);
+} else if (action === "remove") {
+  delete manifest.skills[skillId];
+  writeManifest(manifest);
+} else {
+  console.error(`unknown manifest action: ${action}`);
+  process.exit(1);
+}
+NODE
+}
+
 manifest_get_mode() {
   local target_dir="$1"
   local skill_id="$2"
-  local file
-  file="$(manifest_path "$target_dir")"
-  [[ -f "$file" ]] || return 0
-  awk -F '\t' -v skill="$skill_id" '$1 == skill {print $2}' "$file" | tail -n1
+  manifest_json "get-mode" "$target_dir" "$skill_id"
 }
 
 manifest_upsert() {
@@ -271,30 +367,13 @@ manifest_upsert() {
   local skill_id="$2"
   local mode="$3"
   local source="$4"
-  local file tmp
-  file="$(manifest_path "$target_dir")"
-  mkdir -p "$target_dir"
-  tmp="$(mktemp)"
-  if [[ -f "$file" ]]; then
-    awk -F '\t' -v skill="$skill_id" '$1 != skill {print $0}' "$file" >"$tmp"
-  fi
-  printf "%s\t%s\t%s\t%s\n" "$skill_id" "$mode" "$source" "$(date -u +%FT%TZ)" >>"$tmp"
-  mv "$tmp" "$file"
+  manifest_json "upsert" "$target_dir" "$skill_id" "$mode" "$source"
 }
 
 manifest_remove() {
   local target_dir="$1"
   local skill_id="$2"
-  local file tmp
-  file="$(manifest_path "$target_dir")"
-  [[ -f "$file" ]] || return 0
-  tmp="$(mktemp)"
-  awk -F '\t' -v skill="$skill_id" '$1 != skill {print $0}' "$file" >"$tmp"
-  if [[ -s "$tmp" ]]; then
-    mv "$tmp" "$file"
-  else
-    rm -f "$tmp" "$file"
-  fi
+  manifest_json "remove" "$target_dir" "$skill_id"
 }
 
 resolve_instruction_file() {

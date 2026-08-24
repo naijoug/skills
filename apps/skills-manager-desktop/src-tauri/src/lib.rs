@@ -6,6 +6,9 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
 
+const MANIFEST_FILENAME: &str = ".skills-linker-manifest.json";
+const LEGACY_MANIFEST_FILENAME: &str = ".skills-linker-manifest.tsv";
+
 #[derive(Serialize)]
 struct Health {
     ok: bool,
@@ -76,7 +79,10 @@ fn import_repository(input: Value) -> Result<Value, String> {
     clone_or_pull(&repo)?;
     let repo_path = repos_dir().join(&repo.slug);
     if read_skill_sources(&repo_path)?.is_empty() {
-        return Err("This repository does not contain a detectable skills directory or SKILL.md files.".to_string());
+        return Err(
+            "This repository does not contain a detectable skills directory or SKILL.md files."
+                .to_string(),
+        );
     }
 
     let now = now_iso();
@@ -710,7 +716,10 @@ fn has_skill_files(root: &Path) -> Result<bool, String> {
 fn read_related_files(skill_dir: &Path, scan_root: &Path) -> Result<Vec<Value>, String> {
     let mut files = Vec::new();
     walk_files(skill_dir, &mut |path| {
-        let file_name = path.file_name().and_then(|value| value.to_str()).unwrap_or_default();
+        let file_name = path
+            .file_name()
+            .and_then(|value| value.to_str())
+            .unwrap_or_default();
         if file_name == "SKILL.md" || file_name == "skill.yaml" {
             return Ok(());
         }
@@ -734,11 +743,16 @@ fn read_related_files(skill_dir: &Path, scan_root: &Path) -> Result<Vec<Value>, 
         }));
         Ok(())
     })?;
-    files.sort_by(|left, right| value_string(left, "relativePath").cmp(&value_string(right, "relativePath")));
+    files.sort_by(|left, right| {
+        value_string(left, "relativePath").cmp(&value_string(right, "relativePath"))
+    });
     Ok(files)
 }
 
-fn walk_files(directory: &Path, on_file: &mut dyn FnMut(&Path) -> Result<(), String>) -> Result<(), String> {
+fn walk_files(
+    directory: &Path,
+    on_file: &mut dyn FnMut(&Path) -> Result<(), String>,
+) -> Result<(), String> {
     let entries = match fs::read_dir(directory) {
         Ok(entries) => entries,
         Err(_) => return Ok(()),
@@ -769,14 +783,20 @@ fn related_file_kind(path: &str) -> &'static str {
     } else if matches_extension(
         &normalized,
         &[
-            "ts", "tsx", "js", "jsx", "mjs", "cjs", "py", "rs", "go", "java", "rb", "sh",
-            "zsh", "bash", "fish", "sql", "css", "scss", "html", "jsonc",
+            "ts", "tsx", "js", "jsx", "mjs", "cjs", "py", "rs", "go", "java", "rb", "sh", "zsh",
+            "bash", "fish", "sql", "css", "scss", "html", "jsonc",
         ],
     ) {
         "code"
-    } else if matches_extension(&normalized, &["yaml", "yml", "json", "toml", "ini", "env", "lock"]) {
+    } else if matches_extension(
+        &normalized,
+        &["yaml", "yml", "json", "toml", "ini", "env", "lock"],
+    ) {
         "config"
-    } else if matches_extension(&normalized, &["png", "jpg", "jpeg", "gif", "webp", "svg", "pdf"]) {
+    } else if matches_extension(
+        &normalized,
+        &["png", "jpg", "jpeg", "gif", "webp", "svg", "pdf"],
+    ) {
         "asset"
     } else {
         "other"
@@ -784,7 +804,9 @@ fn related_file_kind(path: &str) -> &'static str {
 }
 
 fn matches_extension(path: &str, extensions: &[&str]) -> bool {
-    extensions.iter().any(|extension| path.ends_with(&format!(".{extension}")))
+    extensions
+        .iter()
+        .any(|extension| path.ends_with(&format!(".{extension}")))
 }
 
 fn parse_skill_file(group: &GroupData, source: &SkillSource) -> Result<Value, String> {
@@ -1023,7 +1045,10 @@ fn github_repo_info(owner: &str, repo: &str, clone_url: String) -> Result<RepoIn
 }
 
 fn gitlab_repo_info(namespace_path: &str, clone_url: String) -> Result<RepoInfo, String> {
-    let parts: Vec<&str> = namespace_path.split('/').filter(|part| !part.is_empty()).collect();
+    let parts: Vec<&str> = namespace_path
+        .split('/')
+        .filter(|part| !part.is_empty())
+        .collect();
     if parts.len() < 2 || !parts.iter().all(|part| is_repo_path_segment(part)) {
         return Err("GitLab URL must include a namespace and repository.".to_string());
     }
@@ -1039,7 +1064,10 @@ fn gitlab_repo_info(namespace_path: &str, clone_url: String) -> Result<RepoInfo,
 
 fn gitlab_namespace_from_url_path(path: &str) -> String {
     let parts: Vec<&str> = path.split('/').filter(|part| !part.is_empty()).collect();
-    let route_index = parts.iter().position(|part| *part == "-").unwrap_or(parts.len());
+    let route_index = parts
+        .iter()
+        .position(|part| *part == "-")
+        .unwrap_or(parts.len());
     parts[..route_index].join("/")
 }
 
@@ -1199,71 +1227,132 @@ fn upsert_manifest(
             target.skills_dir.display()
         )
     })?;
-    let manifest = manifest_file(target);
-    let mut lines = read_manifest_lines(&manifest)
-        .into_iter()
-        .filter(|line| line.split('\t').next() != Some(source.install_name.as_str()))
-        .collect::<Vec<_>>();
-    lines.push(format!(
-        "{}\t{}\t{}\t{}",
-        source.install_name,
-        mode,
-        source.source_dir.display(),
-        now_iso()
-    ));
-    fs::write(&manifest, format!("{}\n", lines.join("\n")))
-        .map_err(|error| format!("Failed to write manifest {}: {error}", manifest.display()))
+    let mut skills = read_manifest_skills(target);
+    let now = now_iso();
+    let installed_at = skills
+        .get(&source.install_name)
+        .and_then(|entry| entry.get("installedAt"))
+        .and_then(Value::as_str)
+        .unwrap_or(&now)
+        .to_string();
+    skills.insert(
+        source.install_name.clone(),
+        json!({
+            "mode": mode,
+            "source": source.source_dir,
+            "installedAt": installed_at,
+            "updatedAt": now
+        }),
+    );
+    write_manifest_skills(target, skills)
 }
 
 fn remove_manifest_entry(
     target: &InstallTargetData,
     source: &ResolvedSkillSource,
 ) -> Result<(), String> {
-    let manifest = manifest_file(target);
-    let lines = read_manifest_lines(&manifest);
-    if lines.is_empty() {
-        return Ok(());
-    }
-    let next = lines
-        .into_iter()
-        .filter(|line| line.split('\t').next() != Some(source.install_name.as_str()))
-        .collect::<Vec<_>>();
-    if next.is_empty() {
-        fs::remove_file(&manifest)
-            .or_else(|error| {
-                if error.kind() == io::ErrorKind::NotFound {
-                    Ok(())
-                } else {
-                    Err(error)
-                }
-            })
-            .map_err(|error| format!("Failed to remove manifest {}: {error}", manifest.display()))
-    } else {
-        fs::write(&manifest, format!("{}\n", next.join("\n")))
-            .map_err(|error| format!("Failed to write manifest {}: {error}", manifest.display()))
-    }
+    let mut skills = read_manifest_skills(target);
+    skills.remove(&source.install_name);
+    write_manifest_skills(target, skills)
 }
 
 fn has_manifest_entry(target: &InstallTargetData, source: &ResolvedSkillSource) -> bool {
-    read_manifest_lines(&manifest_file(target))
-        .iter()
-        .any(|line| line.split('\t').next() == Some(source.install_name.as_str()))
+    read_manifest_skills(target).contains_key(&source.install_name)
 }
 
 fn manifest_file(target: &InstallTargetData) -> PathBuf {
-    target.skills_dir.join(".skills-linker-manifest.tsv")
+    target.skills_dir.join(MANIFEST_FILENAME)
 }
 
-fn read_manifest_lines(path: &Path) -> Vec<String> {
-    fs::read_to_string(path)
-        .map(|content| {
-            content
-                .lines()
-                .filter(|line| !line.trim().is_empty())
-                .map(ToString::to_string)
-                .collect()
-        })
-        .unwrap_or_default()
+fn legacy_manifest_file(target: &InstallTargetData) -> PathBuf {
+    target.skills_dir.join(LEGACY_MANIFEST_FILENAME)
+}
+
+fn read_manifest_skills(target: &InstallTargetData) -> Map<String, Value> {
+    let manifest = manifest_file(target);
+    if manifest.exists() {
+        return fs::read_to_string(&manifest)
+            .ok()
+            .and_then(|content| serde_json::from_str::<Value>(&content).ok())
+            .and_then(|value| value.get("skills").and_then(Value::as_object).cloned())
+            .unwrap_or_default();
+    }
+    read_legacy_manifest_skills(&legacy_manifest_file(target))
+}
+
+fn read_legacy_manifest_skills(path: &Path) -> Map<String, Value> {
+    let mut skills = Map::new();
+    let Ok(content) = fs::read_to_string(path) else {
+        return skills;
+    };
+    for line in content.lines().filter(|line| !line.trim().is_empty()) {
+        let mut fields = line.split('\t');
+        let Some(skill_id) = fields.next() else {
+            continue;
+        };
+        if skill_id.is_empty() {
+            continue;
+        }
+        let mode = fields.next().unwrap_or("copy");
+        let source = fields.next().unwrap_or("");
+        let timestamp = fields
+            .next()
+            .map(ToString::to_string)
+            .unwrap_or_else(now_iso);
+        skills.insert(
+            skill_id.to_string(),
+            json!({
+                "mode": if mode == "symlink" { "symlink" } else { "copy" },
+                "source": source,
+                "installedAt": timestamp.clone(),
+                "updatedAt": timestamp
+            }),
+        );
+    }
+    skills
+}
+
+fn write_manifest_skills(
+    target: &InstallTargetData,
+    skills: Map<String, Value>,
+) -> Result<(), String> {
+    let manifest = manifest_file(target);
+    let legacy_manifest = legacy_manifest_file(target);
+    if skills.is_empty() {
+        remove_file_if_exists(&manifest).map_err(|error| {
+            format!("Failed to remove manifest {}: {error}", manifest.display())
+        })?;
+        remove_file_if_exists(&legacy_manifest).map_err(|error| {
+            format!(
+                "Failed to remove legacy manifest {}: {error}",
+                legacy_manifest.display()
+            )
+        })?;
+        return Ok(());
+    }
+    let mut root = Map::new();
+    root.insert("version".to_string(), json!(1));
+    root.insert("skills".to_string(), Value::Object(skills));
+    let content = serde_json::to_string_pretty(&Value::Object(root))
+        .map_err(|error| format!("Failed to encode manifest {}: {error}", manifest.display()))?;
+    fs::write(&manifest, format!("{content}\n"))
+        .map_err(|error| format!("Failed to write manifest {}: {error}", manifest.display()))?;
+    remove_file_if_exists(&legacy_manifest).map_err(|error| {
+        format!(
+            "Failed to remove legacy manifest {}: {error}",
+            legacy_manifest.display()
+        )
+    })
+}
+
+fn remove_file_if_exists(path: &Path) -> io::Result<()> {
+    fs::remove_file(path).or_else(|error| {
+        if error.kind() == io::ErrorKind::NotFound {
+            Ok(())
+        } else {
+            Err(error)
+        }
+    })
 }
 
 fn remove_slash_command(
@@ -1702,7 +1791,9 @@ fn translation_source_markdown(detail: &Value, source_mode: &str) -> Result<Stri
     }
     let title = string_field(detail, "title").unwrap_or_else(|| "Skill".to_string());
     let mut sections = vec![format!("# {title}")];
-    if let Some(description) = string_field(detail, "description").filter(|value| !value.trim().is_empty()) {
+    if let Some(description) =
+        string_field(detail, "description").filter(|value| !value.trim().is_empty())
+    {
         sections.push(description);
     }
     let references = extract_markdown_section(&content, "References");
@@ -1740,7 +1831,11 @@ fn translation_instructions(target_language: &str) -> String {
     .join(" ")
 }
 
-fn translate_with_openai(skill_id: &str, target_language: &str, markdown: &str) -> Result<Value, String> {
+fn translate_with_openai(
+    skill_id: &str,
+    target_language: &str,
+    markdown: &str,
+) -> Result<Value, String> {
     let api_key = openai_api_key()?.ok_or_else(|| {
         "OpenAI translation provider is not configured. Set OPENAI_API_KEY or save an OpenAI key in the desktop app.".to_string()
     })?;
@@ -1766,7 +1861,11 @@ fn translate_with_openai(skill_id: &str, target_language: &str, markdown: &str) 
     }))
 }
 
-fn translate_with_openrouter(skill_id: &str, target_language: &str, markdown: &str) -> Result<Value, String> {
+fn translate_with_openrouter(
+    skill_id: &str,
+    target_language: &str,
+    markdown: &str,
+) -> Result<Value, String> {
     let api_key = openrouter_api_key()?.ok_or_else(|| {
         "OpenRouter translation provider is not configured. Set OPENROUTER_API_KEY or save an OpenRouter key in the desktop app.".to_string()
     })?;
@@ -1864,7 +1963,10 @@ fn translate_with_local_agent(
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
         return Err(if stderr.is_empty() {
-            format!("{} translation command failed.", provider_label(provider_id))
+            format!(
+                "{} translation command failed.",
+                provider_label(provider_id)
+            )
         } else {
             normalize_local_agent_error(provider_id, &stderr)
         });
@@ -1879,7 +1981,11 @@ fn translate_with_local_agent(
     if let Some(path) = &codex_output_file {
         let _ = fs::remove_file(path);
     }
-    let translated_markdown = if stdout.is_empty() { file_output } else { stdout };
+    let translated_markdown = if stdout.is_empty() {
+        file_output
+    } else {
+        stdout
+    };
     if translated_markdown.is_empty() {
         let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
         if !stderr.is_empty() {
@@ -1922,7 +2028,11 @@ fn normalize_local_agent_error(provider_id: &str, message: &str) -> String {
     message.to_string()
 }
 
-fn run_agent_command(mut command: Command, timeout: std::time::Duration, label: &str) -> Result<Output, String> {
+fn run_agent_command(
+    mut command: Command,
+    timeout: std::time::Duration,
+    label: &str,
+) -> Result<Output, String> {
     command.stdout(Stdio::piped()).stderr(Stdio::piped());
     let mut child = command
         .spawn()
@@ -1930,7 +2040,9 @@ fn run_agent_command(mut command: Command, timeout: std::time::Duration, label: 
     let started = std::time::Instant::now();
     loop {
         match child.try_wait() {
-            Ok(Some(_status)) => return child.wait_with_output().map_err(|error| error.to_string()),
+            Ok(Some(_status)) => {
+                return child.wait_with_output().map_err(|error| error.to_string())
+            }
             Ok(None) => {
                 if started.elapsed() >= timeout {
                     let _ = child.kill();
@@ -1947,7 +2059,12 @@ fn run_agent_command(mut command: Command, timeout: std::time::Duration, label: 
     }
 }
 
-fn curl_json(endpoint: &str, api_key: &str, payload: &Value, error_label: &str) -> Result<Value, String> {
+fn curl_json(
+    endpoint: &str,
+    api_key: &str,
+    payload: &Value,
+    error_label: &str,
+) -> Result<Value, String> {
     let output = Command::new("curl")
         .args([
             "-sS",
@@ -2107,11 +2224,18 @@ mod tests {
         assert_eq!(info.id, "gitlab:acme/platform/skills");
         assert_eq!(info.name, "acme/platform/skills");
         assert_eq!(info.slug, "gitlab--acme-platform-skills");
-        assert_eq!(info.clone_url, "https://gitlab.com/acme/platform/skills.git");
+        assert_eq!(
+            info.clone_url,
+            "https://gitlab.com/acme/platform/skills.git"
+        );
 
-        let tree_url = normalize_github_url("https://gitlab.com/acme/platform/skills/-/tree/main").unwrap();
+        let tree_url =
+            normalize_github_url("https://gitlab.com/acme/platform/skills/-/tree/main").unwrap();
         assert_eq!(tree_url.id, "gitlab:acme/platform/skills");
-        assert_eq!(tree_url.clone_url, "https://gitlab.com/acme/platform/skills.git");
+        assert_eq!(
+            tree_url.clone_url,
+            "https://gitlab.com/acme/platform/skills.git"
+        );
     }
 
     #[test]
@@ -2126,7 +2250,9 @@ mod tests {
     #[test]
     fn builds_library_from_current_workspace() {
         let library = build_library().unwrap();
-        let expected_skill_count = read_skill_sources(&repo_root().join("skills")).unwrap().len();
+        let expected_skill_count = read_skill_sources(&repo_root().join("skills"))
+            .unwrap()
+            .len();
         let groups = library.get("groups").and_then(Value::as_array).unwrap();
         let local = groups
             .iter()
@@ -2171,8 +2297,17 @@ mod tests {
         );
         assert!(home.join(".codex/skills/in-english/SKILL.md").exists());
         let manifest =
-            fs::read_to_string(home.join(".codex/skills/.skills-linker-manifest.tsv")).unwrap();
-        assert!(manifest.contains("in-english\tcopy\t"));
+            fs::read_to_string(home.join(".codex/skills/.skills-linker-manifest.json")).unwrap();
+        let manifest: Value = serde_json::from_str(&manifest).unwrap();
+        assert_eq!(manifest.get("version").and_then(Value::as_i64), Some(1));
+        assert_eq!(
+            manifest
+                .get("skills")
+                .and_then(|skills| skills.get("in-english"))
+                .and_then(|entry| entry.get("mode"))
+                .and_then(Value::as_str),
+            Some("copy")
+        );
 
         let status = get_install_status(json!({ "skillIds": [skill_id] })).unwrap();
         assert_eq!(
@@ -2212,7 +2347,7 @@ mod tests {
         );
         assert!(!home.join(".codex/skills/in-english/SKILL.md").exists());
         assert!(!home
-            .join(".codex/skills/.skills-linker-manifest.tsv")
+            .join(".codex/skills/.skills-linker-manifest.json")
             .exists());
 
         let missing_result = uninstall_skills(json!({
@@ -2265,8 +2400,16 @@ mod tests {
         assert!(destination.is_symlink());
         assert!(destination.join("SKILL.md").exists());
         let manifest =
-            fs::read_to_string(home.join(".codex/skills/.skills-linker-manifest.tsv")).unwrap();
-        assert!(manifest.contains("in-english\tsymlink\t"));
+            fs::read_to_string(home.join(".codex/skills/.skills-linker-manifest.json")).unwrap();
+        let manifest: Value = serde_json::from_str(&manifest).unwrap();
+        assert_eq!(
+            manifest
+                .get("skills")
+                .and_then(|skills| skills.get("in-english"))
+                .and_then(|entry| entry.get("mode"))
+                .and_then(Value::as_str),
+            Some("symlink")
+        );
 
         let uninstall_result = uninstall_skills(json!({
             "skillIds": [skill_id],
@@ -2283,6 +2426,61 @@ mod tests {
             Some("uninstalled")
         );
         assert!(!destination.exists());
+
+        restore_home(old_home);
+        fs::remove_dir_all(home).unwrap();
+    }
+
+    #[test]
+    fn recognizes_and_removes_legacy_tsv_manifest() {
+        let _guard = ENV_LOCK.lock().unwrap();
+        let old_home = env::var_os("HOME");
+        let home = temp_dir("skills-manager-desktop-home");
+        let destination = home.join(".codex/skills/in-english");
+        fs::create_dir_all(&destination).unwrap();
+        fs::write(destination.join("SKILL.md"), "# In English\n").unwrap();
+        fs::write(
+            home.join(".codex/skills/.skills-linker-manifest.tsv"),
+            "in-english\tcopy\t/legacy/source\t2026-01-01T00:00:00Z\n",
+        )
+        .unwrap();
+        unsafe {
+            env::set_var("HOME", &home);
+        }
+
+        let skill_id = encode_skill_id("local:workspace", "auto/in-english/SKILL.md");
+        let status = get_install_status(json!({ "skillIds": [skill_id.clone()] })).unwrap();
+        assert_eq!(
+            status
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|item| item.get("targetId").and_then(Value::as_str) == Some("codex-global"))
+                .and_then(|item| item.get("installed"))
+                .and_then(Value::as_bool),
+            Some(true)
+        );
+
+        let uninstall_result = uninstall_skills(json!({
+            "skillIds": [skill_id],
+            "targetIds": ["codex-global"]
+        }))
+        .unwrap();
+        assert_eq!(
+            uninstall_result
+                .get("items")
+                .and_then(Value::as_array)
+                .and_then(|items| items.first())
+                .and_then(|item| item.get("status"))
+                .and_then(Value::as_str),
+            Some("uninstalled")
+        );
+        assert!(!home
+            .join(".codex/skills/.skills-linker-manifest.tsv")
+            .exists());
+        assert!(!home
+            .join(".codex/skills/.skills-linker-manifest.json")
+            .exists());
 
         restore_home(old_home);
         fs::remove_dir_all(home).unwrap();
@@ -2730,7 +2928,10 @@ mod tests {
             .iter()
             .filter_map(|provider| provider.get("id").and_then(Value::as_str))
             .collect();
-        assert_eq!(provider_ids, vec!["openai", "openrouter", "codex", "claude-code"]);
+        assert_eq!(
+            provider_ids,
+            vec!["openai", "openrouter", "codex", "claude-code"]
+        );
         assert_eq!(
             providers
                 .as_array()
@@ -2765,7 +2966,10 @@ mod tests {
             "model": "openai/test-model"
         }))
         .unwrap();
-        assert_eq!(openrouter_api_key().unwrap(), Some("sk-or-test".to_string()));
+        assert_eq!(
+            openrouter_api_key().unwrap(),
+            Some("sk-or-test".to_string())
+        );
         assert_eq!(openrouter_model().unwrap(), "openai/test-model");
 
         restore_openai_key(old_key);
@@ -2784,7 +2988,11 @@ mod tests {
         let log_file = data_dir.join("agents.log");
         install_fake_agent_commands(&data_dir, &log_file);
         let next_path = match &old_path {
-            Some(path) => format!("{}:{}", data_dir.join("bin").display(), path.to_string_lossy()),
+            Some(path) => format!(
+                "{}:{}",
+                data_dir.join("bin").display(),
+                path.to_string_lossy()
+            ),
             None => data_dir.join("bin").display().to_string(),
         };
         unsafe {
@@ -2792,9 +3000,16 @@ mod tests {
         }
 
         for provider_id in ["codex", "claude-code", "amp"] {
-            let result = translate_with_local_agent(provider_id, "skill-id", "Chinese", "# Hello").unwrap();
-            assert_eq!(result.get("markdown").and_then(Value::as_str), Some("# 你好"));
-            assert_eq!(result.get("providerId").and_then(Value::as_str), Some(provider_id));
+            let result =
+                translate_with_local_agent(provider_id, "skill-id", "Chinese", "# Hello").unwrap();
+            assert_eq!(
+                result.get("markdown").and_then(Value::as_str),
+                Some("# 你好")
+            );
+            assert_eq!(
+                result.get("providerId").and_then(Value::as_str),
+                Some(provider_id)
+            );
         }
 
         let log = fs::read_to_string(&log_file).unwrap();
