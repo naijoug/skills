@@ -5,6 +5,32 @@ import { SkillDetailView } from "../src/components/SkillDetailView";
 import { SkillList } from "../src/components/SkillList";
 
 describe("detail component rendering", () => {
+  it("keeps the detail toolbar focused on one primary action plus overflow", () => {
+    const markup = renderToStaticMarkup(
+      <SkillDetailView
+        activeTab="summary"
+        capabilityText="Desktop install target available"
+        detail={detail}
+        detailActions={
+          <div className="skills-detail-actions">
+            <button className="skills-primary-action" type="button" aria-label="Manage installs for selected skill">
+              <span>Manage installs</span>
+            </button>
+            <button className="skills-icon-action" type="button" aria-label="More skill actions">
+              More
+            </button>
+          </div>
+        }
+        platformLabel="Desktop"
+        onActiveTabChange={() => undefined}
+      />
+    );
+
+    expect(markup).toContain("Manage installs");
+    expect(markup).toContain("aria-label=\"More skill actions\"");
+    expect(markup).not.toContain("aria-label=\"Copy skill path\"");
+  });
+
   it("marks the selected skill row and keeps row metadata visible", () => {
     const markup = renderToStaticMarkup(
       <SkillList skills={[localSkill, importedSkill]} selectedSkillId={importedSkill.id} sortDirection="asc" onSelectSkill={() => undefined} />

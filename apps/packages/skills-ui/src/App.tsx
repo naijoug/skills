@@ -412,11 +412,9 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
                   type="button"
                   disabled={!selectedDetail}
                   onClick={() => setActiveDetailTab("install")}
+                  aria-label="Manage installs for selected skill"
                 >
                   <span>Manage installs</span>
-                </button>
-                <button className="skills-icon-action" type="button" disabled={!selectedDetail} onClick={copySelectedSkillPath} aria-label="Copy skill path">
-                  <Link2 size={18} />
                 </button>
                 <div className="skills-more-wrap">
                   <button
@@ -439,6 +437,9 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
                       </button>
                       <button type="button" role="menuitem" onClick={() => showDetailTab("files")}>
                         Files
+                      </button>
+                      <button type="button" role="menuitem" onClick={copySelectedSkillPath}>
+                        <Link2 size={15} /> Copy skill path
                       </button>
                       <button type="button" role="menuitem" onClick={() => showDetailTab("summary")}>
                         <Languages size={15} /> Translate
