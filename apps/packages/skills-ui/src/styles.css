@@ -476,6 +476,13 @@ html[data-skills-theme="dark"] #root {
   border-bottom: 0;
 }
 
+.skills-command-empty {
+  padding: 14px 12px;
+  color: var(--text-subtle);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .skills-command-rows button:not(:disabled):hover,
 .skills-command-rows button[aria-selected="true"] {
   background: var(--surface-hover);

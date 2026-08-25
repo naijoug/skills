@@ -14,6 +14,7 @@ import {
   commandPaletteKeyboardAction,
   commandPaletteCommands,
   executeCommandPaletteCommand,
+  filterCommandPaletteCommands,
   type CommandPaletteCommand,
   type CommandPaletteCommandId
 } from "./commandPaletteCommands";
@@ -525,14 +526,19 @@ interface SearchFieldProps {
 }
 
 export function SearchField({ commands = [], inputRef, query, onCommandSelect, onOpenRepositories, onQueryChange }: SearchFieldProps) {
-  const showCommandRows = isCommandPaletteQuery(query) && commands.length > 0;
+  const showCommandRows = isCommandPaletteQuery(query);
+  const visibleCommands = filterCommandPaletteCommands(commands, query);
   const [activeCommandIndex, setActiveCommandIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveCommandIndex(0);
+  }, [query, visibleCommands.length]);
 
   function handleSearchKeyDown(event: ReactKeyboardEvent<HTMLInputElement>): void {
     if (!showCommandRows) {
       return;
     }
-    const action = commandPaletteKeyboardAction(event, commands, activeCommandIndex);
+    const action = commandPaletteKeyboardAction(event, visibleCommands, activeCommandIndex);
     if (!action.handled) {
       return;
     }
@@ -562,7 +568,7 @@ export function SearchField({ commands = [], inputRef, query, onCommandSelect, o
             aria-label="Search skills"
             aria-describedby="skills-search-help"
             aria-controls={showCommandRows ? "skills-command-rows" : undefined}
-            aria-activedescendant={showCommandRows ? commandOptionId(commands[activeCommandIndex]?.id) : undefined}
+            aria-activedescendant={showCommandRows ? commandOptionId(visibleCommands[activeCommandIndex]?.id) : undefined}
           />
           <span className="skills-search-kbd" aria-hidden="true">
             <kbd>⌘K</kbd>
@@ -573,7 +579,7 @@ export function SearchField({ commands = [], inputRef, query, onCommandSelect, o
           Type &gt; to show command actions; press the shortcut to focus search.
         </p>
         {showCommandRows ? (
-          <CommandPaletteRows commands={commands} activeIndex={activeCommandIndex} onCommandSelect={onCommandSelect} />
+          <CommandPaletteRows commands={visibleCommands} activeIndex={activeCommandIndex} onCommandSelect={onCommandSelect} />
         ) : null}
       </div>
       <button className="skills-filter-action" type="button" aria-label="Open repository filters" onClick={onOpenRepositories}>
@@ -592,6 +598,11 @@ interface CommandPaletteRowsProps {
 export function CommandPaletteRows({ activeIndex = 0, commands, onCommandSelect }: CommandPaletteRowsProps) {
   return (
     <div className="skills-command-rows" id="skills-command-rows" role="listbox" aria-label="Command palette actions">
+      {commands.length === 0 ? (
+        <div className="skills-command-empty" role="status">
+          No command actions match this query.
+        </div>
+      ) : null}
       {commands.map((command, index) => (
         <button
           key={command.id}

@@ -90,6 +90,8 @@ describe("search field copy", () => {
 
     const searchMarkup = renderToStaticMarkup(createElement(SearchField, { ...baseProps, query: "repo" }));
     const commandMarkup = renderToStaticMarkup(createElement(SearchField, { ...baseProps, query: ">" }));
+    const filteredMarkup = renderToStaticMarkup(createElement(SearchField, { ...baseProps, query: ">repo" }));
+    const emptyMarkup = renderToStaticMarkup(createElement(SearchField, { ...baseProps, query: ">publish" }));
 
     expect(searchMarkup).not.toContain("Command palette actions");
     expect(commandMarkup).toContain("Command palette actions");
@@ -99,6 +101,12 @@ describe("search field copy", () => {
     expect(commandMarkup).toContain("Search skills");
     expect(commandMarkup).toContain("Open repositories");
     expect(commandMarkup).toContain("Select a skill first");
+    expect(filteredMarkup).toContain("Open repositories");
+    expect(filteredMarkup).toContain("Show repository import and refresh controls.");
+    expect(filteredMarkup).not.toContain("Focus and select the skill search field.");
+    expect(filteredMarkup).not.toContain("Select a skill first");
+    expect(emptyMarkup).toContain("No command actions match this query.");
+    expect(emptyMarkup).not.toContain("aria-activedescendant");
   });
 });
 

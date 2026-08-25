@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import type { SkillDetail } from "@skills-manager/core";
 import {
+  commandPaletteSearchTerm,
   commandPaletteCommands,
   commandPaletteKeyboardAction,
   executeCommandPaletteCommand,
+  filterCommandPaletteCommands,
   type CommandPaletteCommandActions
 } from "../src/commandPaletteCommands";
 
@@ -102,6 +104,41 @@ describe("command palette keyboard contract", () => {
 
     expect(commandPaletteKeyboardAction({ key: "Tab" }, commands, 0)).toEqual({ handled: false });
     expect(commandPaletteKeyboardAction({ key: "ArrowDown" }, [], 0)).toEqual({ handled: false });
+  });
+});
+
+describe("command palette query matching", () => {
+  it("normalizes the explicit command search term", () => {
+    expect(commandPaletteSearchTerm(">repo")).toBe("repo");
+    expect(commandPaletteSearchTerm("  >Manage Installs")).toBe("manage installs");
+    expect(commandPaletteSearchTerm("repo")).toBe("");
+  });
+
+  it("returns every command for a bare command trigger", () => {
+    const commands = commandPaletteCommands({ selectedDetail: detail, runtime: "desktop" });
+
+    expect(filterCommandPaletteCommands(commands, ">").map((command) => command.id)).toEqual([
+      "search-skills",
+      "open-repositories",
+      "manage-installs",
+      "open-settings"
+    ]);
+  });
+
+  it("filters by stable command copy and disabled reason", () => {
+    const enabledCommands = commandPaletteCommands({ selectedDetail: detail, runtime: "desktop" });
+    const disabledCommands = commandPaletteCommands({ selectedDetail: null, runtime: "web" });
+
+    expect(filterCommandPaletteCommands(enabledCommands, ">repo").map((command) => command.id)).toEqual(["open-repositories"]);
+    expect(filterCommandPaletteCommands(enabledCommands, ">settings").map((command) => command.id)).toEqual(["open-settings"]);
+    expect(filterCommandPaletteCommands(enabledCommands, ">install").map((command) => command.id)).toEqual(["manage-installs"]);
+    expect(filterCommandPaletteCommands(disabledCommands, ">skill first").map((command) => command.id)).toEqual(["manage-installs"]);
+  });
+
+  it("returns an empty list when no command matches", () => {
+    const commands = commandPaletteCommands({ selectedDetail: detail, runtime: "desktop" });
+
+    expect(filterCommandPaletteCommands(commands, ">publish")).toEqual([]);
   });
 });
 

@@ -62,6 +62,23 @@ export function commandPaletteCommands({ selectedDetail, runtime }: CommandPalet
   ];
 }
 
+export function commandPaletteSearchTerm(query: string): string {
+  const trimmed = query.trimStart();
+  if (!trimmed.startsWith(">")) {
+    return "";
+  }
+  return normalizeCommandText(trimmed.slice(1));
+}
+
+export function filterCommandPaletteCommands(commands: CommandPaletteCommand[], query: string): CommandPaletteCommand[] {
+  const searchTerm = commandPaletteSearchTerm(query);
+  if (!searchTerm) {
+    return commands;
+  }
+
+  return commands.filter((command) => commandMatchesSearchTerm(command, searchTerm));
+}
+
 export function executeCommandPaletteCommand(command: CommandPaletteCommand, actions: CommandPaletteCommandActions): boolean {
   if (command.disabledReason) {
     actions.setStatus(command.disabledReason);
@@ -115,4 +132,19 @@ export function commandPaletteKeyboardAction(
 
 function normalizeCommandIndex(index: number, length: number): number {
   return ((index % length) + length) % length;
+}
+
+function commandMatchesSearchTerm(command: CommandPaletteCommand, searchTerm: string): boolean {
+  return commandSearchText(command).includes(searchTerm);
+}
+
+function commandSearchText(command: CommandPaletteCommand): string {
+  // Use stable command copy for matching. Dynamic titles may include the selected skill name,
+  // which would make unrelated commands appear for queries such as `>repo` when the selected
+  // skill happens to contain "repo".
+  return normalizeCommandText([command.id, command.hint, command.disabledReason ?? ""].join(" "));
+}
+
+function normalizeCommandText(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
