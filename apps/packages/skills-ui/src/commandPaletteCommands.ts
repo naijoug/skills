@@ -11,6 +11,16 @@ export interface CommandPaletteCommand {
   disabledReason?: string;
 }
 
+export interface CommandPaletteCommandActions {
+  clearQuery(): void;
+  closeMenus(): void;
+  focusSearch(): void;
+  openRepositories(): void;
+  manageInstalls(): void;
+  openSettings(): void;
+  setStatus(message: string): void;
+}
+
 export interface CommandPaletteCommandContext {
   selectedDetail: SkillDetail | null;
   runtime: CommandPaletteRuntime;
@@ -43,4 +53,30 @@ export function commandPaletteCommands({ selectedDetail, runtime }: CommandPalet
       hint: runtime === "desktop" ? "Open Desktop Mode preferences." : "Open Web Mode preferences."
     }
   ];
+}
+
+export function executeCommandPaletteCommand(command: CommandPaletteCommand, actions: CommandPaletteCommandActions): boolean {
+  if (command.disabledReason) {
+    actions.setStatus(command.disabledReason);
+    return false;
+  }
+
+  actions.clearQuery();
+  actions.closeMenus();
+
+  if (command.id === "search-skills") {
+    actions.focusSearch();
+    return true;
+  }
+  if (command.id === "open-repositories") {
+    actions.openRepositories();
+    return true;
+  }
+  if (command.id === "manage-installs") {
+    actions.manageInstalls();
+    return true;
+  }
+
+  actions.openSettings();
+  return true;
 }

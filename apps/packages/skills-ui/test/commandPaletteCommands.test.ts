@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { SkillDetail } from "@skills-manager/core";
-import { commandPaletteCommands } from "../src/commandPaletteCommands";
+import { commandPaletteCommands, executeCommandPaletteCommand, type CommandPaletteCommandActions } from "../src/commandPaletteCommands";
 
 describe("command palette command contract", () => {
   it("exposes the minimum command set in stable order", () => {
@@ -41,6 +41,55 @@ describe("command palette command contract", () => {
     expect(commands.find((command) => command.id === "open-settings")?.hint).toBe("Open Web Mode preferences.");
   });
 });
+
+describe("command palette command execution", () => {
+  it("executes each enabled command through the narrow action contract", () => {
+    const commands = commandPaletteCommands({ selectedDetail: detail, runtime: "desktop" });
+
+    for (const command of commands) {
+      const actions = commandActions();
+
+      expect(executeCommandPaletteCommand(command, actions)).toBe(true);
+
+      expect(actions.clearQuery).toHaveBeenCalledTimes(1);
+      expect(actions.closeMenus).toHaveBeenCalledTimes(1);
+      expect(actions.setStatus).not.toHaveBeenCalled();
+      expect(actions[expectedActionByCommandId[command.id]]).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it("reports disabled commands without clearing query or closing command rows", () => {
+    const command = commandPaletteCommands({ selectedDetail: null, runtime: "web" }).find((item) => item.id === "manage-installs");
+    const actions = commandActions();
+
+    expect(command).toBeDefined();
+    expect(executeCommandPaletteCommand(command!, actions)).toBe(false);
+
+    expect(actions.setStatus).toHaveBeenCalledWith("Select a skill first");
+    expect(actions.clearQuery).not.toHaveBeenCalled();
+    expect(actions.closeMenus).not.toHaveBeenCalled();
+    expect(actions.manageInstalls).not.toHaveBeenCalled();
+  });
+});
+
+function commandActions(): CommandPaletteCommandActions {
+  return {
+    clearQuery: vi.fn(),
+    closeMenus: vi.fn(),
+    focusSearch: vi.fn(),
+    openRepositories: vi.fn(),
+    manageInstalls: vi.fn(),
+    openSettings: vi.fn(),
+    setStatus: vi.fn()
+  };
+}
+
+const expectedActionByCommandId = {
+  "search-skills": "focusSearch",
+  "open-repositories": "openRepositories",
+  "manage-installs": "manageInstalls",
+  "open-settings": "openSettings"
+} as const;
 
 const detail: SkillDetail = {
   id: "repo-review",

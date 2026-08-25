@@ -10,7 +10,12 @@ import { SettingsListPane, SettingsPanel, type SettingsSectionId } from "./compo
 import { SkillDetailView, type SkillDetailTab } from "./components/SkillDetailView";
 import { SkillList } from "./components/SkillList";
 import { TranslatePanel } from "./components/TranslatePanel";
-import { commandPaletteCommands, type CommandPaletteCommand, type CommandPaletteCommandId } from "./commandPaletteCommands";
+import {
+  commandPaletteCommands,
+  executeCommandPaletteCommand,
+  type CommandPaletteCommand,
+  type CommandPaletteCommandId
+} from "./commandPaletteCommands";
 import { findImportedGroup, firstSkillForView, groupAfterRefresh, selectedSkillForView, skillsForView } from "./selection";
 import {
   defaultSkillsUserSettings,
@@ -279,29 +284,28 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
 
   function runCommandPaletteCommand(commandId: CommandPaletteCommandId): void {
     const command = commandRows.find((item) => item.id === commandId);
-    if (command?.disabledReason) {
-      setStatus(command.disabledReason);
+    if (!command) {
       return;
     }
-    setQuery("");
-    setMoreMenuOpen(false);
-    if (commandId === "search-skills") {
-      setPrimaryView("library");
-      searchInputRef.current?.focus();
-      searchInputRef.current?.select();
-      return;
-    }
-    if (commandId === "open-repositories") {
-      setPrimaryView("library");
-      setRepositoriesOpen(true);
-      return;
-    }
-    if (commandId === "manage-installs") {
-      setPrimaryView("library");
-      setActiveDetailTab("install");
-      return;
-    }
-    openSettings();
+    executeCommandPaletteCommand(command, {
+      clearQuery: () => setQuery(""),
+      closeMenus: () => setMoreMenuOpen(false),
+      focusSearch: () => {
+        setPrimaryView("library");
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      },
+      openRepositories: () => {
+        setPrimaryView("library");
+        setRepositoriesOpen(true);
+      },
+      manageInstalls: () => {
+        setPrimaryView("library");
+        setActiveDetailTab("install");
+      },
+      openSettings,
+      setStatus
+    });
   }
 
   function showDetailTab(tab: SkillDetailTab): void {
