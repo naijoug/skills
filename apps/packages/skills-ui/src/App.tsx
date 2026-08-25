@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from "react";
 import { ChevronDown, Languages, Link2, MoreHorizontal, RefreshCw, Search, Share2, SlidersHorizontal } from "lucide-react";
 import type { SkillDetail, SkillSummary, SkillsLibrary } from "@skills-manager/core";
 import type { ImportRepositoryInput, SkillsAdapter } from "@skills-manager/platform";
@@ -343,25 +343,12 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
               </div>
               <span>{library.skills.length} total</span>
             </header>
-            <div className="skills-search-row">
-              <div className="skills-search-box">
-                <Search className="skills-search-icon" size={18} />
-                <input
-                  ref={searchInputRef}
-                  value={query}
-                  onChange={(event) => void updateQuery(event.target.value)}
-                  placeholder="Search skills or run a command..."
-                  aria-label="Search skills"
-                />
-                <span className="skills-search-kbd" aria-hidden="true">
-                  <kbd>⌘K</kbd>
-                  <kbd>Ctrl K</kbd>
-                </span>
-              </div>
-              <button className="skills-filter-action" type="button" aria-label="Open repository filters" onClick={openRepositories}>
-                <SlidersHorizontal size={19} />
-              </button>
-            </div>
+            <SearchField
+              inputRef={searchInputRef}
+              query={query}
+              onOpenRepositories={openRepositories}
+              onQueryChange={(nextQuery) => void updateQuery(nextQuery)}
+            />
             <div className="skills-list-meta">
               <span>{visibleSkills.length} skills</span>
               <button
@@ -494,6 +481,43 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
         )}
       </section>
     </main>
+  );
+}
+
+interface SearchFieldProps {
+  inputRef: RefObject<HTMLInputElement | null>;
+  query: string;
+  onQueryChange(query: string): void;
+  onOpenRepositories(): void;
+}
+
+export function SearchField({ inputRef, query, onOpenRepositories, onQueryChange }: SearchFieldProps) {
+  return (
+    <div className="skills-search-row">
+      <div className="skills-search-stack">
+        <div className="skills-search-box">
+          <Search className="skills-search-icon" size={18} />
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(event) => onQueryChange(event.target.value)}
+            placeholder="Search skills..."
+            aria-label="Search skills"
+            aria-describedby="skills-search-help"
+          />
+          <span className="skills-search-kbd" aria-hidden="true">
+            <kbd>⌘K</kbd>
+            <kbd>Ctrl K</kbd>
+          </span>
+        </div>
+        <p className="skills-search-help" id="skills-search-help">
+          Focus search with the shortcut; command palette actions are not enabled yet.
+        </p>
+      </div>
+      <button className="skills-filter-action" type="button" aria-label="Open repository filters" onClick={onOpenRepositories}>
+        <SlidersHorizontal size={19} />
+      </button>
+    </div>
   );
 }
 

@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { shouldFocusSearchFromShortcut } from "../src/App";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { SearchField, shouldFocusSearchFromShortcut } from "../src/App";
 
 describe("search shortcut handling", () => {
   afterEach(() => {
@@ -25,6 +27,23 @@ describe("search shortcut handling", () => {
     vi.stubGlobal("HTMLElement", FakeHTMLElement);
 
     expect(shortcut({ key: "k", metaKey: true, target: new FakeHTMLElement() as unknown as EventTarget })).toBe(false);
+  });
+});
+
+describe("search field copy", () => {
+  it("describes shortcut focus without promising a command palette", () => {
+    const markup = renderToStaticMarkup(
+      createElement(SearchField, {
+        inputRef: { current: null },
+        query: "",
+        onOpenRepositories: () => undefined,
+        onQueryChange: () => undefined
+      })
+    );
+
+    expect(markup).toContain("placeholder=\"Search skills...\"");
+    expect(markup).toContain("aria-describedby=\"skills-search-help\"");
+    expect(markup).toContain("Focus search with the shortcut; command palette actions are not enabled yet.");
   });
 });
 

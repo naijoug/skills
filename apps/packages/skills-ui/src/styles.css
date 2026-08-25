@@ -383,6 +383,12 @@ html[data-skills-theme="dark"] #root {
   align-items: center;
 }
 
+.skills-search-stack {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
 .skills-search-box input {
   width: 100%;
   height: 48px;
@@ -434,6 +440,13 @@ html[data-skills-theme="dark"] #root {
   font-weight: 610;
   line-height: 1.35;
   text-align: center;
+}
+
+.skills-search-help {
+  margin: 0 2px;
+  color: var(--text-subtle);
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .skills-filter-action,
