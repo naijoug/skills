@@ -105,6 +105,10 @@ describe("command palette keyboard contract", () => {
     expect(commandPaletteKeyboardAction({ key: "Escape" }, commands, 2)).toEqual({ handled: true, clearQuery: true, nextActiveIndex: 0 });
   });
 
+  it("still clears command mode with escape when no commands match", () => {
+    expect(commandPaletteKeyboardAction({ key: "Escape" }, [], 0)).toEqual({ handled: true, clearQuery: true, nextActiveIndex: 0 });
+  });
+
   it("ignores unrelated keys and empty command sets", () => {
     const commands = commandPaletteCommands({ selectedDetail: detail, runtime: "desktop" });
 

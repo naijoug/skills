@@ -96,6 +96,7 @@ describe("search field copy", () => {
 
     expect(searchMarkup).not.toContain("Command palette actions");
     expect(commandMarkup).toContain("Command palette actions");
+    expect(commandMarkup).toContain("aria-expanded=\"true\"");
     expect(commandMarkup).toContain("aria-controls=\"skills-command-rows\"");
     expect(commandMarkup).toContain("aria-activedescendant=\"skills-command-search-skills\"");
     expect(commandMarkup).toContain("aria-selected=\"true\"");
@@ -158,6 +159,18 @@ describe("command rows keydown handling", () => {
     expect(state.onCommandSelect).not.toHaveBeenCalled();
   });
 
+  it("clears command mode with Escape even when no command rows match", () => {
+    const event = keydownEvent("Escape");
+    const state = commandKeyDownState({ commandRows: [] });
+
+    expect(handleCommandPaletteSearchKeyDown(event, state)).toBe(true);
+
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(state.setActiveCommandIndex).toHaveBeenCalledWith(0);
+    expect(state.onQueryChange).toHaveBeenCalledWith("");
+    expect(state.onCommandSelect).not.toHaveBeenCalled();
+  });
+
   it("ignores keys outside command mode or unrelated keys", () => {
     const disabledEvent = keydownEvent("Enter");
     const unrelatedEvent = keydownEvent("Tab");
@@ -198,10 +211,10 @@ function keydownEvent(key: string): Pick<KeyboardEvent, "key" | "preventDefault"
   return { key, preventDefault: vi.fn() };
 }
 
-function commandKeyDownState(overrides: { activeCommandIndex?: number; enabled?: boolean } = {}) {
+function commandKeyDownState(overrides: { activeCommandIndex?: number; commandRows?: CommandPaletteCommand[]; enabled?: boolean } = {}) {
   return {
     activeCommandIndex: overrides.activeCommandIndex ?? 0,
-    commands,
+    commands: overrides.commandRows ?? commands,
     enabled: overrides.enabled ?? true,
     onCommandSelect: vi.fn(),
     onQueryChange: vi.fn(),

@@ -115,6 +115,10 @@ export function commandPaletteKeyboardAction(
   commands: CommandPaletteCommand[],
   activeIndex: number
 ): CommandPaletteKeyboardResult {
+  if (event.key === "Escape") {
+    return { handled: true, clearQuery: true, nextActiveIndex: 0 };
+  }
+
   if (commands.length === 0) {
     return { handled: false };
   }
@@ -128,10 +132,6 @@ export function commandPaletteKeyboardAction(
   if (event.key === "Enter") {
     return { handled: true, selectCommandId: commands[normalizeCommandIndex(activeIndex, commands.length)].id };
   }
-  if (event.key === "Escape") {
-    return { handled: true, clearQuery: true, nextActiveIndex: 0 };
-  }
-
   return { handled: false };
 }
 

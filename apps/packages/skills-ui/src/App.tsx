@@ -420,7 +420,11 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
                 </button>
               </div>
             ) : null}
-            {status ? <div className="skills-status">{status}</div> : null}
+            {status ? (
+              <div className="skills-status" role="status" aria-live="polite">
+                {status}
+              </div>
+            ) : null}
             <SkillList
               skills={visibleSkills}
               selectedSkillId={selectedSkillId}
@@ -558,6 +562,7 @@ export function SearchField({ commands = [], inputRef, query, onCommandSelect, o
             placeholder="Search skills..."
             aria-label="Search skills"
             aria-describedby="skills-search-help"
+            aria-expanded={showCommandRows}
             aria-controls={showCommandRows ? "skills-command-rows" : undefined}
             aria-activedescendant={showCommandRows ? commandOptionId(visibleCommands[activeCommandIndex]?.id) : undefined}
           />
