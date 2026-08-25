@@ -476,8 +476,13 @@ html[data-skills-theme="dark"] #root {
   border-bottom: 0;
 }
 
-.skills-command-rows button:not(:disabled):hover {
+.skills-command-rows button:not(:disabled):hover,
+.skills-command-rows button[aria-selected="true"] {
   background: var(--surface-hover);
+}
+
+.skills-command-rows button[aria-selected="true"] {
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .skills-command-rows span {

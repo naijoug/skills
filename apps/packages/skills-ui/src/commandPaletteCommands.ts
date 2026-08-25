@@ -21,6 +21,13 @@ export interface CommandPaletteCommandActions {
   setStatus(message: string): void;
 }
 
+export interface CommandPaletteKeyboardResult {
+  handled: boolean;
+  nextActiveIndex?: number;
+  selectCommandId?: CommandPaletteCommandId;
+  clearQuery?: boolean;
+}
+
 export interface CommandPaletteCommandContext {
   selectedDetail: SkillDetail | null;
   runtime: CommandPaletteRuntime;
@@ -79,4 +86,33 @@ export function executeCommandPaletteCommand(command: CommandPaletteCommand, act
 
   actions.openSettings();
   return true;
+}
+
+export function commandPaletteKeyboardAction(
+  event: Pick<KeyboardEvent, "key">,
+  commands: CommandPaletteCommand[],
+  activeIndex: number
+): CommandPaletteKeyboardResult {
+  if (commands.length === 0) {
+    return { handled: false };
+  }
+
+  if (event.key === "ArrowDown") {
+    return { handled: true, nextActiveIndex: normalizeCommandIndex(activeIndex + 1, commands.length) };
+  }
+  if (event.key === "ArrowUp") {
+    return { handled: true, nextActiveIndex: normalizeCommandIndex(activeIndex - 1, commands.length) };
+  }
+  if (event.key === "Enter") {
+    return { handled: true, selectCommandId: commands[normalizeCommandIndex(activeIndex, commands.length)].id };
+  }
+  if (event.key === "Escape") {
+    return { handled: true, clearQuery: true, nextActiveIndex: 0 };
+  }
+
+  return { handled: false };
+}
+
+function normalizeCommandIndex(index: number, length: number): number {
+  return ((index % length) + length) % length;
 }

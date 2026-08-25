@@ -93,6 +93,9 @@ describe("search field copy", () => {
 
     expect(searchMarkup).not.toContain("Command palette actions");
     expect(commandMarkup).toContain("Command palette actions");
+    expect(commandMarkup).toContain("aria-controls=\"skills-command-rows\"");
+    expect(commandMarkup).toContain("aria-activedescendant=\"skills-command-search-skills\"");
+    expect(commandMarkup).toContain("aria-selected=\"true\"");
     expect(commandMarkup).toContain("Search skills");
     expect(commandMarkup).toContain("Open repositories");
     expect(commandMarkup).toContain("Select a skill first");

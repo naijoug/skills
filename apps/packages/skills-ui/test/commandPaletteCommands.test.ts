@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import type { SkillDetail } from "@skills-manager/core";
-import { commandPaletteCommands, executeCommandPaletteCommand, type CommandPaletteCommandActions } from "../src/commandPaletteCommands";
+import {
+  commandPaletteCommands,
+  commandPaletteKeyboardAction,
+  executeCommandPaletteCommand,
+  type CommandPaletteCommandActions
+} from "../src/commandPaletteCommands";
 
 describe("command palette command contract", () => {
   it("exposes the minimum command set in stable order", () => {
@@ -69,6 +74,34 @@ describe("command palette command execution", () => {
     expect(actions.clearQuery).not.toHaveBeenCalled();
     expect(actions.closeMenus).not.toHaveBeenCalled();
     expect(actions.manageInstalls).not.toHaveBeenCalled();
+  });
+});
+
+describe("command palette keyboard contract", () => {
+  it("cycles active command rows with arrow keys", () => {
+    const commands = commandPaletteCommands({ selectedDetail: detail, runtime: "desktop" });
+
+    expect(commandPaletteKeyboardAction({ key: "ArrowDown" }, commands, 0)).toEqual({ handled: true, nextActiveIndex: 1 });
+    expect(commandPaletteKeyboardAction({ key: "ArrowUp" }, commands, 0)).toEqual({ handled: true, nextActiveIndex: 3 });
+  });
+
+  it("selects the active command with enter", () => {
+    const commands = commandPaletteCommands({ selectedDetail: detail, runtime: "desktop" });
+
+    expect(commandPaletteKeyboardAction({ key: "Enter" }, commands, 2)).toEqual({ handled: true, selectCommandId: "manage-installs" });
+  });
+
+  it("clears command mode with escape", () => {
+    const commands = commandPaletteCommands({ selectedDetail: detail, runtime: "desktop" });
+
+    expect(commandPaletteKeyboardAction({ key: "Escape" }, commands, 2)).toEqual({ handled: true, clearQuery: true, nextActiveIndex: 0 });
+  });
+
+  it("ignores unrelated keys and empty command sets", () => {
+    const commands = commandPaletteCommands({ selectedDetail: detail, runtime: "desktop" });
+
+    expect(commandPaletteKeyboardAction({ key: "Tab" }, commands, 0)).toEqual({ handled: false });
+    expect(commandPaletteKeyboardAction({ key: "ArrowDown" }, [], 0)).toEqual({ handled: false });
   });
 });
 

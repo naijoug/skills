@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type RefObject } from "react";
 import { ChevronDown, Languages, Link2, MoreHorizontal, RefreshCw, Search, Share2, SlidersHorizontal } from "lucide-react";
 import type { SkillDetail, SkillSummary, SkillsLibrary } from "@skills-manager/core";
 import type { ImportRepositoryInput, SkillsAdapter } from "@skills-manager/platform";
@@ -11,6 +11,7 @@ import { SkillDetailView, type SkillDetailTab } from "./components/SkillDetailVi
 import { SkillList } from "./components/SkillList";
 import { TranslatePanel } from "./components/TranslatePanel";
 import {
+  commandPaletteKeyboardAction,
   commandPaletteCommands,
   executeCommandPaletteCommand,
   type CommandPaletteCommand,
@@ -525,6 +526,28 @@ interface SearchFieldProps {
 
 export function SearchField({ commands = [], inputRef, query, onCommandSelect, onOpenRepositories, onQueryChange }: SearchFieldProps) {
   const showCommandRows = isCommandPaletteQuery(query) && commands.length > 0;
+  const [activeCommandIndex, setActiveCommandIndex] = useState(0);
+
+  function handleSearchKeyDown(event: ReactKeyboardEvent<HTMLInputElement>): void {
+    if (!showCommandRows) {
+      return;
+    }
+    const action = commandPaletteKeyboardAction(event, commands, activeCommandIndex);
+    if (!action.handled) {
+      return;
+    }
+    event.preventDefault();
+    if (action.nextActiveIndex !== undefined) {
+      setActiveCommandIndex(action.nextActiveIndex);
+    }
+    if (action.clearQuery) {
+      onQueryChange("");
+    }
+    if (action.selectCommandId) {
+      onCommandSelect?.(action.selectCommandId);
+    }
+  }
+
   return (
     <div className="skills-search-row">
       <div className="skills-search-stack">
@@ -534,9 +557,12 @@ export function SearchField({ commands = [], inputRef, query, onCommandSelect, o
             ref={inputRef}
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
+            onKeyDown={handleSearchKeyDown}
             placeholder="Search skills..."
             aria-label="Search skills"
             aria-describedby="skills-search-help"
+            aria-controls={showCommandRows ? "skills-command-rows" : undefined}
+            aria-activedescendant={showCommandRows ? commandOptionId(commands[activeCommandIndex]?.id) : undefined}
           />
           <span className="skills-search-kbd" aria-hidden="true">
             <kbd>⌘K</kbd>
@@ -546,7 +572,9 @@ export function SearchField({ commands = [], inputRef, query, onCommandSelect, o
         <p className="skills-search-help" id="skills-search-help">
           Type &gt; to show command actions; press the shortcut to focus search.
         </p>
-        {showCommandRows ? <CommandPaletteRows commands={commands} onCommandSelect={onCommandSelect} /> : null}
+        {showCommandRows ? (
+          <CommandPaletteRows commands={commands} activeIndex={activeCommandIndex} onCommandSelect={onCommandSelect} />
+        ) : null}
       </div>
       <button className="skills-filter-action" type="button" aria-label="Open repository filters" onClick={onOpenRepositories}>
         <SlidersHorizontal size={19} />
@@ -556,18 +584,21 @@ export function SearchField({ commands = [], inputRef, query, onCommandSelect, o
 }
 
 interface CommandPaletteRowsProps {
+  activeIndex?: number;
   commands: CommandPaletteCommand[];
   onCommandSelect?: (commandId: CommandPaletteCommandId) => void;
 }
 
-export function CommandPaletteRows({ commands, onCommandSelect }: CommandPaletteRowsProps) {
+export function CommandPaletteRows({ activeIndex = 0, commands, onCommandSelect }: CommandPaletteRowsProps) {
   return (
-    <div className="skills-command-rows" role="listbox" aria-label="Command palette actions">
-      {commands.map((command) => (
+    <div className="skills-command-rows" id="skills-command-rows" role="listbox" aria-label="Command palette actions">
+      {commands.map((command, index) => (
         <button
           key={command.id}
+          id={commandOptionId(command.id)}
           type="button"
           role="option"
+          aria-selected={index === activeIndex}
           disabled={Boolean(command.disabledReason)}
           onClick={() => onCommandSelect?.(command.id)}
         >
@@ -584,6 +615,10 @@ export function CommandPaletteRows({ commands, onCommandSelect }: CommandPalette
 
 export function isCommandPaletteQuery(query: string): boolean {
   return query.trimStart().startsWith(">");
+}
+
+function commandOptionId(commandId: CommandPaletteCommandId | undefined): string | undefined {
+  return commandId ? `skills-command-${commandId}` : undefined;
 }
 
 export function skillSearchQuery(query: string): string {
