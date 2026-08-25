@@ -100,13 +100,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
 
   useEffect(() => {
     function handleSearchShortcut(event: KeyboardEvent): void {
-      if (!shouldFocusSearchFromShortcut(event)) {
-        return;
-      }
-      event.preventDefault();
-      setPrimaryView("library");
-      searchInputRef.current?.focus();
-      searchInputRef.current?.select();
+      focusSearchFromShortcut(event, searchInputRef, setPrimaryView);
     }
 
     window.addEventListener("keydown", handleSearchShortcut);
@@ -547,6 +541,26 @@ export function shouldFocusSearchFromShortcut(event: Pick<KeyboardEvent, "key" |
   if (isEditableShortcutTarget(event.target)) {
     return false;
   }
+  return true;
+}
+
+export interface SearchFocusTarget {
+  focus(): void;
+  select(): void;
+}
+
+export function focusSearchFromShortcut(
+  event: Pick<KeyboardEvent, "key" | "metaKey" | "ctrlKey" | "altKey" | "shiftKey" | "target" | "preventDefault">,
+  inputRef: RefObject<SearchFocusTarget | null>,
+  setPrimaryView: (view: PrimaryView) => void
+): boolean {
+  if (!shouldFocusSearchFromShortcut(event)) {
+    return false;
+  }
+  event.preventDefault();
+  setPrimaryView("library");
+  inputRef.current?.focus();
+  inputRef.current?.select();
   return true;
 }
 
