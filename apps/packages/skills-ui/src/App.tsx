@@ -535,23 +535,14 @@ export function SearchField({ commands = [], inputRef, query, onCommandSelect, o
   }, [query, visibleCommands.length]);
 
   function handleSearchKeyDown(event: ReactKeyboardEvent<HTMLInputElement>): void {
-    if (!showCommandRows) {
-      return;
-    }
-    const action = commandPaletteKeyboardAction(event, visibleCommands, activeCommandIndex);
-    if (!action.handled) {
-      return;
-    }
-    event.preventDefault();
-    if (action.nextActiveIndex !== undefined) {
-      setActiveCommandIndex(action.nextActiveIndex);
-    }
-    if (action.clearQuery) {
-      onQueryChange("");
-    }
-    if (action.selectCommandId) {
-      onCommandSelect?.(action.selectCommandId);
-    }
+    handleCommandPaletteSearchKeyDown(event, {
+      activeCommandIndex,
+      commands: visibleCommands,
+      enabled: showCommandRows,
+      onCommandSelect,
+      onQueryChange,
+      setActiveCommandIndex
+    });
   }
 
   return (
@@ -626,6 +617,40 @@ export function CommandPaletteRows({ activeIndex = 0, commands, onCommandSelect 
 
 export function isCommandPaletteQuery(query: string): boolean {
   return query.trimStart().startsWith(">");
+}
+
+export interface CommandPaletteSearchKeyDownState {
+  activeCommandIndex: number;
+  commands: CommandPaletteCommand[];
+  enabled: boolean;
+  onCommandSelect?: (commandId: CommandPaletteCommandId) => void;
+  onQueryChange(query: string): void;
+  setActiveCommandIndex(index: number): void;
+}
+
+export function handleCommandPaletteSearchKeyDown(
+  event: Pick<KeyboardEvent, "key" | "preventDefault">,
+  state: CommandPaletteSearchKeyDownState
+): boolean {
+  if (!state.enabled) {
+    return false;
+  }
+  const action = commandPaletteKeyboardAction(event, state.commands, state.activeCommandIndex);
+  if (!action.handled) {
+    return false;
+  }
+
+  event.preventDefault();
+  if (action.nextActiveIndex !== undefined) {
+    state.setActiveCommandIndex(action.nextActiveIndex);
+  }
+  if (action.clearQuery) {
+    state.onQueryChange("");
+  }
+  if (action.selectCommandId) {
+    state.onCommandSelect?.(action.selectCommandId);
+  }
+  return true;
 }
 
 function commandOptionId(commandId: CommandPaletteCommandId | undefined): string | undefined {

@@ -3,6 +3,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   focusSearchFromShortcut,
+  handleCommandPaletteSearchKeyDown,
   isCommandPaletteQuery,
   SearchField,
   shouldFocusSearchFromShortcut,
@@ -120,6 +121,59 @@ describe("command query handling", () => {
   });
 });
 
+describe("command rows keydown handling", () => {
+  it("moves the active command without selecting a row", () => {
+    const event = keydownEvent("ArrowDown");
+    const state = commandKeyDownState({ activeCommandIndex: 0 });
+
+    expect(handleCommandPaletteSearchKeyDown(event, state)).toBe(true);
+
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(state.setActiveCommandIndex).toHaveBeenCalledWith(1);
+    expect(state.onCommandSelect).not.toHaveBeenCalled();
+    expect(state.onQueryChange).not.toHaveBeenCalled();
+  });
+
+  it("selects the active command with Enter, including disabled commands for execution-layer status", () => {
+    const event = keydownEvent("Enter");
+    const state = commandKeyDownState({ activeCommandIndex: 2 });
+
+    expect(handleCommandPaletteSearchKeyDown(event, state)).toBe(true);
+
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(state.onCommandSelect).toHaveBeenCalledWith("manage-installs");
+    expect(state.onQueryChange).not.toHaveBeenCalled();
+    expect(state.setActiveCommandIndex).not.toHaveBeenCalled();
+  });
+
+  it("clears command mode with Escape", () => {
+    const event = keydownEvent("Escape");
+    const state = commandKeyDownState({ activeCommandIndex: 1 });
+
+    expect(handleCommandPaletteSearchKeyDown(event, state)).toBe(true);
+
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(state.setActiveCommandIndex).toHaveBeenCalledWith(0);
+    expect(state.onQueryChange).toHaveBeenCalledWith("");
+    expect(state.onCommandSelect).not.toHaveBeenCalled();
+  });
+
+  it("ignores keys outside command mode or unrelated keys", () => {
+    const disabledEvent = keydownEvent("Enter");
+    const unrelatedEvent = keydownEvent("Tab");
+    const disabledState = commandKeyDownState({ enabled: false });
+    const unrelatedState = commandKeyDownState();
+
+    expect(handleCommandPaletteSearchKeyDown(disabledEvent, disabledState)).toBe(false);
+    expect(handleCommandPaletteSearchKeyDown(unrelatedEvent, unrelatedState)).toBe(false);
+
+    expect(disabledEvent.preventDefault).not.toHaveBeenCalled();
+    expect(unrelatedEvent.preventDefault).not.toHaveBeenCalled();
+    expect(disabledState.onCommandSelect).not.toHaveBeenCalled();
+    expect(unrelatedState.onCommandSelect).not.toHaveBeenCalled();
+  });
+});
+
 function shortcut(
   overrides: Partial<Pick<KeyboardEvent, "key" | "metaKey" | "ctrlKey" | "altKey" | "shiftKey" | "target">>
 ): boolean {
@@ -137,6 +191,21 @@ function shortcutEvent(
     shiftKey: overrides.shiftKey ?? false,
     target: overrides.target ?? null,
     preventDefault: vi.fn()
+  };
+}
+
+function keydownEvent(key: string): Pick<KeyboardEvent, "key" | "preventDefault"> {
+  return { key, preventDefault: vi.fn() };
+}
+
+function commandKeyDownState(overrides: { activeCommandIndex?: number; enabled?: boolean } = {}) {
+  return {
+    activeCommandIndex: overrides.activeCommandIndex ?? 0,
+    commands,
+    enabled: overrides.enabled ?? true,
+    onCommandSelect: vi.fn(),
+    onQueryChange: vi.fn(),
+    setActiveCommandIndex: vi.fn()
   };
 }
 
