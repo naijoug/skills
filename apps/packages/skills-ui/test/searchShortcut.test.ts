@@ -144,17 +144,20 @@ const commands: CommandPaletteCommand[] = [
   {
     id: "search-skills",
     title: "Search skills",
-    hint: "Focus and select the skill search field."
+    hint: "Focus and select the skill search field.",
+    keywords: ["search", "find", "skill", "skills", "filter"]
   },
   {
     id: "open-repositories",
     title: "Open repositories",
-    hint: "Show repository import and refresh controls."
+    hint: "Show repository import and refresh controls.",
+    keywords: ["repo", "repos", "repository", "repositories", "import", "refresh", "source", "sources"]
   },
   {
     id: "manage-installs",
     title: "Manage installs for selected skill",
     hint: "Open install targets for the selected skill.",
+    keywords: ["install", "installs", "target", "targets", "manage", "local", "desktop"],
     disabledReason: "Select a skill first"
   }
 ];

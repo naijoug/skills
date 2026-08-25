@@ -8,6 +8,7 @@ export interface CommandPaletteCommand {
   id: CommandPaletteCommandId;
   title: string;
   hint: string;
+  keywords: string[];
   disabledReason?: string;
 }
 
@@ -41,23 +42,27 @@ export function commandPaletteCommands({ selectedDetail, runtime }: CommandPalet
     {
       id: "search-skills",
       title: "Search skills",
-      hint: "Focus and select the skill search field."
+      hint: "Focus and select the skill search field.",
+      keywords: ["search", "find", "skill", "skills", "filter"]
     },
     {
       id: "open-repositories",
       title: "Open repositories",
-      hint: "Show repository import and refresh controls."
+      hint: "Show repository import and refresh controls.",
+      keywords: ["repo", "repos", "repository", "repositories", "import", "refresh", "source", "sources"]
     },
     {
       id: "manage-installs",
       title: selectedDetail ? `Manage installs for ${selectedDetail.title || selectedDetail.name}` : "Manage installs for selected skill",
       hint: installCapabilityHint,
+      keywords: ["install", "installs", "target", "targets", "manage", "local", "desktop"],
       disabledReason: selectedDetail ? undefined : "Select a skill first"
     },
     {
       id: "open-settings",
       title: "Open settings",
-      hint: runtime === "desktop" ? "Open Desktop Mode preferences." : "Open Web Mode preferences."
+      hint: runtime === "desktop" ? "Open Desktop Mode preferences." : "Open Web Mode preferences.",
+      keywords: ["settings", "setting", "preferences", "prefs", "options", "appearance"]
     }
   ];
 }
@@ -139,10 +144,10 @@ function commandMatchesSearchTerm(command: CommandPaletteCommand, searchTerm: st
 }
 
 function commandSearchText(command: CommandPaletteCommand): string {
-  // Use stable command copy for matching. Dynamic titles may include the selected skill name,
-  // which would make unrelated commands appear for queries such as `>repo` when the selected
-  // skill happens to contain "repo".
-  return normalizeCommandText([command.id, command.hint, command.disabledReason ?? ""].join(" "));
+  // Match only explicit, stable command keywords plus disabled reasons. Dynamic titles may
+  // include the selected skill name, and generic hints such as "local installs require Desktop"
+  // should not silently become undocumented aliases for unrelated command queries.
+  return normalizeCommandText([command.id, command.keywords.join(" "), command.disabledReason ?? ""].join(" "));
 }
 
 function normalizeCommandText(text: string): string {

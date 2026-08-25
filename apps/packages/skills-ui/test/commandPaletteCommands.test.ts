@@ -20,6 +20,12 @@ describe("command palette command contract", () => {
       "Manage installs for Repo Reviewer",
       "Open settings"
     ]);
+    expect(commands.map((command) => command.keywords)).toEqual([
+      ["search", "find", "skill", "skills", "filter"],
+      ["repo", "repos", "repository", "repositories", "import", "refresh", "source", "sources"],
+      ["install", "installs", "target", "targets", "manage", "local", "desktop"],
+      ["settings", "setting", "preferences", "prefs", "options", "appearance"]
+    ]);
   });
 
   it("requires a selected skill before manage installs can execute", () => {
@@ -133,6 +139,17 @@ describe("command palette query matching", () => {
     expect(filterCommandPaletteCommands(enabledCommands, ">settings").map((command) => command.id)).toEqual(["open-settings"]);
     expect(filterCommandPaletteCommands(enabledCommands, ">install").map((command) => command.id)).toEqual(["manage-installs"]);
     expect(filterCommandPaletteCommands(disabledCommands, ">skill first").map((command) => command.id)).toEqual(["manage-installs"]);
+  });
+
+  it("supports documented aliases without using dynamic titles or hint drift", () => {
+    const enabledCommands = commandPaletteCommands({ selectedDetail: detail, runtime: "desktop" });
+    const webCommands = commandPaletteCommands({ selectedDetail: detail, runtime: "web" });
+
+    expect(filterCommandPaletteCommands(enabledCommands, ">prefs").map((command) => command.id)).toEqual(["open-settings"]);
+    expect(filterCommandPaletteCommands(enabledCommands, ">source").map((command) => command.id)).toEqual(["open-repositories"]);
+    expect(filterCommandPaletteCommands(enabledCommands, ">target").map((command) => command.id)).toEqual(["manage-installs"]);
+    expect(filterCommandPaletteCommands(enabledCommands, ">reviewer")).toEqual([]);
+    expect(filterCommandPaletteCommands(webCommands, ">require")).toEqual([]);
   });
 
   it("returns an empty list when no command matches", () => {
