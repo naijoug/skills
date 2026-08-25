@@ -6,17 +6,44 @@ export interface SkillListProps {
   skills: SkillSummary[];
   selectedSkillId: string;
   sortDirection: "asc" | "desc";
+  query?: string;
+  groupName?: string;
   onSelectSkill(skill: SkillSummary): void;
+  onClearSearch?(): void;
+  onViewAllSkills?(): void;
 }
 
-export function SkillList({ skills, selectedSkillId, sortDirection, onSelectSkill }: SkillListProps) {
+export function SkillList({
+  skills,
+  selectedSkillId,
+  sortDirection,
+  query = "",
+  groupName = "All skills",
+  onSelectSkill,
+  onClearSearch,
+  onViewAllSkills
+}: SkillListProps) {
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(() => new Set());
 
   if (!skills.length) {
     return (
       <div className="skills-empty">
         <h2>No matching skills</h2>
-        <p>Try a different search or repository.</p>
+        <p>{emptyStateMessage(query, groupName)}</p>
+        {query || groupName !== "All skills" ? (
+          <div className="skills-empty-actions">
+            {query ? (
+              <button type="button" onClick={onClearSearch}>
+                Clear search
+              </button>
+            ) : null}
+            {groupName !== "All skills" ? (
+              <button type="button" onClick={onViewAllSkills}>
+                View all skills
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     );
   }
@@ -116,4 +143,18 @@ function formatCategory(value: string): string {
     .filter(Boolean)
     .map((part) => part[0]?.toUpperCase() + part.slice(1))
     .join(" ");
+}
+
+function emptyStateMessage(query: string, groupName: string): string {
+  const trimmedQuery = query.trim();
+  if (trimmedQuery && groupName !== "All skills") {
+    return `No results for “${trimmedQuery}” in ${groupName}.`;
+  }
+  if (trimmedQuery) {
+    return `No results for “${trimmedQuery}”.`;
+  }
+  if (groupName !== "All skills") {
+    return `${groupName} has no skills in this library.`;
+  }
+  return "Try a different search or repository.";
 }

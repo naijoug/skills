@@ -1553,6 +1553,29 @@ html[data-skills-theme="dark"] #root {
   font-size: 12px;
 }
 
+.skills-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.skills-empty-actions button {
+  min-height: 34px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 520;
+}
+
+.skills-empty-actions button:hover {
+  background: var(--surface-hover);
+}
+
 @media (max-width: 1220px) {
   .skills-shell {
     grid-template-columns: 224px minmax(332px, 40vw) minmax(340px, 1fr);

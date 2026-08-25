@@ -44,6 +44,26 @@ describe("detail component rendering", () => {
     expect(markup).toContain("Manual Review");
   });
 
+  it("renders a scoped no-results state with recovery actions", () => {
+    const markup = renderToStaticMarkup(
+      <SkillList
+        skills={[]}
+        selectedSkillId=""
+        sortDirection="asc"
+        query="audit"
+        groupName="External Repo"
+        onClearSearch={() => undefined}
+        onSelectSkill={() => undefined}
+        onViewAllSkills={() => undefined}
+      />
+    );
+
+    expect(markup).toContain("No matching skills");
+    expect(markup).toContain("No results for “audit” in External Repo.");
+    expect(markup).toContain("Clear search");
+    expect(markup).toContain("View all skills");
+  });
+
   it("renders detail metadata, selected tab, and the install entry when install is active", () => {
     const markup = renderToStaticMarkup(
       <SkillDetailView

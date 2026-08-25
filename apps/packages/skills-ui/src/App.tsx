@@ -350,7 +350,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
                   ref={searchInputRef}
                   value={query}
                   onChange={(event) => void updateQuery(event.target.value)}
-                  placeholder="Search skills..."
+                  placeholder="Search skills or run a command..."
                   aria-label="Search skills"
                 />
                 <span className="skills-search-kbd" aria-hidden="true">
@@ -406,7 +406,11 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
               skills={visibleSkills}
               selectedSkillId={selectedSkillId}
               sortDirection={sortDirection}
+              query={query}
+              groupName={selectedGroup?.name ?? "All skills"}
               onSelectSkill={selectSkill}
+              onClearSearch={() => void updateQuery("")}
+              onViewAllSkills={() => void selectGroup("all")}
             />
           </>
         )}
