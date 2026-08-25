@@ -1,7 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { focusSearchFromShortcut, SearchField, shouldFocusSearchFromShortcut, type SearchFocusTarget } from "../src/App";
+import {
+  focusSearchFromShortcut,
+  isCommandPaletteQuery,
+  SearchField,
+  shouldFocusSearchFromShortcut,
+  skillSearchQuery,
+  type SearchFocusTarget
+} from "../src/App";
+import type { CommandPaletteCommand } from "../src/commandPaletteCommands";
 
 describe("search shortcut handling", () => {
   afterEach(() => {
@@ -57,7 +65,7 @@ describe("search shortcut handling", () => {
 });
 
 describe("search field copy", () => {
-  it("describes shortcut focus without promising a command palette", () => {
+  it("describes shortcut focus and the explicit command trigger", () => {
     const markup = renderToStaticMarkup(
       createElement(SearchField, {
         inputRef: { current: null },
@@ -69,11 +77,41 @@ describe("search field copy", () => {
 
     expect(markup).toContain("placeholder=\"Search skills...\"");
     expect(markup).toContain("aria-describedby=\"skills-search-help\"");
-    expect(markup).toContain("Focus search with the shortcut; command palette actions are not enabled yet.");
+    expect(markup).toContain("Type &gt; to show command actions; press the shortcut to focus search.");
+  });
+
+  it("renders command rows only when the query starts with the explicit trigger", () => {
+    const baseProps = {
+      commands,
+      inputRef: { current: null },
+      onOpenRepositories: () => undefined,
+      onQueryChange: () => undefined
+    };
+
+    const searchMarkup = renderToStaticMarkup(createElement(SearchField, { ...baseProps, query: "repo" }));
+    const commandMarkup = renderToStaticMarkup(createElement(SearchField, { ...baseProps, query: ">" }));
+
+    expect(searchMarkup).not.toContain("Command palette actions");
+    expect(commandMarkup).toContain("Command palette actions");
+    expect(commandMarkup).toContain("Search skills");
+    expect(commandMarkup).toContain("Open repositories");
+    expect(commandMarkup).toContain("Select a skill first");
   });
 });
 
-function shortcut(overrides: Partial<Pick<KeyboardEvent, "key" | "metaKey" | "ctrlKey" | "altKey" | "shiftKey" | "target">>): boolean {
+describe("command query handling", () => {
+  it("does not pass command-mode queries into skill filtering", () => {
+    expect(isCommandPaletteQuery(">repo")).toBe(true);
+    expect(isCommandPaletteQuery("  >repo")).toBe(true);
+    expect(isCommandPaletteQuery("repo")).toBe(false);
+    expect(skillSearchQuery(">repo")).toBe("");
+    expect(skillSearchQuery("repo")).toBe("repo");
+  });
+});
+
+function shortcut(
+  overrides: Partial<Pick<KeyboardEvent, "key" | "metaKey" | "ctrlKey" | "altKey" | "shiftKey" | "target">>
+): boolean {
   return shouldFocusSearchFromShortcut(shortcutEvent(overrides));
 }
 
@@ -90,3 +128,22 @@ function shortcutEvent(
     preventDefault: vi.fn()
   };
 }
+
+const commands: CommandPaletteCommand[] = [
+  {
+    id: "search-skills",
+    title: "Search skills",
+    hint: "Focus and select the skill search field."
+  },
+  {
+    id: "open-repositories",
+    title: "Open repositories",
+    hint: "Show repository import and refresh controls."
+  },
+  {
+    id: "manage-installs",
+    title: "Manage installs for selected skill",
+    hint: "Open install targets for the selected skill.",
+    disabledReason: "Select a skill first"
+  }
+];

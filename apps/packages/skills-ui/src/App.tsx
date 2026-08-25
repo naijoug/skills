@@ -10,6 +10,7 @@ import { SettingsListPane, SettingsPanel, type SettingsSectionId } from "./compo
 import { SkillDetailView, type SkillDetailTab } from "./components/SkillDetailView";
 import { SkillList } from "./components/SkillList";
 import { TranslatePanel } from "./components/TranslatePanel";
+import { commandPaletteCommands, type CommandPaletteCommand, type CommandPaletteCommandId } from "./commandPaletteCommands";
 import { findImportedGroup, firstSkillForView, groupAfterRefresh, selectedSkillForView, skillsForView } from "./selection";
 import {
   defaultSkillsUserSettings,
@@ -107,9 +108,10 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
     return () => window.removeEventListener("keydown", handleSearchShortcut);
   }, []);
 
+  const skillQuery = skillSearchQuery(query);
   const visibleSkills = useMemo(() => {
-    return skillsForView(library, selectedGroupId, query);
-  }, [library.skills, query, selectedGroupId]);
+    return skillsForView(library, selectedGroupId, skillQuery);
+  }, [library.skills, selectedGroupId, skillQuery]);
 
   const selectedGroup = library.groups.find((group) => group.id === selectedGroupId);
   const selectedDetailGroup = library.groups.find((group) => group.id === selectedDetail?.groupId);
@@ -120,6 +122,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
   const platformLabel = isDesktopRuntime ? "Desktop Mode" : "Web Mode";
   const capabilityText = platformLabel === "Desktop Mode" ? "Ready for local installs" : "Local installs require Desktop";
   const importedRepositoryCount = library.groups.filter((group) => group.kind !== "local").length;
+  const commandRows = commandPaletteCommands({ selectedDetail, runtime: isDesktopRuntime ? "desktop" : "web" });
 
   function clearSelection(): void {
     selectionRequestId.current += 1;
@@ -201,7 +204,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
       const nextGroupId = groupAfterRefresh(nextLibrary, selectedGroupId);
       setLibrary(nextLibrary);
       setSelectedGroupId(nextGroupId);
-      const nextSelection = selectedSkillForView(nextLibrary, nextGroupId, query, selectedSkillId);
+      const nextSelection = selectedSkillForView(nextLibrary, nextGroupId, skillQuery, selectedSkillId);
       await selectResolvedSkill(nextSelection, false);
       setStatus("Repositories refreshed.");
     } catch (error) {
@@ -221,7 +224,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
       const nextLibrary = await adapter.removeRepository({ repositoryId: selectedRepository.id });
       setLibrary(nextLibrary);
       setSelectedGroupId("all");
-      await selectFirstVisibleSkill(nextLibrary, "all", query, false);
+      await selectFirstVisibleSkill(nextLibrary, "all", skillQuery, false);
       setStatus("");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : String(error));
@@ -247,7 +250,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
 
   async function updateQuery(nextQuery: string): Promise<void> {
     setQuery(nextQuery);
-    const nextSelection = selectedSkillForView(library, selectedGroupId, nextQuery, selectedSkillId);
+    const nextSelection = selectedSkillForView(library, selectedGroupId, skillSearchQuery(nextQuery), selectedSkillId);
     if (nextSelection?.id === selectedSkillId) {
       return;
     }
@@ -272,6 +275,33 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
     setPrimaryView("settings");
     setRepositoriesOpen(false);
     setMoreMenuOpen(false);
+  }
+
+  function runCommandPaletteCommand(commandId: CommandPaletteCommandId): void {
+    const command = commandRows.find((item) => item.id === commandId);
+    if (command?.disabledReason) {
+      setStatus(command.disabledReason);
+      return;
+    }
+    setQuery("");
+    setMoreMenuOpen(false);
+    if (commandId === "search-skills") {
+      setPrimaryView("library");
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+      return;
+    }
+    if (commandId === "open-repositories") {
+      setPrimaryView("library");
+      setRepositoriesOpen(true);
+      return;
+    }
+    if (commandId === "manage-installs") {
+      setPrimaryView("library");
+      setActiveDetailTab("install");
+      return;
+    }
+    openSettings();
   }
 
   function showDetailTab(tab: SkillDetailTab): void {
@@ -338,8 +368,10 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
               <span>{library.skills.length} total</span>
             </header>
             <SearchField
+              commands={commandRows}
               inputRef={searchInputRef}
               query={query}
+              onCommandSelect={runCommandPaletteCommand}
               onOpenRepositories={openRepositories}
               onQueryChange={(nextQuery) => void updateQuery(nextQuery)}
             />
@@ -387,7 +419,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
               skills={visibleSkills}
               selectedSkillId={selectedSkillId}
               sortDirection={sortDirection}
-              query={query}
+              query={skillQuery}
               groupName={selectedGroup?.name ?? "All skills"}
               onSelectSkill={selectSkill}
               onClearSearch={() => void updateQuery("")}
@@ -479,13 +511,16 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
 }
 
 interface SearchFieldProps {
+  commands?: CommandPaletteCommand[];
   inputRef: RefObject<HTMLInputElement | null>;
   query: string;
+  onCommandSelect?(commandId: CommandPaletteCommandId): void;
   onQueryChange(query: string): void;
   onOpenRepositories(): void;
 }
 
-export function SearchField({ inputRef, query, onOpenRepositories, onQueryChange }: SearchFieldProps) {
+export function SearchField({ commands = [], inputRef, query, onCommandSelect, onOpenRepositories, onQueryChange }: SearchFieldProps) {
+  const showCommandRows = isCommandPaletteQuery(query) && commands.length > 0;
   return (
     <div className="skills-search-row">
       <div className="skills-search-stack">
@@ -505,14 +540,50 @@ export function SearchField({ inputRef, query, onOpenRepositories, onQueryChange
           </span>
         </div>
         <p className="skills-search-help" id="skills-search-help">
-          Focus search with the shortcut; command palette actions are not enabled yet.
+          Type &gt; to show command actions; press the shortcut to focus search.
         </p>
+        {showCommandRows ? <CommandPaletteRows commands={commands} onCommandSelect={onCommandSelect} /> : null}
       </div>
       <button className="skills-filter-action" type="button" aria-label="Open repository filters" onClick={onOpenRepositories}>
         <SlidersHorizontal size={19} />
       </button>
     </div>
   );
+}
+
+interface CommandPaletteRowsProps {
+  commands: CommandPaletteCommand[];
+  onCommandSelect?: (commandId: CommandPaletteCommandId) => void;
+}
+
+export function CommandPaletteRows({ commands, onCommandSelect }: CommandPaletteRowsProps) {
+  return (
+    <div className="skills-command-rows" role="listbox" aria-label="Command palette actions">
+      {commands.map((command) => (
+        <button
+          key={command.id}
+          type="button"
+          role="option"
+          disabled={Boolean(command.disabledReason)}
+          onClick={() => onCommandSelect?.(command.id)}
+        >
+          <span>
+            <strong>{command.title}</strong>
+            <small>{command.disabledReason ?? command.hint}</small>
+          </span>
+          <kbd>&gt;</kbd>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function isCommandPaletteQuery(query: string): boolean {
+  return query.trimStart().startsWith(">");
+}
+
+export function skillSearchQuery(query: string): string {
+  return isCommandPaletteQuery(query) ? "" : query;
 }
 
 function preferredInitialSkill(library: SkillsLibrary, groupId: string, query: string): SkillSummary | undefined {

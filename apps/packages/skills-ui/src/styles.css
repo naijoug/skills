@@ -449,6 +449,71 @@ html[data-skills-theme="dark"] #root {
   line-height: 1.35;
 }
 
+.skills-command-rows {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-menu);
+}
+
+.skills-command-rows button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 54px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 9px 12px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+}
+
+.skills-command-rows button:last-child {
+  border-bottom: 0;
+}
+
+.skills-command-rows button:not(:disabled):hover {
+  background: var(--surface-hover);
+}
+
+.skills-command-rows span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.skills-command-rows strong,
+.skills-command-rows small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skills-command-rows strong {
+  font-size: 13px;
+  font-weight: 590;
+}
+
+.skills-command-rows small {
+  color: var(--text-subtle);
+  font-size: 11px;
+}
+
+.skills-command-rows kbd {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1px 6px;
+  background: var(--surface-soft);
+  color: var(--text-subtle);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 610;
+}
+
 .skills-filter-action,
 .skills-icon-action {
   display: grid;
