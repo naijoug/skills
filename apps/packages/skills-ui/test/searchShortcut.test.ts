@@ -110,6 +110,25 @@ describe("search field copy", () => {
     expect(emptyMarkup).toContain("No command actions match this query.");
     expect(emptyMarkup).not.toContain("aria-activedescendant");
   });
+
+  it("keeps disabled command rows selectable and shows command-local status", () => {
+    const markup = renderToStaticMarkup(
+      createElement(SearchField, {
+        commands,
+        commandStatus: "Select a skill first",
+        inputRef: { current: null },
+        query: ">install",
+        onCommandSelect: () => undefined,
+        onOpenRepositories: () => undefined,
+        onQueryChange: () => undefined
+      })
+    );
+
+    expect(markup).toContain("aria-disabled=\"true\"");
+    expect(markup).not.toContain("disabled=\"\"");
+    expect(markup).toContain("class=\"skills-command-status\" role=\"status\" aria-live=\"polite\"");
+    expect(markup).toContain("Select a skill first");
+  });
 });
 
 describe("command query handling", () => {

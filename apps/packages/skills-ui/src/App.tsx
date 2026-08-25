@@ -61,6 +61,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [status, setStatus] = useState("Loading library...");
+  const [commandStatus, setCommandStatus] = useState("");
   const [busyAction, setBusyAction] = useState<"loading" | "importing" | "refreshing" | "removing" | "selecting" | "">("loading");
   const selectionRequestId = useRef(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -257,6 +258,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
 
   async function updateQuery(nextQuery: string): Promise<void> {
     setQuery(nextQuery);
+    setCommandStatus("");
     const nextSelection = selectedSkillForView(library, selectedGroupId, skillSearchQuery(nextQuery), selectedSkillId);
     if (nextSelection?.id === selectedSkillId) {
       return;
@@ -289,6 +291,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
     if (!command) {
       return;
     }
+    setCommandStatus("");
     executeCommandPaletteCommand(command, {
       clearQuery: () => setQuery(""),
       closeMenus: () => setMoreMenuOpen(false),
@@ -306,7 +309,10 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
         setActiveDetailTab("install");
       },
       openSettings,
-      setStatus
+      setStatus: (message) => {
+        setStatus(message);
+        setCommandStatus(message);
+      }
     });
   }
 
@@ -375,6 +381,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
             </header>
             <SearchField
               commands={commandRows}
+              commandStatus={commandStatus}
               inputRef={searchInputRef}
               query={query}
               onCommandSelect={runCommandPaletteCommand}
@@ -522,6 +529,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
 
 interface SearchFieldProps {
   commands?: CommandPaletteCommand[];
+  commandStatus?: string;
   inputRef: RefObject<HTMLInputElement | null>;
   query: string;
   onCommandSelect?(commandId: CommandPaletteCommandId): void;
@@ -529,7 +537,7 @@ interface SearchFieldProps {
   onOpenRepositories(): void;
 }
 
-export function SearchField({ commands = [], inputRef, query, onCommandSelect, onOpenRepositories, onQueryChange }: SearchFieldProps) {
+export function SearchField({ commands = [], commandStatus = "", inputRef, query, onCommandSelect, onOpenRepositories, onQueryChange }: SearchFieldProps) {
   const showCommandRows = isCommandPaletteQuery(query);
   const visibleCommands = filterCommandPaletteCommands(commands, query);
   const [activeCommandIndex, setActiveCommandIndex] = useState(0);
@@ -575,7 +583,7 @@ export function SearchField({ commands = [], inputRef, query, onCommandSelect, o
           Type &gt; to show command actions; press the shortcut to focus search.
         </p>
         {showCommandRows ? (
-          <CommandPaletteRows commands={visibleCommands} activeIndex={activeCommandIndex} onCommandSelect={onCommandSelect} />
+          <CommandPaletteRows commands={visibleCommands} activeIndex={activeCommandIndex} status={commandStatus} onCommandSelect={onCommandSelect} />
         ) : null}
       </div>
       <button className="skills-filter-action" type="button" aria-label="Open repository filters" onClick={onOpenRepositories}>
@@ -588,10 +596,11 @@ export function SearchField({ commands = [], inputRef, query, onCommandSelect, o
 interface CommandPaletteRowsProps {
   activeIndex?: number;
   commands: CommandPaletteCommand[];
+  status?: string;
   onCommandSelect?: (commandId: CommandPaletteCommandId) => void;
 }
 
-export function CommandPaletteRows({ activeIndex = 0, commands, onCommandSelect }: CommandPaletteRowsProps) {
+export function CommandPaletteRows({ activeIndex = 0, commands, status = "", onCommandSelect }: CommandPaletteRowsProps) {
   return (
     <div className="skills-command-rows" id="skills-command-rows" role="listbox" aria-label="Command palette actions">
       {commands.length === 0 ? (
@@ -606,7 +615,7 @@ export function CommandPaletteRows({ activeIndex = 0, commands, onCommandSelect 
           type="button"
           role="option"
           aria-selected={index === activeIndex}
-          disabled={Boolean(command.disabledReason)}
+          aria-disabled={Boolean(command.disabledReason)}
           onClick={() => onCommandSelect?.(command.id)}
         >
           <span>
@@ -616,6 +625,11 @@ export function CommandPaletteRows({ activeIndex = 0, commands, onCommandSelect 
           <kbd>&gt;</kbd>
         </button>
       ))}
+      {status ? (
+        <div className="skills-command-status" role="status" aria-live="polite">
+          {status}
+        </div>
+      ) : null}
     </div>
   );
 }

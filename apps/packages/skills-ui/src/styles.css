@@ -483,9 +483,13 @@ html[data-skills-theme="dark"] #root {
   line-height: 1.4;
 }
 
-.skills-command-rows button:not(:disabled):hover,
+.skills-command-rows button:hover,
 .skills-command-rows button[aria-selected="true"] {
   background: var(--surface-hover);
+}
+
+.skills-command-rows button[aria-disabled="true"] {
+  cursor: pointer;
 }
 
 .skills-command-rows button[aria-selected="true"] {
@@ -524,6 +528,15 @@ html[data-skills-theme="dark"] #root {
   font-family: inherit;
   font-size: 10px;
   font-weight: 610;
+}
+
+.skills-command-status {
+  border-top: 1px solid var(--border);
+  padding: 8px 12px;
+  background: var(--surface-soft);
+  color: var(--text-subtle);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .skills-filter-action,
