@@ -388,6 +388,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
               inputRef={searchInputRef}
               query={query}
               onCommandSelect={runCommandPaletteCommand}
+              onCommandStatusClear={() => setCommandStatus("")}
               onOpenRepositories={openRepositories}
               onQueryChange={(nextQuery) => void updateQuery(nextQuery)}
             />
@@ -536,11 +537,21 @@ interface SearchFieldProps {
   inputRef: RefObject<HTMLInputElement | null>;
   query: string;
   onCommandSelect?(commandId: CommandPaletteCommandId): void;
+  onCommandStatusClear?(): void;
   onQueryChange(query: string): void;
   onOpenRepositories(): void;
 }
 
-export function SearchField({ commands = [], commandStatus = "", inputRef, query, onCommandSelect, onOpenRepositories, onQueryChange }: SearchFieldProps) {
+export function SearchField({
+  commands = [],
+  commandStatus = "",
+  inputRef,
+  query,
+  onCommandSelect,
+  onCommandStatusClear,
+  onOpenRepositories,
+  onQueryChange
+}: SearchFieldProps) {
   const showCommandRows = isCommandPaletteQuery(query);
   const visibleCommands = filterCommandPaletteCommands(commands, query);
   const [activeCommandIndex, setActiveCommandIndex] = useState(0);
@@ -554,6 +565,7 @@ export function SearchField({ commands = [], commandStatus = "", inputRef, query
       activeCommandIndex,
       commands: visibleCommands,
       enabled: showCommandRows,
+      clearCommandStatus: onCommandStatusClear,
       onCommandSelect,
       onQueryChange,
       setActiveCommandIndex
@@ -645,6 +657,7 @@ export interface CommandPaletteSearchKeyDownState {
   activeCommandIndex: number;
   commands: CommandPaletteCommand[];
   enabled: boolean;
+  clearCommandStatus?(): void;
   onCommandSelect?: (commandId: CommandPaletteCommandId) => void;
   onQueryChange(query: string): void;
   setActiveCommandIndex(index: number): void;
@@ -663,6 +676,9 @@ export function handleCommandPaletteSearchKeyDown(
   }
 
   event.preventDefault();
+  if (action.nextActiveIndex !== undefined || action.clearQuery) {
+    state.clearCommandStatus?.();
+  }
   if (action.nextActiveIndex !== undefined) {
     state.setActiveCommandIndex(action.nextActiveIndex);
   }

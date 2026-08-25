@@ -2,7 +2,7 @@
 
 - **日期**：2026-08-25
 - **作者**：Hermes
-- **状态**：slice-4a-to-4c-implemented; next: post-inline polish or jsdom proof
+- **状态**：slice-4a-to-4c-implemented; post-inline status lifecycle polished; next: optional jsdom proof
 
 ## 背景
 
@@ -97,6 +97,7 @@
 - **Alias hardening 已完成**：命令 registry 使用显式 `keywords`，过滤不再依赖 hint 或 selected skill title，避免文案漂移造成 command matcher 行为漂移。
 - **Execution interaction proof 已完成**：`SearchField` 的 keydown 副作用已抽成薄 helper，覆盖 active row + `Enter` 选择、disabled row 进入执行层、`Escape` 在空匹配时清空 command mode。
 - **Disabled feedback polish 已完成**：disabled command rows 使用 `aria-disabled` 保持可触发，执行层将原因同时写入全局 status 与 command rows 本地 `role="status"` live region；成功命令会清理 stale status，避免 `Select a skill first` 等旧反馈残留在列表区。
+- **Status lifecycle polish 已完成**：继续输入、成功命令、`Escape`、`ArrowUp` / `ArrowDown` 都会清理 command rows 本地 status；`Enter` 不预清理 status，而是交给执行层在 enabled/disabled 两条路径分别清理或报告原因。
 
 ## 不做清单
 
@@ -107,4 +108,4 @@
 
 ## 下一步
 
-下一轮优先做 **post-inline polish**：检查 command rows 的本地 status 在成功命令、继续输入、`Escape` 后是否都符合预期；若要进一步提高信心，再在 UI package 内评估最小 jsdom 交互测试，但不要因此扩成完整 overlay 或加入安装/卸载/刷新等高风险动作。
+下一轮若继续 command palette，优先评估最小 **jsdom proof**：只覆盖 `>` rows 的真实 click / `Enter` / `Escape` 到 DOM 状态变化，不扩大成完整 overlay，也不要加入安装、卸载、刷新等高风险动作。若暂不引入 jsdom，则转向整理视觉密度或抽取复用文档。

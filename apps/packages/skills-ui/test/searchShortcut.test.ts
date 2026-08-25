@@ -149,6 +149,7 @@ describe("command rows keydown handling", () => {
     expect(handleCommandPaletteSearchKeyDown(event, state)).toBe(true);
 
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(state.clearCommandStatus).toHaveBeenCalledTimes(1);
     expect(state.setActiveCommandIndex).toHaveBeenCalledWith(1);
     expect(state.onCommandSelect).not.toHaveBeenCalled();
     expect(state.onQueryChange).not.toHaveBeenCalled();
@@ -161,6 +162,7 @@ describe("command rows keydown handling", () => {
     expect(handleCommandPaletteSearchKeyDown(event, state)).toBe(true);
 
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(state.clearCommandStatus).not.toHaveBeenCalled();
     expect(state.onCommandSelect).toHaveBeenCalledWith("manage-installs");
     expect(state.onQueryChange).not.toHaveBeenCalled();
     expect(state.setActiveCommandIndex).not.toHaveBeenCalled();
@@ -173,6 +175,7 @@ describe("command rows keydown handling", () => {
     expect(handleCommandPaletteSearchKeyDown(event, state)).toBe(true);
 
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(state.clearCommandStatus).toHaveBeenCalledTimes(1);
     expect(state.setActiveCommandIndex).toHaveBeenCalledWith(0);
     expect(state.onQueryChange).toHaveBeenCalledWith("");
     expect(state.onCommandSelect).not.toHaveBeenCalled();
@@ -185,6 +188,7 @@ describe("command rows keydown handling", () => {
     expect(handleCommandPaletteSearchKeyDown(event, state)).toBe(true);
 
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(state.clearCommandStatus).toHaveBeenCalledTimes(1);
     expect(state.setActiveCommandIndex).toHaveBeenCalledWith(0);
     expect(state.onQueryChange).toHaveBeenCalledWith("");
     expect(state.onCommandSelect).not.toHaveBeenCalled();
@@ -201,6 +205,8 @@ describe("command rows keydown handling", () => {
 
     expect(disabledEvent.preventDefault).not.toHaveBeenCalled();
     expect(unrelatedEvent.preventDefault).not.toHaveBeenCalled();
+    expect(disabledState.clearCommandStatus).not.toHaveBeenCalled();
+    expect(unrelatedState.clearCommandStatus).not.toHaveBeenCalled();
     expect(disabledState.onCommandSelect).not.toHaveBeenCalled();
     expect(unrelatedState.onCommandSelect).not.toHaveBeenCalled();
   });
@@ -235,6 +241,7 @@ function commandKeyDownState(overrides: { activeCommandIndex?: number; commandRo
     activeCommandIndex: overrides.activeCommandIndex ?? 0,
     commands: overrides.commandRows ?? commands,
     enabled: overrides.enabled ?? true,
+    clearCommandStatus: vi.fn(),
     onCommandSelect: vi.fn(),
     onQueryChange: vi.fn(),
     setActiveCommandIndex: vi.fn()
