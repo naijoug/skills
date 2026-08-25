@@ -291,8 +291,11 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
     if (!command) {
       return;
     }
-    setCommandStatus("");
     executeCommandPaletteCommand(command, {
+      clearStatus: () => {
+        setStatus("");
+        setCommandStatus("");
+      },
       clearQuery: () => setQuery(""),
       closeMenus: () => setMoreMenuOpen(false),
       focusSearch: () => {

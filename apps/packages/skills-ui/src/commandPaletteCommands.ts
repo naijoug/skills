@@ -13,6 +13,7 @@ export interface CommandPaletteCommand {
 }
 
 export interface CommandPaletteCommandActions {
+  clearStatus(): void;
   clearQuery(): void;
   closeMenus(): void;
   focusSearch(): void;
@@ -90,6 +91,7 @@ export function executeCommandPaletteCommand(command: CommandPaletteCommand, act
     return false;
   }
 
+  actions.clearStatus();
   actions.clearQuery();
   actions.closeMenus();
 

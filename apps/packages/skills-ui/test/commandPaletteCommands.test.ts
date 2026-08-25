@@ -64,6 +64,7 @@ describe("command palette command execution", () => {
 
       expect(executeCommandPaletteCommand(command, actions)).toBe(true);
 
+      expect(actions.clearStatus).toHaveBeenCalledTimes(1);
       expect(actions.clearQuery).toHaveBeenCalledTimes(1);
       expect(actions.closeMenus).toHaveBeenCalledTimes(1);
       expect(actions.setStatus).not.toHaveBeenCalled();
@@ -79,6 +80,7 @@ describe("command palette command execution", () => {
     expect(executeCommandPaletteCommand(command!, actions)).toBe(false);
 
     expect(actions.setStatus).toHaveBeenCalledWith("Select a skill first");
+    expect(actions.clearStatus).not.toHaveBeenCalled();
     expect(actions.clearQuery).not.toHaveBeenCalled();
     expect(actions.closeMenus).not.toHaveBeenCalled();
     expect(actions.manageInstalls).not.toHaveBeenCalled();
@@ -165,6 +167,7 @@ describe("command palette query matching", () => {
 
 function commandActions(): CommandPaletteCommandActions {
   return {
+    clearStatus: vi.fn(),
     clearQuery: vi.fn(),
     closeMenus: vi.fn(),
     focusSearch: vi.fn(),

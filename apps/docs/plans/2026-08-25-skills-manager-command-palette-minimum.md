@@ -2,7 +2,7 @@
 
 - **日期**：2026-08-25
 - **作者**：Hermes
-- **状态**：slice-4a-to-4c-implemented; next: execution interaction proof
+- **状态**：slice-4a-to-4c-implemented; next: post-inline polish or jsdom proof
 
 ## 背景
 
@@ -62,7 +62,7 @@
 
 - 第一行固定是 `Search skills`。
 - 后三行是 `Open repositories`、`Manage installs`、`Open settings`。
-- disabled row 可显示原因，但不可执行。
+- disabled row 使用 `aria-disabled` 而不是原生 `disabled`，仍允许点击/Enter 进入执行层，以便在 command rows 附近显示同一条原因反馈。
 - `Enter` 执行 active command；`Escape` 清空 query 并关闭 command rows；`ArrowUp` / `ArrowDown` 在可见命令中循环移动 active row。
 
 验收：
@@ -95,6 +95,8 @@
 - **Slice 4B 已完成**：`SearchField` 在显式 `>` query 下渲染 inline command rows；command-mode query 不传入 skill filtering；命令执行复用现有 state action，不新增安装、卸载、刷新等高风险动作。
 - **Slice 4C 已完成**：inline rows 已有 `listbox` / `option`、active descendant、`ArrowUp` / `ArrowDown`、`Enter`、`Escape` 的纯函数 contract 与静态 ARIA 测试。
 - **Alias hardening 已完成**：命令 registry 使用显式 `keywords`，过滤不再依赖 hint 或 selected skill title，避免文案漂移造成 command matcher 行为漂移。
+- **Execution interaction proof 已完成**：`SearchField` 的 keydown 副作用已抽成薄 helper，覆盖 active row + `Enter` 选择、disabled row 进入执行层、`Escape` 在空匹配时清空 command mode。
+- **Disabled feedback polish 已完成**：disabled command rows 使用 `aria-disabled` 保持可触发，执行层将原因同时写入全局 status 与 command rows 本地 `role="status"` live region；成功命令会清理 stale status，避免 `Select a skill first` 等旧反馈残留在列表区。
 
 ## 不做清单
 
@@ -105,4 +107,4 @@
 
 ## 下一步
 
-下一轮优先补 **execution interaction proof**：在不扩大 overlay 范围的前提下，为 inline command rows 增加更接近组件交互的验证，确认 active row + `Enter` 会调用正确 command，disabled row 不执行，只给出 status；如果继续保持 node 测试环境，则先抽一个薄的 search-field keydown reducer/handler contract，再由 `SearchField` 消费。
+下一轮优先做 **post-inline polish**：检查 command rows 的本地 status 在成功命令、继续输入、`Escape` 后是否都符合预期；若要进一步提高信心，再在 UI package 内评估最小 jsdom 交互测试，但不要因此扩成完整 overlay 或加入安装/卸载/刷新等高风险动作。
