@@ -2,7 +2,7 @@
 
 - **日期**：2026-08-25
 - **作者**：Hermes
-- **状态**：draft-for-next-slice
+- **状态**：slice-4a-to-4c-implemented; next: execution interaction proof
 
 ## 背景
 
@@ -20,12 +20,19 @@
 
 ## 最小命令集
 
-| 命令 | 触发文案 | 真实动作 | 可用条件 | 验收 |
-| --- | --- | --- | --- | --- |
-| Search skills | `Search skills` | 聚焦并选中搜索框，切回 Library | 始终可用 | `focusSearchFromShortcut` 或 command handler 会 `setPrimaryView("library")`、`focus()`、`select()` |
-| Open repositories | `Open repositories` | 打开 repository import/filter 区 | 始终可用 | `repositoriesOpen` 变为 true，more menu 关闭 |
-| Manage installs | `Manage installs for selected skill` | 切到 selected detail 的 Install tab | 有 selected skill detail | 无 selected detail 时 disabled，并解释 `Select a skill first` |
-| Open settings | `Open settings` | 切到 Settings view | 始终可用 | `primaryView` 变为 settings，repository panel 关闭 |
+| 命令 | 触发文案 | 稳定关键词 | 真实动作 | 可用条件 | 验收 |
+| --- | --- | --- | --- | --- | --- |
+| Search skills | `Search skills` | `search`、`find`、`skill`、`skills`、`filter` | 聚焦并选中搜索框，切回 Library | 始终可用 | `focusSearchFromShortcut` 或 command handler 会 `setPrimaryView("library")`、`focus()`、`select()` |
+| Open repositories | `Open repositories` | `repo`、`repos`、`repository`、`repositories`、`import`、`refresh`、`source`、`sources` | 打开 repository import/filter 区 | 始终可用 | `repositoriesOpen` 变为 true，more menu 关闭 |
+| Manage installs | `Manage installs for selected skill` | `install`、`installs`、`target`、`targets`、`manage`、`local`、`desktop` | 切到 selected detail 的 Install tab | 有 selected skill detail | 无 selected detail 时 disabled，并解释 `Select a skill first` |
+| Open settings | `Open settings` | `settings`、`setting`、`preferences`、`prefs`、`options`、`appearance` | 切到 Settings view | 始终可用 | `primaryView` 变为 settings，repository panel 关闭 |
+
+### 关键词约束
+
+- 命令过滤只匹配 stable command id、显式 `keywords` 和 `disabledReason`。
+- 不匹配动态标题里的 selected skill name，避免名为 `Repo Reviewer` 的 skill 让 `>repo` 误召回 `Manage installs`。
+- 不匹配 runtime hint 文案，避免 Web Mode hint 中的 `require` / `local` 等说明性词语变成未记录 alias。
+- 新增命令或新增别名时，必须同步补 registry 测试和 search row 静态渲染测试。
 
 ## 暂不进入 palette 的动作
 
@@ -51,12 +58,12 @@
 
 ### 阶段 B：搜索框下方的 inline command rows
 
-当 query 以 `>` 开头，或 query 为空且 search field 已 focus，可在 search area 下方显示最多 4 条命令：
+- 当 query 以 `>` 开头，在 search area 下方显示最多 4 条命令：
 
 - 第一行固定是 `Search skills`。
 - 后三行是 `Open repositories`、`Manage installs`、`Open settings`。
 - disabled row 可显示原因，但不可执行。
-- `Enter` 执行 active command；`Escape` 关闭 command rows 但不清空 query。
+- `Enter` 执行 active command；`Escape` 清空 query 并关闭 command rows；`ArrowUp` / `ArrowDown` 在可见命令中循环移动 active row。
 
 验收：
 
@@ -82,6 +89,13 @@
    - 补 `aria-controls` / `aria-expanded` / active descendant。
    - 明确 `Escape`、`Enter`、`ArrowUp/ArrowDown` 行为。
 
+## 已完成实现记录
+
+- **Slice 4A 已完成**：`apps/packages/skills-ui/src/commandPaletteCommands.ts` 定义了四个最小命令、runtime hint、disabled reason 与执行 contract；`apps/packages/skills-ui/test/commandPaletteCommands.test.ts` 覆盖顺序、可用性和 Web/Desktop 文案。
+- **Slice 4B 已完成**：`SearchField` 在显式 `>` query 下渲染 inline command rows；command-mode query 不传入 skill filtering；命令执行复用现有 state action，不新增安装、卸载、刷新等高风险动作。
+- **Slice 4C 已完成**：inline rows 已有 `listbox` / `option`、active descendant、`ArrowUp` / `ArrowDown`、`Enter`、`Escape` 的纯函数 contract 与静态 ARIA 测试。
+- **Alias hardening 已完成**：命令 registry 使用显式 `keywords`，过滤不再依赖 hint 或 selected skill title，避免文案漂移造成 command matcher 行为漂移。
+
 ## 不做清单
 
 - 不把 placeholder 改回 `Search skills or run a command...`，除非至少 Slice 4B 已完成。
@@ -91,4 +105,4 @@
 
 ## 下一步
 
-下一轮优先做 **Slice 4A：命令 contract**。这是低风险、可验证的小块：只新增纯函数与测试，先把真实命令边界固定下来，再决定是否接入 UI。
+下一轮优先补 **execution interaction proof**：在不扩大 overlay 范围的前提下，为 inline command rows 增加更接近组件交互的验证，确认 active row + `Enter` 会调用正确 command，disabled row 不执行，只给出 status；如果继续保持 node 测试环境，则先抽一个薄的 search-field keydown reducer/handler contract，再由 `SearchField` 消费。
