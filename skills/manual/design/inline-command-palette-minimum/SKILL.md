@@ -171,6 +171,37 @@ Keep implementation layers narrow:
 
 Do not let the registry import UI components or side-effect adapters. If a command needs those, pass a narrow callback from the parent execution layer.
 
+## Decision Record Snippet
+
+Use this short record before implementation. It should fit in a plan, issue, or PR description and answer why the slice is still inline instead of a full overlay.
+
+```markdown
+## Inline command palette decision
+
+### Why inline
+- Existing user path:
+- Why a full overlay is premature:
+- Command trigger:
+
+### Included commands
+| Command | Existing action/callback | Available when | Disabled reason | Status after execution | Verification |
+| --- | --- | --- | --- | --- | --- |
+| Search existing content | focus/select search | always | - | query remains visible | focus/render test |
+
+### Excluded commands
+| Command | Blocker | Revisit when |
+| --- | --- | --- |
+| Destructive action | needs confirmation and failure status | confirmation flow exists |
+
+### Proof plan
+- Registry:
+- Static render/accessibility:
+- DOM proof:
+- Project check:
+```
+
+Review rule: if more time is spent explaining excluded commands than included commands, the feature probably wants a broader command/navigation design instead of this minimum slice.
+
 ## Output Template
 
 ```markdown
