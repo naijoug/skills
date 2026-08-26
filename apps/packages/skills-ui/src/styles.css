@@ -453,20 +453,20 @@ html[data-skills-theme="dark"] #root {
   display: grid;
   overflow: hidden;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 11px;
   background: var(--surface-raised);
-  box-shadow: var(--shadow-menu);
+  box-shadow: 0 10px 26px rgba(20, 20, 18, 0.12), 0 1px 5px rgba(20, 20, 18, 0.08);
 }
 
 .skills-command-rows button {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
-  min-height: 54px;
+  gap: 10px;
+  min-height: 46px;
   border: 0;
   border-bottom: 1px solid var(--border);
-  padding: 9px 12px;
+  padding: 7px 10px;
   background: transparent;
   color: var(--text);
   text-align: left;
@@ -477,7 +477,7 @@ html[data-skills-theme="dark"] #root {
 }
 
 .skills-command-empty {
-  padding: 14px 12px;
+  padding: 10px;
   color: var(--text-subtle);
   font-size: 12px;
   line-height: 1.4;
@@ -493,7 +493,7 @@ html[data-skills-theme="dark"] #root {
 }
 
 .skills-command-rows button[aria-selected="true"] {
-  box-shadow: inset 3px 0 0 var(--accent);
+  box-shadow: inset 2px 0 0 var(--accent);
 }
 
 .skills-command-rows span {
@@ -532,7 +532,7 @@ html[data-skills-theme="dark"] #root {
 
 .skills-command-status {
   border-top: 1px solid var(--border);
-  padding: 8px 12px;
+  padding: 7px 10px;
   background: var(--surface-soft);
   color: var(--text-subtle);
   font-size: 12px;

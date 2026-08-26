@@ -2,7 +2,7 @@
 
 - **日期**：2026-08-25
 - **作者**：Hermes
-- **状态**：slice-4a-to-4c-implemented; jsdom interaction proof added; next: visual density or second-batch command scoping
+- **状态**：slice-4a-to-4c-implemented; jsdom interaction proof added; compact inline rows tuned; next: second-batch command scoping
 
 ## 背景
 
@@ -98,6 +98,7 @@
 - **Execution interaction proof 已完成**：`SearchField` 的 keydown 副作用已抽成薄 helper，覆盖 active row + `Enter` 选择、disabled row 进入执行层、`Escape` 在空匹配时清空 command mode；并补了最小 jsdom DOM proof，真实验证 disabled row click、`ArrowDown` + `Enter` 选择和 `Escape` 清空后 rows 从 DOM 移除。
 - **Disabled feedback polish 已完成**：disabled command rows 使用 `aria-disabled` 保持可触发，执行层将原因写入全局 status，并在 command rows 本地 `role="status"` live region 中使用 `Command unavailable: ...` 前缀；这样 row hint 仍是短原因（如 `Select a skill first`），就近 live feedback 则明确这是本次命令执行失败，不再与 disabled hint 完全重复。
 - **Status lifecycle polish 已完成**：继续输入、成功命令、`Escape`、`ArrowUp` / `ArrowDown` 都会清理 command rows 本地 status；`Enter` 不预清理 status，而是交给执行层在 enabled/disabled 两条路径分别清理或报告原因。
+- **Visual density polish 已完成**：inline command rows 从偏 overlay 的 54px 行高/大阴影收紧为 46px 行高、10px 横向 padding 和较轻阴影，active indicator 从 3px 收为 2px；目标是在完整 4 条命令展开时仍保留 skill list 首行的上下文，而不是让搜索区临时变成大面板。
 
 ## 不做清单
 
@@ -108,4 +109,4 @@
 
 ## 下一步
 
-下一轮若继续 command palette，优先做两条小分支之一：1）检查 inline command rows 视觉密度与首行 skill list 遮挡风险；2）为第二批 selected-detail secondary actions（Copy skill path / Export Gist bundle / Translate）先写 command scoping 决策，不直接执行高风险动作。
+下一轮若继续 command palette，优先为第二批 selected-detail secondary actions（Copy skill path / Export Gist bundle / Translate）先写 command scoping 决策；不要直接把异步/剪贴板动作塞进 command registry，除非先定义 disabled reason、fallback status 与测试边界。
