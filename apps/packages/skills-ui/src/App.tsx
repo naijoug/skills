@@ -311,6 +311,13 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
         setPrimaryView("library");
         setActiveDetailTab("install");
       },
+      copySkillPath: copySelectedSkillPath,
+      translateSummary: () => {
+        showDetailTab("summary");
+      },
+      exportGistBundle: () => {
+        void exportGistBundle();
+      },
       openSettings,
       setStatus: (message) => {
         setStatus(message);

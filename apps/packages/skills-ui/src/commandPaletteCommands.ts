@@ -2,7 +2,14 @@ import type { SkillDetail } from "@skills-manager/core";
 
 export type CommandPaletteRuntime = "desktop" | "web";
 
-export type CommandPaletteCommandId = "search-skills" | "open-repositories" | "manage-installs" | "open-settings";
+export type CommandPaletteCommandId =
+  | "search-skills"
+  | "open-repositories"
+  | "manage-installs"
+  | "copy-skill-path"
+  | "translate-summary"
+  | "export-gist-bundle"
+  | "open-settings";
 
 export interface CommandPaletteCommand {
   id: CommandPaletteCommandId;
@@ -19,6 +26,9 @@ export interface CommandPaletteCommandActions {
   focusSearch(): void;
   openRepositories(): void;
   manageInstalls(): void;
+  copySkillPath(): void;
+  translateSummary(): void;
+  exportGistBundle(): void;
   openSettings(): void;
   setStatus(message: string): void;
 }
@@ -57,6 +67,27 @@ export function commandPaletteCommands({ selectedDetail, runtime }: CommandPalet
       title: selectedDetail ? `Manage installs for ${selectedDetail.title || selectedDetail.name}` : "Manage installs for selected skill",
       hint: installCapabilityHint,
       keywords: ["install", "installs", "target", "targets", "manage", "local", "desktop"],
+      disabledReason: selectedDetail ? undefined : "Select a skill first"
+    },
+    {
+      id: "copy-skill-path",
+      title: selectedDetail ? `Copy path for ${selectedDetail.title || selectedDetail.name}` : "Copy selected skill path",
+      hint: "Copy the selected skill relative path; download a text fallback if clipboard is unavailable.",
+      keywords: ["copy", "path", "relative", "link", "location", "clipboard", "download"],
+      disabledReason: selectedDetail ? undefined : "Select a skill first"
+    },
+    {
+      id: "translate-summary",
+      title: selectedDetail ? `Translate summary for ${selectedDetail.title || selectedDetail.name}` : "Translate selected skill summary",
+      hint: "Open the selected skill summary translation panel.",
+      keywords: ["translate", "translation", "language", "summary", "localize", "i18n"],
+      disabledReason: selectedDetail ? undefined : "Select a skill first"
+    },
+    {
+      id: "export-gist-bundle",
+      title: selectedDetail ? `Export Gist bundle for ${selectedDetail.title || selectedDetail.name}` : "Export selected skill Gist bundle",
+      hint: "Copy a Gist-ready skill bundle; download a markdown fallback if clipboard is unavailable.",
+      keywords: ["export", "gist", "bundle", "share", "markdown", "clipboard", "download"],
       disabledReason: selectedDetail ? undefined : "Select a skill first"
     },
     {
@@ -105,6 +136,18 @@ export function executeCommandPaletteCommand(command: CommandPaletteCommand, act
   }
   if (command.id === "manage-installs") {
     actions.manageInstalls();
+    return true;
+  }
+  if (command.id === "copy-skill-path") {
+    actions.copySkillPath();
+    return true;
+  }
+  if (command.id === "translate-summary") {
+    actions.translateSummary();
+    return true;
+  }
+  if (command.id === "export-gist-bundle") {
+    actions.exportGistBundle();
     return true;
   }
 

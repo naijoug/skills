@@ -2,7 +2,7 @@
 
 - **日期**：2026-08-25
 - **作者**：Hermes
-- **状态**：slice-4a-to-4c-implemented; jsdom interaction proof added; compact inline rows tuned; next: second-batch command scoping
+- **状态**：slice-4a-to-4c-implemented; jsdom interaction proof added; compact inline rows tuned; second-batch selected-detail commands scoped and wired; next: async status polish
 
 ## 背景
 
@@ -25,7 +25,10 @@
 | Search skills | `Search skills` | `search`、`find`、`skill`、`skills`、`filter` | 聚焦并选中搜索框，切回 Library | 始终可用 | `focusSearchFromShortcut` 或 command handler 会 `setPrimaryView("library")`、`focus()`、`select()` |
 | Open repositories | `Open repositories` | `repo`、`repos`、`repository`、`repositories`、`import`、`refresh`、`source`、`sources` | 打开 repository import/filter 区 | 始终可用 | `repositoriesOpen` 变为 true，more menu 关闭 |
 | Manage installs | `Manage installs for selected skill` | `install`、`installs`、`target`、`targets`、`manage`、`local`、`desktop` | 切到 selected detail 的 Install tab | 有 selected skill detail | 无 selected detail 时 disabled，并解释 `Select a skill first` |
-| Open settings | `Open settings` | `settings`、`setting`、`preferences`、`prefs`、`options`、`appearance` | 切到 Settings view | 始终可用 | `primaryView` 变为 settings，repository panel 关闭 |
+| `Copy skill path` | `Copy path for {skill}` | `copy`、`path`、`relative`、`link`、`location`、`clipboard`、`download` | 复用 detail overflow 的 copy/download fallback | 有 selected skill detail | 无 selected detail 时 disabled，并解释 `Select a skill first`；有 detail 时触发 clipboard，失败则下载 `.txt` fallback |
+| `Translate summary` | `Translate summary for {skill}` | `translate`、`translation`、`language`、`summary`、`localize`、`i18n` | 打开 selected detail 的 Summary/translation panel | 有 selected skill detail | 无 selected detail 时 disabled；有 detail 时回到 Library/detail Summary，不直接提交翻译请求 |
+| `Export Gist bundle` | `Export Gist bundle for {skill}` | `export`、`gist`、`bundle`、`share`、`markdown`、`clipboard`、`download` | 复用 detail overflow 的 Gist markdown bundle copy/download fallback | 有 selected skill detail | 无 selected detail 时 disabled；有 detail 时复制 bundle，失败则下载 `.md` fallback |
+| `Open settings` | `Open settings` | `settings`、`setting`、`preferences`、`prefs`、`options`、`appearance` | 切到 Settings view | 始终可用 | `primaryView` 变为 settings，repository panel 关闭 |
 
 ### 关键词约束
 
@@ -39,7 +42,7 @@
 - `Import repository`：保留在 Repositories 区表单里；palette 只负责打开区域，不直接提交 URL。
 - `Refresh repositories`：这是破坏当前浏览状态的异步动作，继续放在 Repositories/detail overflow，等有确认/状态反馈设计再纳入。
 - `Install skill` / `Uninstall skill`：需要目标、mode、conflict policy、确认弹窗，不能作为单步命令。
-- `Translate` / `Export Gist bundle` / `Copy skill path`：属于 selected skill 的 secondary actions，继续在 overflow；后续可在第二批命令中按“有 selected detail”条件加入。
+- `Translate markdown`：第二批只接 `Translate summary`，避免一个 `translate` query 同时召回两个近似命令；Markdown translation 继续留在 detail tab 内。
 
 ## UI 行为草案
 
@@ -99,6 +102,7 @@
 - **Disabled feedback polish 已完成**：disabled command rows 使用 `aria-disabled` 保持可触发，执行层将原因写入全局 status，并在 command rows 本地 `role="status"` live region 中使用 `Command unavailable: ...` 前缀；这样 row hint 仍是短原因（如 `Select a skill first`），就近 live feedback 则明确这是本次命令执行失败，不再与 disabled hint 完全重复。
 - **Status lifecycle polish 已完成**：继续输入、成功命令、`Escape`、`ArrowUp` / `ArrowDown` 都会清理 command rows 本地 status；`Enter` 不预清理 status，而是交给执行层在 enabled/disabled 两条路径分别清理或报告原因。
 - **Visual density polish 已完成**：inline command rows 从偏 overlay 的 54px 行高/大阴影收紧为 46px 行高、10px 横向 padding 和较轻阴影，active indicator 从 3px 收为 2px；目标是在完整 4 条命令展开时仍保留 skill list 首行的上下文，而不是让搜索区临时变成大面板。
+- **Second-batch selected-detail commands 已完成**：新增 `Copy skill path`、`Translate summary`、`Export Gist bundle` 三个命令；它们只复用已有 detail overflow 行为和 clipboard/download fallback，不新增远程执行或直接翻译提交。无 selected detail 时统一 disabled reason 为 `Select a skill first`，保持执行层 status 反馈一致。
 
 ## 不做清单
 
@@ -109,4 +113,4 @@
 
 ## 下一步
 
-下一轮若继续 command palette，优先为第二批 selected-detail secondary actions（Copy skill path / Export Gist bundle / Translate）先写 command scoping 决策；不要直接把异步/剪贴板动作塞进 command registry，除非先定义 disabled reason、fallback status 与测试边界。
+下一轮若继续 command palette，优先打磨第二批命令的异步 status 生命周期：`Copy skill path` / `Export Gist bundle` 在 clipboard promise 未完成前是否需要 `Copying...` / `Exporting...` 本地状态，以及 `Translate summary` 是否要在 command status 中说明“opened summary translation panel”。

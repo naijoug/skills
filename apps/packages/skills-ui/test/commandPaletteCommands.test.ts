@@ -13,29 +13,51 @@ describe("command palette command contract", () => {
   it("exposes the minimum command set in stable order", () => {
     const commands = commandPaletteCommands({ selectedDetail: detail, runtime: "desktop" });
 
-    expect(commands.map((command) => command.id)).toEqual(["search-skills", "open-repositories", "manage-installs", "open-settings"]);
+    expect(commands.map((command) => command.id)).toEqual([
+      "search-skills",
+      "open-repositories",
+      "manage-installs",
+      "copy-skill-path",
+      "translate-summary",
+      "export-gist-bundle",
+      "open-settings"
+    ]);
     expect(commands.map((command) => command.title)).toEqual([
       "Search skills",
       "Open repositories",
       "Manage installs for Repo Reviewer",
+      "Copy path for Repo Reviewer",
+      "Translate summary for Repo Reviewer",
+      "Export Gist bundle for Repo Reviewer",
       "Open settings"
     ]);
     expect(commands.map((command) => command.keywords)).toEqual([
       ["search", "find", "skill", "skills", "filter"],
       ["repo", "repos", "repository", "repositories", "import", "refresh", "source", "sources"],
       ["install", "installs", "target", "targets", "manage", "local", "desktop"],
+      ["copy", "path", "relative", "link", "location", "clipboard", "download"],
+      ["translate", "translation", "language", "summary", "localize", "i18n"],
+      ["export", "gist", "bundle", "share", "markdown", "clipboard", "download"],
       ["settings", "setting", "preferences", "prefs", "options", "appearance"]
     ]);
   });
 
-  it("requires a selected skill before manage installs can execute", () => {
+  it("requires a selected skill before selected-detail commands can execute", () => {
     const commands = commandPaletteCommands({ selectedDetail: null, runtime: "desktop" });
-    const manageInstalls = commands.find((command) => command.id === "manage-installs");
 
-    expect(manageInstalls).toMatchObject({
+    expect(commands.filter((command) => command.disabledReason).map((command) => command.id)).toEqual([
+      "manage-installs",
+      "copy-skill-path",
+      "translate-summary",
+      "export-gist-bundle"
+    ]);
+    expect(commands.find((command) => command.id === "manage-installs")).toMatchObject({
       title: "Manage installs for selected skill",
       disabledReason: "Select a skill first"
     });
+    expect(commands.find((command) => command.id === "copy-skill-path")?.title).toBe("Copy selected skill path");
+    expect(commands.find((command) => command.id === "translate-summary")?.title).toBe("Translate selected skill summary");
+    expect(commands.find((command) => command.id === "export-gist-bundle")?.title).toBe("Export selected skill Gist bundle");
   });
 
   it("uses desktop capability copy when local installs are available", () => {
@@ -92,7 +114,7 @@ describe("command palette keyboard contract", () => {
     const commands = commandPaletteCommands({ selectedDetail: detail, runtime: "desktop" });
 
     expect(commandPaletteKeyboardAction({ key: "ArrowDown" }, commands, 0)).toEqual({ handled: true, nextActiveIndex: 1 });
-    expect(commandPaletteKeyboardAction({ key: "ArrowUp" }, commands, 0)).toEqual({ handled: true, nextActiveIndex: 3 });
+    expect(commandPaletteKeyboardAction({ key: "ArrowUp" }, commands, 0)).toEqual({ handled: true, nextActiveIndex: 6 });
   });
 
   it("selects the active command with enter", () => {
@@ -133,6 +155,9 @@ describe("command palette query matching", () => {
       "search-skills",
       "open-repositories",
       "manage-installs",
+      "copy-skill-path",
+      "translate-summary",
+      "export-gist-bundle",
       "open-settings"
     ]);
   });
@@ -144,7 +169,15 @@ describe("command palette query matching", () => {
     expect(filterCommandPaletteCommands(enabledCommands, ">repo").map((command) => command.id)).toEqual(["open-repositories"]);
     expect(filterCommandPaletteCommands(enabledCommands, ">settings").map((command) => command.id)).toEqual(["open-settings"]);
     expect(filterCommandPaletteCommands(enabledCommands, ">install").map((command) => command.id)).toEqual(["manage-installs"]);
-    expect(filterCommandPaletteCommands(disabledCommands, ">skill first").map((command) => command.id)).toEqual(["manage-installs"]);
+    expect(filterCommandPaletteCommands(enabledCommands, ">gist").map((command) => command.id)).toEqual(["export-gist-bundle"]);
+    expect(filterCommandPaletteCommands(enabledCommands, ">translate").map((command) => command.id)).toEqual(["translate-summary"]);
+    expect(filterCommandPaletteCommands(enabledCommands, ">path").map((command) => command.id)).toEqual(["copy-skill-path"]);
+    expect(filterCommandPaletteCommands(disabledCommands, ">skill first").map((command) => command.id)).toEqual([
+      "manage-installs",
+      "copy-skill-path",
+      "translate-summary",
+      "export-gist-bundle"
+    ]);
   });
 
   it("supports documented aliases without using dynamic titles or hint drift", () => {
@@ -173,6 +206,9 @@ function commandActions(): CommandPaletteCommandActions {
     focusSearch: vi.fn(),
     openRepositories: vi.fn(),
     manageInstalls: vi.fn(),
+    copySkillPath: vi.fn(),
+    translateSummary: vi.fn(),
+    exportGistBundle: vi.fn(),
     openSettings: vi.fn(),
     setStatus: vi.fn()
   };
@@ -182,6 +218,9 @@ const expectedActionByCommandId = {
   "search-skills": "focusSearch",
   "open-repositories": "openRepositories",
   "manage-installs": "manageInstalls",
+  "copy-skill-path": "copySkillPath",
+  "translate-summary": "translateSummary",
+  "export-gist-bundle": "exportGistBundle",
   "open-settings": "openSettings"
 } as const;
 
