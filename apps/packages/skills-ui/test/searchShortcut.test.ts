@@ -8,6 +8,7 @@ import {
   formatSkillPathStatus,
   formatTranslateSummaryStatus,
   handleCommandPaletteSearchKeyDown,
+  commandPaletteVisibleRows,
   isCommandPaletteQuery,
   SearchField,
   shouldFocusSearchFromShortcut,
@@ -151,6 +152,17 @@ describe("search field copy", () => {
     expect(formatGistBundleStatus("download")).toBe("Downloaded Gist-ready skill bundle.");
     expect(formatTranslateSummaryStatus()).toBe("Opened summary translation panel.");
   });
+
+  it("limits empty command mode rows while keeping filtered matches discoverable", () => {
+    expect(commandPaletteVisibleRows(extendedCommands, ">").map((command) => command.id)).toEqual([
+      "search-skills",
+      "open-repositories",
+      "manage-installs",
+      "copy-skill-path"
+    ]);
+
+    expect(commandPaletteVisibleRows(extendedCommands, ">gist").map((command) => command.id)).toEqual(["export-gist-bundle"]);
+  });
 });
 
 describe("command query handling", () => {
@@ -289,5 +301,36 @@ const commands: CommandPaletteCommand[] = [
     hint: "Open install targets for the selected skill.",
     keywords: ["install", "installs", "target", "targets", "manage", "local", "desktop"],
     disabledReason: "Select a skill first"
+  }
+];
+
+const extendedCommands: CommandPaletteCommand[] = [
+  ...commands,
+  {
+    id: "copy-skill-path",
+    title: "Copy selected skill path",
+    hint: "Copy the selected skill relative path; download a text fallback if clipboard is unavailable.",
+    keywords: ["copy", "path", "relative", "link", "location", "clipboard", "download"],
+    disabledReason: "Select a skill first"
+  },
+  {
+    id: "translate-summary",
+    title: "Translate selected skill summary",
+    hint: "Open the selected skill summary translation panel.",
+    keywords: ["translate", "translation", "language", "summary", "localize", "i18n"],
+    disabledReason: "Select a skill first"
+  },
+  {
+    id: "export-gist-bundle",
+    title: "Export selected skill Gist bundle",
+    hint: "Copy a Gist-ready skill bundle; download a markdown fallback if clipboard is unavailable.",
+    keywords: ["export", "gist", "bundle", "share", "markdown", "clipboard", "download"],
+    disabledReason: "Select a skill first"
+  },
+  {
+    id: "open-settings",
+    title: "Open settings",
+    hint: "Open Web Mode preferences.",
+    keywords: ["settings", "setting", "preferences", "prefs", "options", "appearance"]
   }
 ];

@@ -13,6 +13,7 @@ import { TranslatePanel } from "./components/TranslatePanel";
 import {
   commandPaletteKeyboardAction,
   commandPaletteCommands,
+  commandPaletteSearchTerm,
   executeCommandPaletteCommand,
   filterCommandPaletteCommands,
   type CommandPaletteCommand,
@@ -564,7 +565,7 @@ export function SearchField({
   onQueryChange
 }: SearchFieldProps) {
   const showCommandRows = isCommandPaletteQuery(query);
-  const visibleCommands = filterCommandPaletteCommands(commands, query);
+  const visibleCommands = commandPaletteVisibleRows(commands, query);
   const [activeCommandIndex, setActiveCommandIndex] = useState(0);
 
   useEffect(() => {
@@ -662,6 +663,14 @@ export function CommandPaletteRows({ activeIndex = 0, commands, status = "", onC
 
 export function isCommandPaletteQuery(query: string): boolean {
   return query.trimStart().startsWith(">");
+}
+
+export function commandPaletteVisibleRows(commands: CommandPaletteCommand[], query: string, maxRows = 4): CommandPaletteCommand[] {
+  const filteredCommands = filterCommandPaletteCommands(commands, query);
+  if (commandPaletteSearchTerm(query)) {
+    return filteredCommands;
+  }
+  return filteredCommands.slice(0, maxRows);
 }
 
 export interface CommandPaletteSearchKeyDownState {

@@ -2,7 +2,7 @@
 
 - **日期**：2026-08-25
 - **作者**：Hermes
-- **状态**：slice-4a-to-4c-implemented; jsdom interaction proof added; compact inline rows tuned; second-batch selected-detail commands scoped and wired; async status polish added; next: command row grouping/limit review
+- **状态**：slice-4a-to-4c-implemented; jsdom interaction proof added; compact inline rows tuned; second-batch selected-detail commands scoped and wired; async status polish added; empty-query row limit added; next: review filtered-row overflow only if command set grows again
 
 ## 背景
 
@@ -104,6 +104,7 @@
 - **Visual density polish 已完成**：inline command rows 从偏 overlay 的 54px 行高/大阴影收紧为 46px 行高、10px 横向 padding 和较轻阴影，active indicator 从 3px 收为 2px；目标是在完整 4 条命令展开时仍保留 skill list 首行的上下文，而不是让搜索区临时变成大面板。
 - **Second-batch selected-detail commands 已完成**：新增 `Copy skill path`、`Translate summary`、`Export Gist bundle` 三个命令；它们只复用已有 detail overflow 行为和 clipboard/download fallback，不新增远程执行或直接翻译提交。无 selected detail 时统一 disabled reason 为 `Select a skill first`，保持执行层 status 反馈一致。
 - **Async status polish 已完成**：`Copy skill path` 会先显示 `Copying path: ...`，再根据 clipboard/download 结果改为完成态；`Export Gist bundle` 会先显示 `Exporting Gist-ready skill bundle...`，再显示复制或下载结果；`Translate summary` 打开 Summary translation panel 后显示 `Opened summary translation panel.`，避免 enabled command 清空 query 后没有任何可见反馈。
+- **Empty-query row limit 已完成**：`>` 空查询只展示前 4 条高频命令，保持搜索区下方仍能看到 skill list 上下文；输入稳定关键词后不再套用 4 条限制，确保 `>gist`、`>translate`、`>settings` 等低频命令仍可被发现和执行。
 
 ## 不做清单
 
@@ -114,4 +115,4 @@
 
 ## 下一步
 
-下一轮若继续 command palette，优先检查 7 条 command rows 在小窗口/compact lists 下是否需要分组、limit 或内部滚动；尤其要避免 `>` 空 query 时占用过多列表上下文。
+下一轮若继续 command palette，优先只观察 filtered query 的极端情况：如果未来命令集继续增长，再决定是否对 filtered rows 增加内部滚动；当前不要引入分组标题或 overlay。
