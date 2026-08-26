@@ -3,6 +3,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   focusSearchFromShortcut,
+  formatCommandStatus,
   handleCommandPaletteSearchKeyDown,
   isCommandPaletteQuery,
   SearchField,
@@ -115,7 +116,7 @@ describe("search field copy", () => {
     const markup = renderToStaticMarkup(
       createElement(SearchField, {
         commands,
-        commandStatus: "Select a skill first",
+        commandStatus: formatCommandStatus("Select a skill first"),
         inputRef: { current: null },
         query: ">install",
         onCommandSelect: () => undefined,
@@ -127,7 +128,13 @@ describe("search field copy", () => {
     expect(markup).toContain("aria-disabled=\"true\"");
     expect(markup).not.toContain("disabled=\"\"");
     expect(markup).toContain("class=\"skills-command-status\" role=\"status\" aria-live=\"polite\"");
-    expect(markup).toContain("Select a skill first");
+    expect(markup).toContain("<small>Select a skill first</small>");
+    expect(markup).toContain("Command unavailable: Select a skill first");
+  });
+
+  it("formats local command feedback without changing the global status copy", () => {
+    expect(formatCommandStatus("Select a skill first")).toBe("Command unavailable: Select a skill first");
+    expect(formatCommandStatus("")).toBe("");
   });
 });
 

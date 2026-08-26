@@ -2,7 +2,7 @@
 
 - **日期**：2026-08-25
 - **作者**：Hermes
-- **状态**：slice-4a-to-4c-implemented; post-inline status lifecycle polished; next: optional jsdom proof
+- **状态**：slice-4a-to-4c-implemented; local disabled feedback clarified; next: optional jsdom proof
 
 ## 背景
 
@@ -96,7 +96,7 @@
 - **Slice 4C 已完成**：inline rows 已有 `listbox` / `option`、active descendant、`ArrowUp` / `ArrowDown`、`Enter`、`Escape` 的纯函数 contract 与静态 ARIA 测试。
 - **Alias hardening 已完成**：命令 registry 使用显式 `keywords`，过滤不再依赖 hint 或 selected skill title，避免文案漂移造成 command matcher 行为漂移。
 - **Execution interaction proof 已完成**：`SearchField` 的 keydown 副作用已抽成薄 helper，覆盖 active row + `Enter` 选择、disabled row 进入执行层、`Escape` 在空匹配时清空 command mode。
-- **Disabled feedback polish 已完成**：disabled command rows 使用 `aria-disabled` 保持可触发，执行层将原因同时写入全局 status 与 command rows 本地 `role="status"` live region；成功命令会清理 stale status，避免 `Select a skill first` 等旧反馈残留在列表区。
+- **Disabled feedback polish 已完成**：disabled command rows 使用 `aria-disabled` 保持可触发，执行层将原因写入全局 status，并在 command rows 本地 `role="status"` live region 中使用 `Command unavailable: ...` 前缀；这样 row hint 仍是短原因（如 `Select a skill first`），就近 live feedback 则明确这是本次命令执行失败，不再与 disabled hint 完全重复。
 - **Status lifecycle polish 已完成**：继续输入、成功命令、`Escape`、`ArrowUp` / `ArrowDown` 都会清理 command rows 本地 status；`Enter` 不预清理 status，而是交给执行层在 enabled/disabled 两条路径分别清理或报告原因。
 
 ## 不做清单

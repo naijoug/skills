@@ -314,7 +314,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
       openSettings,
       setStatus: (message) => {
         setStatus(message);
-        setCommandStatus(message);
+        setCommandStatus(formatCommandStatus(message));
       }
     });
   }
@@ -697,6 +697,10 @@ function commandOptionId(commandId: CommandPaletteCommandId | undefined): string
 
 export function skillSearchQuery(query: string): string {
   return isCommandPaletteQuery(query) ? "" : query;
+}
+
+export function formatCommandStatus(message: string): string {
+  return message ? `Command unavailable: ${message}` : "";
 }
 
 function preferredInitialSkill(library: SkillsLibrary, groupId: string, query: string): SkillSummary | undefined {
