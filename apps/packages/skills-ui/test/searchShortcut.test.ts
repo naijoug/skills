@@ -3,7 +3,10 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   focusSearchFromShortcut,
+  formatGistBundleStatus,
   formatCommandStatus,
+  formatSkillPathStatus,
+  formatTranslateSummaryStatus,
   handleCommandPaletteSearchKeyDown,
   isCommandPaletteQuery,
   SearchField,
@@ -135,6 +138,18 @@ describe("search field copy", () => {
   it("formats local command feedback without changing the global status copy", () => {
     expect(formatCommandStatus("Select a skill first")).toBe("Command unavailable: Select a skill first");
     expect(formatCommandStatus("")).toBe("");
+  });
+
+  it("formats selected-detail command progress and completion statuses", () => {
+    const path = "manual/review/repo-review/SKILL.md";
+
+    expect(formatSkillPathStatus("pending", path)).toBe("Copying path: manual/review/repo-review/SKILL.md");
+    expect(formatSkillPathStatus("clipboard", path)).toBe("Copied path: manual/review/repo-review/SKILL.md");
+    expect(formatSkillPathStatus("download", path)).toBe("Downloaded path: manual/review/repo-review/SKILL.md");
+    expect(formatGistBundleStatus("pending")).toBe("Exporting Gist-ready skill bundle...");
+    expect(formatGistBundleStatus("clipboard")).toBe("Copied Gist-ready skill bundle to clipboard.");
+    expect(formatGistBundleStatus("download")).toBe("Downloaded Gist-ready skill bundle.");
+    expect(formatTranslateSummaryStatus()).toBe("Opened summary translation panel.");
   });
 });
 

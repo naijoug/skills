@@ -2,7 +2,7 @@
 
 - **日期**：2026-08-25
 - **作者**：Hermes
-- **状态**：slice-4a-to-4c-implemented; jsdom interaction proof added; compact inline rows tuned; second-batch selected-detail commands scoped and wired; next: async status polish
+- **状态**：slice-4a-to-4c-implemented; jsdom interaction proof added; compact inline rows tuned; second-batch selected-detail commands scoped and wired; async status polish added; next: command row grouping/limit review
 
 ## 背景
 
@@ -103,6 +103,7 @@
 - **Status lifecycle polish 已完成**：继续输入、成功命令、`Escape`、`ArrowUp` / `ArrowDown` 都会清理 command rows 本地 status；`Enter` 不预清理 status，而是交给执行层在 enabled/disabled 两条路径分别清理或报告原因。
 - **Visual density polish 已完成**：inline command rows 从偏 overlay 的 54px 行高/大阴影收紧为 46px 行高、10px 横向 padding 和较轻阴影，active indicator 从 3px 收为 2px；目标是在完整 4 条命令展开时仍保留 skill list 首行的上下文，而不是让搜索区临时变成大面板。
 - **Second-batch selected-detail commands 已完成**：新增 `Copy skill path`、`Translate summary`、`Export Gist bundle` 三个命令；它们只复用已有 detail overflow 行为和 clipboard/download fallback，不新增远程执行或直接翻译提交。无 selected detail 时统一 disabled reason 为 `Select a skill first`，保持执行层 status 反馈一致。
+- **Async status polish 已完成**：`Copy skill path` 会先显示 `Copying path: ...`，再根据 clipboard/download 结果改为完成态；`Export Gist bundle` 会先显示 `Exporting Gist-ready skill bundle...`，再显示复制或下载结果；`Translate summary` 打开 Summary translation panel 后显示 `Opened summary translation panel.`，避免 enabled command 清空 query 后没有任何可见反馈。
 
 ## 不做清单
 
@@ -113,4 +114,4 @@
 
 ## 下一步
 
-下一轮若继续 command palette，优先打磨第二批命令的异步 status 生命周期：`Copy skill path` / `Export Gist bundle` 在 clipboard promise 未完成前是否需要 `Copying...` / `Exporting...` 本地状态，以及 `Translate summary` 是否要在 command status 中说明“opened summary translation panel”。
+下一轮若继续 command palette，优先检查 7 条 command rows 在小窗口/compact lists 下是否需要分组、limit 或内部滚动；尤其要避免 `>` 空 query 时占用过多列表上下文。

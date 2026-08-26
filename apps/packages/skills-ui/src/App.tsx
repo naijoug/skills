@@ -314,6 +314,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
       copySkillPath: copySelectedSkillPath,
       translateSummary: () => {
         showDetailTab("summary");
+        setStatus(formatTranslateSummaryStatus());
       },
       exportGistBundle: () => {
         void exportGistBundle();
@@ -336,8 +337,10 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
     if (!selectedDetail) {
       return;
     }
-    void writeTextOrDownload(selectedDetail.relativePath, `${selectedDetail.name || "skill"}-path.txt`).then((method) => {
-      setStatus(method === "clipboard" ? `Copied path: ${selectedDetail.relativePath}` : `Downloaded path: ${selectedDetail.relativePath}`);
+    const path = selectedDetail.relativePath;
+    setStatus(formatSkillPathStatus("pending", path));
+    void writeTextOrDownload(path, `${selectedDetail.name || "skill"}-path.txt`).then((method) => {
+      setStatus(formatSkillPathStatus(method, path));
     });
     setMoreMenuOpen(false);
   }
@@ -347,8 +350,9 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
       return;
     }
     const bundle = gistBundleForDetail(selectedDetail);
+    setStatus(formatGistBundleStatus("pending"));
     const method = await writeTextOrDownload(bundle, `${selectedDetail.name || "skill"}-gist.md`);
-    setStatus(method === "clipboard" ? "Copied Gist-ready skill bundle to clipboard." : "Downloaded Gist-ready skill bundle.");
+    setStatus(formatGistBundleStatus(method));
     setMoreMenuOpen(false);
   }
 
@@ -708,6 +712,24 @@ export function skillSearchQuery(query: string): string {
 
 export function formatCommandStatus(message: string): string {
   return message ? `Command unavailable: ${message}` : "";
+}
+
+export function formatSkillPathStatus(method: "pending" | "clipboard" | "download", path: string): string {
+  if (method === "pending") {
+    return `Copying path: ${path}`;
+  }
+  return method === "clipboard" ? `Copied path: ${path}` : `Downloaded path: ${path}`;
+}
+
+export function formatGistBundleStatus(method: "pending" | "clipboard" | "download"): string {
+  if (method === "pending") {
+    return "Exporting Gist-ready skill bundle...";
+  }
+  return method === "clipboard" ? "Copied Gist-ready skill bundle to clipboard." : "Downloaded Gist-ready skill bundle.";
+}
+
+export function formatTranslateSummaryStatus(): string {
+  return "Opened summary translation panel.";
 }
 
 function preferredInitialSkill(library: SkillsLibrary, groupId: string, query: string): SkillSummary | undefined {
