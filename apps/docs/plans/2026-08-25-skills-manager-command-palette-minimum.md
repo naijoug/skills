@@ -2,7 +2,7 @@
 
 - **日期**：2026-08-25
 - **作者**：Hermes
-- **状态**：slice-4a-to-4c-implemented; local disabled feedback clarified; next: optional jsdom proof
+- **状态**：slice-4a-to-4c-implemented; jsdom interaction proof added; next: visual density or second-batch command scoping
 
 ## 背景
 
@@ -95,7 +95,7 @@
 - **Slice 4B 已完成**：`SearchField` 在显式 `>` query 下渲染 inline command rows；command-mode query 不传入 skill filtering；命令执行复用现有 state action，不新增安装、卸载、刷新等高风险动作。
 - **Slice 4C 已完成**：inline rows 已有 `listbox` / `option`、active descendant、`ArrowUp` / `ArrowDown`、`Enter`、`Escape` 的纯函数 contract 与静态 ARIA 测试。
 - **Alias hardening 已完成**：命令 registry 使用显式 `keywords`，过滤不再依赖 hint 或 selected skill title，避免文案漂移造成 command matcher 行为漂移。
-- **Execution interaction proof 已完成**：`SearchField` 的 keydown 副作用已抽成薄 helper，覆盖 active row + `Enter` 选择、disabled row 进入执行层、`Escape` 在空匹配时清空 command mode。
+- **Execution interaction proof 已完成**：`SearchField` 的 keydown 副作用已抽成薄 helper，覆盖 active row + `Enter` 选择、disabled row 进入执行层、`Escape` 在空匹配时清空 command mode；并补了最小 jsdom DOM proof，真实验证 disabled row click、`ArrowDown` + `Enter` 选择和 `Escape` 清空后 rows 从 DOM 移除。
 - **Disabled feedback polish 已完成**：disabled command rows 使用 `aria-disabled` 保持可触发，执行层将原因写入全局 status，并在 command rows 本地 `role="status"` live region 中使用 `Command unavailable: ...` 前缀；这样 row hint 仍是短原因（如 `Select a skill first`），就近 live feedback 则明确这是本次命令执行失败，不再与 disabled hint 完全重复。
 - **Status lifecycle polish 已完成**：继续输入、成功命令、`Escape`、`ArrowUp` / `ArrowDown` 都会清理 command rows 本地 status；`Enter` 不预清理 status，而是交给执行层在 enabled/disabled 两条路径分别清理或报告原因。
 
@@ -108,4 +108,4 @@
 
 ## 下一步
 
-下一轮若继续 command palette，优先评估最小 **jsdom proof**：只覆盖 `>` rows 的真实 click / `Enter` / `Escape` 到 DOM 状态变化，不扩大成完整 overlay，也不要加入安装、卸载、刷新等高风险动作。若暂不引入 jsdom，则转向整理视觉密度或抽取复用文档。
+下一轮若继续 command palette，优先做两条小分支之一：1）检查 inline command rows 视觉密度与首行 skill list 遮挡风险；2）为第二批 selected-detail secondary actions（Copy skill path / Export Gist bundle / Translate）先写 command scoping 决策，不直接执行高风险动作。
