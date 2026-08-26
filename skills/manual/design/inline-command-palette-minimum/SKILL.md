@@ -143,6 +143,34 @@ Use the smallest useful proof stack:
 - Turning four inline rows into a large pseudo-overlay that blocks the underlying list.
 - Adding destructive commands before confirmation and status design exist.
 
+## Adoption Checklist
+
+Use this as a quick gate before you start implementation:
+
+- [ ] Existing search or filter behavior has at least one regression test or simple manual proof.
+- [ ] The command trigger is explicit, usually `>`, and normal search remains the default mode.
+- [ ] The first command set has no more than 3-4 always-visible rows for an empty command query.
+- [ ] Every enabled command names the existing function, route, adapter, or state transition it will call.
+- [ ] Every visible-but-unavailable command has one stable disabled reason.
+- [ ] Destructive, credentialed, or multi-target actions stay out until confirmation and status copy are designed.
+- [ ] Keyboard behavior is specified before styling: active row movement, `Enter`, `Escape`, typing, and screen-reader state.
+- [ ] Enabled commands that clear the query have pending/success/fallback feedback outside the disappearing rows.
+- [ ] Verification covers registry behavior, render/accessibility attributes, one DOM interaction proof, and project type/build checks.
+- [ ] The decision record says what will be added later only if real usage or command count justifies it.
+
+## Reference Implementation Pattern
+
+Keep implementation layers narrow:
+
+1. `commandRegistry` returns data rows and disabled reasons from the current app context.
+2. `filterCommands(query)` matches ids and stable keywords, not dynamic item names or row hints.
+3. `visibleRows(query)` caps empty-query rows first and leaves filtered discovery open.
+4. `SearchField` owns command-mode keyboard navigation and local unavailable feedback.
+5. Parent/app state owns real command execution, async status, clipboard/download fallback, and panel/route transitions.
+6. Tests mirror those layers: registry unit tests, static render tests, DOM proof, then type/build checks.
+
+Do not let the registry import UI components or side-effect adapters. If a command needs those, pass a narrow callback from the parent execution layer.
+
 ## Output Template
 
 ```markdown
