@@ -172,6 +172,40 @@ Use the smallest useful proof stack:
 -
 ```
 
+## Filled Example
+
+```markdown
+## Inline Command Palette Minimum
+
+### Boundary
+- Existing search behavior preserved: typing `repo` still filters the current list; `⌘K` / `Ctrl+K` only focuses and selects the search input.
+- Explicit trigger: command rows appear only when the query starts with `>`.
+- Not implementing yet: install/uninstall, repository refresh, remote sync, and destructive actions that need confirmation.
+
+### Commands
+| Command | Action | Availability | Disabled reason |
+| --- | --- | --- | --- |
+| Search skills | Focus/select the search input and return to Library | Always | - |
+| Open repositories | Expand the repository import/filter area | Always | - |
+| Manage installs | Switch selected skill detail to the Install tab | Selected skill detail exists | Select a skill first |
+| Copy skill path | Copy the selected skill path, or download a `.txt` fallback | Selected skill detail exists | Select a skill first |
+| Export Gist bundle | Copy a Gist-ready markdown bundle, or download a `.md` fallback | Selected skill detail exists | Select a skill first |
+
+### Accessibility and feedback
+- Keyboard contract: `ArrowUp` / `ArrowDown` cycles visible rows; `Enter` executes the active row; `Escape` clears command mode.
+- Local live region: disabled execution reports `Command unavailable: Select a skill first` near the rows.
+- Global status: enabled commands report pending and completion states after the query is cleared.
+
+### Verification
+- Registry tests: assert order, selected/unselected availability, stable keyword filtering, and no dynamic title matching.
+- Static render proof: assert `aria-expanded`, `aria-controls`, `aria-activedescendant`, `aria-selected`, `aria-disabled`, and the local `role="status"` region.
+- DOM interaction proof: click a disabled row, run `ArrowDown` + `Enter`, and use `Escape` to remove rows.
+- Type/build/check command: run the project UI test suite, typecheck, and whitespace diff check for changed paths.
+
+### Next safe slice
+- If command count grows, cap empty-query rows first; add filtered-row scrolling only when real filtered results exceed the available vertical space.
+```
+
 ## Related Assets
 
 - `skills/apps/docs/plans/2026-08-25-skills-manager-command-palette-minimum.md`
