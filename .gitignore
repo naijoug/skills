@@ -36,6 +36,7 @@ skills/manual/tool/search/workspace/
 
 # Local design/uploads workspaces
 .design/
+.output/
 .uploads/
 .qa/
 

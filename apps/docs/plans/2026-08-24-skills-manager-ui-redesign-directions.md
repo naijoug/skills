@@ -6,9 +6,9 @@
 
 ## 背景
 
-`apps/packages/skills-ui/` 已经具备可运行的 Web/Desktop 共享 UI：左侧 group sidebar、搜索、skills list、详情 summary/markdown/files/install tabs、repository import、refresh、translation、settings 和安装面板。近期 `output/imagegen/` 里产生了三组 Skills Manager 高保真 mockup prompt 与图片，但这些文件更像临时生成产物，不应直接进入 git 历史。
+`apps/packages/skills-ui/` 已经具备可运行的 Web/Desktop 共享 UI：左侧 group sidebar、搜索、skills list、详情 summary/markdown/files/install tabs、repository import、refresh、translation、settings 和安装面板。近期 `.output/imagegen/` 里产生了三组 Skills Manager 高保真 mockup prompt 与图片，但这些文件更像临时生成产物，不应直接进入 git 历史。
 
-本记录把三组 prompt 中可落地的产品方向收敛成实现决策，供下一轮 UI 改造直接使用；原始 `output/` 继续保持未接管。
+本记录把三组 prompt 中可落地的产品方向收敛成实现决策，供下一轮 UI 改造直接使用；原始 `.output/` 继续保持未接管。
 
 ## 现有界面约束
 
@@ -97,7 +97,7 @@
 
 ## 明确不做
 
-- 不提交 `output/imagegen/` 原始图片和 prompt，除非后续明确移动到正式 design resources 并说明用途。
+- 不提交 `.output/imagegen/` 原始图片和 prompt，除非后续明确移动到正式 design resources 并说明用途。
 - 不把 repository import 做成 Library 首页常驻大型表单。
 - 不做 dashboard metrics、masonry grid、marketing hero、browser chrome mockup。
 - 不在本轮引入账号、云同步、计费或团队协作信息架构。

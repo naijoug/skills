@@ -111,7 +111,7 @@
 - 不把 placeholder 改回 `Search skills or run a command...`，除非至少 Slice 4B 已完成。
 - 不让 palette 直接执行安装、卸载、刷新等高风险异步动作。
 - 不新建独立 command domain 或 routing layer；先复用 `primaryView`、`repositoriesOpen`、`activeDetailTab` 等现有 state。
-- 不提交 `output/` 下的 imagegen 临时产物。
+- 不提交 `.output/` 下的 imagegen 临时产物。
 
 ## 下一步
 
