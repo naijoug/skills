@@ -21,6 +21,8 @@ Use these phrases to recognize when the skill should be applied.
 - "Which tests matter for this specific change?"
 - "Make this handoff actionable with commands and expected outputs."
 - "Help me decide whether to continue broad testing or narrow first."
+- "This scheduled agent has several dirty repos; pick the next safe slice without mixing changes."
+- "Turn this cron handoff into one owned path and a proof command."
 
 ## Negative / Near Miss
 

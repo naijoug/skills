@@ -147,6 +147,7 @@ Evidence boundary: only repo-relative paths from `documents/trending/ai/...` and
 
 - Trigger examples: `references/trigger-examples.md`
 - AI coding audit example: `references/ai-coding-audit-example.md`
+- Cron handoff example: `references/cron-handoff-example.md`
 - Related evidence boundary skill: `skills/skills/manual/review/audit-evidence-boundary/`
 - Related PR self-review skill: `skills/skills/manual/review/pr/`
 - Public mock report path: `docs/documents/trending/ai/ai-coding-audit-mock-report.md`
