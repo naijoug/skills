@@ -40,6 +40,7 @@ Personal collection of AI coding skills. Skills are classified by directory unde
         │   ├── error-boundary/
         │   ├── handoff-receipt/
         │   ├── monorepo-test-entrypoint-drift/
+        │   ├── multi-session-control-ledger/
         │   ├── next-safe-command-ladder/
         │   ├── path-scoped-commit-boundary/
         │   ├── test-fixture-failure-semantics/

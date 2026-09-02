@@ -1,0 +1,36 @@
+id: ng-review-multi-session-control-ledger
+version: 1.0.0
+title: Multi-Session Control Ledger
+summary: Coordinate overlapping local, remote, cron, and review agent sessions with explicit outcomes, owned paths, permission ceilings, evidence, and next safe commands
+kind: prompt_only
+tags:
+  - review
+  - multi-agent
+  - handoff
+  - dirty-worktree
+  - permissions
+  - verification
+triggers:
+  keywords:
+    - multi-session control ledger
+    - multi agent handoff
+    - concurrent agent sessions
+    - overlapping agent work
+    - permission ceiling
+    - owned paths
+    - next safe command
+    - remote review agent
+    - cron agent
+    - 多会话控制
+    - 多 agent 协作
+    - 权限边界
+    - 接力台账
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity
