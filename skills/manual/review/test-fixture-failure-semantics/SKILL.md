@@ -18,6 +18,7 @@ Core principle: a fixture failure message is handoff material. It should identif
 - The change can be limited to test code or helper diagnostics.
 - You have a focused test command that exercises the touched module.
 - You are working in a dirty workspace and need a path-scoped, low-risk improvement.
+- You are testing a preflight guard and its temporary fixture can fail before the guard behavior is reached.
 
 ## When Not to Use
 
@@ -53,6 +54,19 @@ Core principle: a fixture failure message is handoff material. It should identif
    - Run the focused test module or test name.
    - Run `git diff --check -- <owned paths>`.
    - Read back `git status --short` and commit only owned paths.
+
+## Pairing With Preflight Self-Tests
+
+Use this skill alongside `skills/skills/manual/review/agent-preflight-script-test/` when the preflight test harness has setup phases that could obscure the real guardrail result.
+
+Keep the boundary simple:
+
+- `agent-preflight-script-test` decides which guard branches need positive/negative fixtures.
+- `test-fixture-failure-semantics` makes fixture setup failures readable when `mktemp`, file writes, copied helper scripts, temporary git setup, or cleanup fail.
+- A negative guard case should fail because the preflight rejected the invalid artifact, not because the fixture accidentally omitted a directory or helper script.
+- Stable proof should name both layers: fixture setup succeeded, then the intended preflight branch passed or failed closed.
+
+If the harness only has one tiny inline fixture and failures are already obvious, do not add wording churn just to force this pairing.
 
 ## Rewrite Patterns
 
@@ -99,5 +113,7 @@ Core principle: a fixture failure message is handoff material. It should identif
 
 - Related book card: `books/tech-cards-handbook/chapters/ai-agent/test-fixture-failure-message-is-handoff.md`
 - Related docs card: `docs/documents/trending/ai/test-fixture-failure-semantics.md`
+- Related docs card: `docs/documents/trending/ai/agent-preflight-script-test-template.md`
+- Related skill: `skills/skills/manual/review/agent-preflight-script-test/`
 - Related skill: `skills/skills/manual/review/next-safe-command-ladder/`
 - Related skill: `skills/skills/manual/review/path-scoped-commit-boundary/`
