@@ -1,0 +1,32 @@
+id: ng-review-handoff-receipt
+version: 1.0.0
+title: Handoff Receipt
+summary: Finish or receive agent work with a compact receipt that separates owned changes from avoided dirty paths, verified facts, open risks, and the next safe command
+kind: prompt_only
+tags:
+  - review
+  - handoff
+  - git
+  - dirty-worktree
+  - verification
+triggers:
+  keywords:
+    - handoff receipt
+    - agent handoff
+    - dirty workspace handoff
+    - owned changes
+    - avoided dirty paths
+    - next safe command
+    - continuation card
+    - 交接记录
+    - 接力说明
+    - 脏工作区交接
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity
