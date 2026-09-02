@@ -111,6 +111,7 @@ If the harness only has one tiny inline fixture and failures are already obvious
 
 ## References
 
+- Trigger examples: `skills/skills/manual/review/test-fixture-failure-semantics/references/trigger-examples.md`
 - Related book card: `books/tech-cards-handbook/chapters/ai-agent/test-fixture-failure-message-is-handoff.md`
 - Related docs card: `docs/documents/trending/ai/test-fixture-failure-semantics.md`
 - Related docs card: `docs/documents/trending/ai/agent-preflight-script-test-template.md`
