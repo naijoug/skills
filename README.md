@@ -36,6 +36,7 @@ Personal collection of AI coding skills. Skills are classified by directory unde
         │   ├── agent-release-gate/
         │   ├── audit-evidence-boundary/
         │   ├── bounded-probe-before-workaround/
+        │   ├── content-only-docs-proof-gate/
         │   ├── error-boundary/
         │   ├── handoff-receipt/
         │   ├── monorepo-test-entrypoint-drift/
