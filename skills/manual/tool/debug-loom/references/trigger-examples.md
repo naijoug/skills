@@ -5,6 +5,8 @@
 - "帮这个项目生成 debug.sh 和 debug-loom" (full bootstrap)
 - "我现在开三个终端看日志，能不能自动化？" (multi-service log unification)
 - "给 backend/web/desktop 做一个本地调试启动器" (orchestrator generation)
+- "在 scripts 下生成 debug-backend.sh 和 debug-web.sh，Web 默认连线上后端，local 模式连本地后端" (lightweight two-launcher workflow)
+- "前后端启动脚本遇到端口占用时，先精确停止监听进程再启动" (safe port lifecycle)
 - "生成一个 service x mode 的调试矩阵" (matrix design)
 - "debug.sh local/dev/online 怎么设计？" (per-service script patterns)
 - "给项目加 start/stop/status/logs/doctor" (CLI scaffolding)
@@ -15,6 +17,7 @@
 
 - "Create a debug-loom for this repo" (full bootstrap)
 - "Generate per-service debug.sh scripts" (per-service script patterns)
+- "Add debug-backend.sh and debug-web.sh with deployed/local API modes and safe occupied-port cleanup" (lightweight two-launcher workflow)
 - "Build a local debugging orchestrator with health checks and logs" (orchestrator generation)
 - "I want AI to inspect debug logs and fix/retest" (fix-and-retest loop)
 - "Add start/stop/status/logs/doctor to this project" (CLI scaffolding)

@@ -2,7 +2,7 @@
 
 ## Principles
 
-- Each service owns its own `debug.sh`.
+- Each service normally owns its own `debug.sh`; use repo-level `scripts/debug-<service>.sh` when the user or repository already prefers that layout.
 - `debug.sh` modes are project-specific.
 - Preserve existing scripts; patch in place only after reading them.
 - Print resolved environment at startup.
@@ -10,7 +10,7 @@
 
 ## Required Interface
 
-Every generated or improved `debug.sh` should support:
+Every generated or improved full Debug Loom `debug.sh` should support:
 
 ```bash
 ./debug.sh --help
@@ -26,6 +26,8 @@ dev
 ```
 
 If plain `./debug.sh` is a valid mode, expose it as `default`.
+
+For an explicitly requested lightweight two-launcher workflow, preserve the requested interface instead of adding `--modes` or a repo-level orchestrator. Read `frontend-backend-launchers.md`.
 
 ## Common Features
 

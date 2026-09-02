@@ -1,3 +1,3 @@
 display_name: Debug Loom
-short_description: Weave services × modes into a repeatable local debug stack — debug.sh, orchestrator, centralized logs, doctor diagnostics.
-default_prompt: Create or improve this project's debug-loom — inventory services and modes, generate per-service debug.sh, scaffold scripts/debug-loom (start/stop/status/logs/doctor), and centralize logs under .var/debug-loom/current/.
+short_description: Create lightweight launchers or a full local debug stack
+default_prompt: Use $ng-tool-debug-loom to create the smallest fitting local debug workflow for this project, from lightweight frontend/backend launchers to a full service-mode orchestrator when requested.
