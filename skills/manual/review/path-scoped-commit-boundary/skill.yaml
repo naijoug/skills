@@ -1,0 +1,32 @@
+id: ng-review-path-scoped-commit-boundary
+version: 1.0.0
+title: Path-Scoped Commit Boundary
+summary: Keep work moving in a dirty repository by choosing owned paths, verifying narrowly, staging explicitly, and committing only the current task's slice
+kind: prompt_only
+tags:
+  - review
+  - git
+  - dirty-worktree
+  - commit
+  - handoff
+triggers:
+  keywords:
+    - path-scoped commit
+    - dirty worktree boundary
+    - commit only my files
+    - explicit path staging
+    - owned paths
+    - unrelated dirty files
+    - git add specific paths
+    - 脏工作区
+    - 只提交本轮文件
+    - 路径范围提交
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity
