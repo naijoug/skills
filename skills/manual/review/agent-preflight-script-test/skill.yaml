@@ -1,0 +1,30 @@
+id: ng-review-agent-preflight-script-test
+version: 1.0.0
+title: Agent Preflight Script Test
+summary: Add lightweight temporary-workspace self-tests for repeated agent, cron, CI, or repository preflight scripts so they fail closed on bad paths, missing fields, and empty target sets
+kind: prompt_only
+tags:
+  - review
+  - ai-agent
+  - preflight
+  - testing
+  - cron
+triggers:
+  keywords:
+    - agent preflight script test
+    - preflight self-test
+    - cron notebook checker test
+    - temporary workspace fixture
+    - fail closed guardrail
+    - 默认目标自测
+    - agent 预检脚本
+    - 脚本自测
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity

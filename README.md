@@ -32,6 +32,7 @@ Personal collection of AI coding skills. Skills are classified by directory unde
         ├── review/
         │   ├── pr/
         │   ├── api-design/
+        │   ├── agent-preflight-script-test/
         │   ├── agent-release-gate/
         │   ├── audit-evidence-boundary/
         │   ├── bounded-probe-before-workaround/
