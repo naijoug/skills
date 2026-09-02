@@ -129,5 +129,6 @@ cp "$repo_root/scripts/check-hermes-notebook.sh" "$workdir/summaries/scripts/che
 - Related docs: `docs/documents/trending/ai/agent-cron-planning-execution-verification-loop.md`
 - Related docs: `docs/documents/trending/ai/content-only-docs-proof-gate.md`
 - Related skill: `skills/skills/manual/review/content-only-docs-proof-gate/`
+- Related skill: `skills/skills/manual/review/next-safe-command-ladder/`
 - Related skill: `skills/skills/manual/review/test-fixture-failure-semantics/`
 - Related skill: `skills/skills/manual/review/path-scoped-commit-boundary/`

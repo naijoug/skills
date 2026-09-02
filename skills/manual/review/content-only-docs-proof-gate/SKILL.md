@@ -118,5 +118,6 @@ git diff --cached --name-only
 - Related docs: `docs/documents/trending/ai/content-only-docs-proof-gate.md`
 - Related docs: `docs/documents/trending/ai/changed-from-head-docs-preflight.md`
 - Related docs: `docs/documents/trending/ai/ai-doc-change-proof-checker.md`
+- Related skill: `skills/skills/manual/review/agent-preflight-script-test/`
 - Related skill: `skills/skills/manual/review/path-scoped-commit-boundary/`
 - Related skill: `skills/skills/manual/review/multi-session-control-ledger/`
