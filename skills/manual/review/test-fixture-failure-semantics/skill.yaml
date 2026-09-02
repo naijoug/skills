@@ -1,0 +1,30 @@
+id: ng-review-test-fixture-failure-semantics
+version: 1.0.0
+title: Test Fixture Failure Semantics
+summary: Improve test fixture setup, command, lock, cleanup, and preflight harness failure messages so failures name the setup phase and hand off the next safe narrowing step without changing production behavior
+kind: prompt_only
+tags:
+  - review
+  - ai-agent
+  - testing
+  - fixture
+  - diagnostics
+triggers:
+  keywords:
+    - test fixture failure semantics
+    - fixture setup diagnostics
+    - preflight harness setup failure
+    - actionable fixture failure
+    - mktemp fixture failure
+    - 测试夹具失败语义
+    - fixture 失败诊断
+    - 临时仓库 setup 失败
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity
