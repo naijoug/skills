@@ -96,6 +96,21 @@ cp "$repo_root/scripts/check-hermes-notebook.sh" "$workdir/summaries/scripts/che
 | Path guard | Include a local home or temp absolute path | Checker exits non-zero |
 | Invocation boundary | Run from the documented repo/workspace root | Output and docs use repo-relative paths |
 
+## One-Shot Checklist
+
+Use this compact checklist when converting a fragile repeated preflight into a tested guardrail in one work slice:
+
+1. `git status --short` is captured before editing; pre-existing dirty paths are excluded.
+2. The script contract is written in one sentence: target inference, required fields, and fail-closed cases.
+3. The self-test builds fixtures in `mktemp -d`, not in the real repository.
+4. The self-test has at least one valid fixture and one invalid fixture that must exit non-zero.
+5. Default-target behavior, if any, is tested separately from explicit-target behavior.
+6. Assertions match exit codes and stable phrases only; no timestamp, home directory, temp path, or PID is asserted.
+7. A recursion guard exists if the main preflight calls its own self-test.
+8. The final proof includes the self-test, the real preflight on an owned artifact, and `git diff --check -- <owned paths>`.
+
+If any line cannot be checked in this slice, record it as the next branch rather than broadening the task.
+
 ## Handoff Template
 
 ```markdown

@@ -18,6 +18,7 @@ Use these phrases to recognize when the skill should be applied.
 - "Make sure this guard fails closed for missing fields and absolute paths."
 - "This preflight is used every run; give it positive and negative harness tests."
 - "Test the no-argument latest-file behavior and the empty-directory failure."
+- "Turn this cron proof script into a one-shot checklist with fail-closed examples."
 
 ## Negative / Near Miss
 
@@ -25,6 +26,7 @@ Use these phrases to recognize when the skill should be applied.
 - "Write a general testing strategy" without a concrete script, guardrail, or default inference rule.
 - "Deploy this after preflight" when the user is asking for release authorization rather than preflight self-tests.
 - "Explain cron" when there is no repeated script or guardrail contract to test.
+- "Run tests before committing" when there is no preflight-script contract, default inference, or guardrail behavior to improve.
 
 ## Narrow first
 
