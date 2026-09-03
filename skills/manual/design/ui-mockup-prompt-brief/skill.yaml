@@ -1,0 +1,33 @@
+id: ng-design-ui-mockup-prompt-brief
+version: 1.0.0
+title: UI Mockup Prompt Brief
+summary: Turn an existing product screen or feature idea into a grounded high-fidelity UI mockup prompt with one focused design direction and verifiable workflow constraints
+kind: prompt_only
+tags:
+  - design
+  - ui-mockup
+  - prompt-brief
+  - product-workflow
+  - visual-design
+  - verification
+triggers:
+  keywords:
+    - UI mockup prompt brief
+    - ui mockup prompt
+    - high-fidelity mockup brief
+    - product screen redesign prompt
+    - design direction prompt
+    - grounded redesign
+    - existing screen to mockup
+    - visual system prompt
+    - UI 设计提示词
+    - 高保真界面 mockup
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity
