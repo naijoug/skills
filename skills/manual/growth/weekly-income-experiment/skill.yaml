@@ -1,0 +1,33 @@
+id: ng-growth-weekly-income-experiment
+version: 1.0.0
+title: Weekly Income Experiment
+summary: Choose one bounded weekly income experiment, ship a verifiable artifact, and decide Continue / Narrow / Stop / Switch from evidence
+kind: prompt_only
+tags:
+  - growth
+  - income
+  - indie-hacking
+  - validation
+  - ai-era-programmer
+  - experiment
+triggers:
+  keywords:
+    - weekly income experiment
+    - income experiment
+    - make money with AI
+    - AI-era programmer income
+    - bounded income experiment
+    - productized service experiment
+    - continue narrow stop switch
+    - 赚钱实验
+    - 收入实验
+    - 独立开发验证
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity
