@@ -49,6 +49,7 @@ Personal collection of AI coding skills. Skills are classified by directory unde
         │   ├── personal-coach/
         │   ├── engineering/
         │   ├── debugging-kata/
+        │   ├── evidence-card-loop/
         │   └── weekly-income-experiment/
         ├── tool/
         │   ├── ref/

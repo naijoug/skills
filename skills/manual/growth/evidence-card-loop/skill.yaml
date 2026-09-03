@@ -1,0 +1,33 @@
+id: ng-growth-evidence-card-loop
+version: 1.0.0
+title: Evidence Card Loop
+summary: Turn AI-assisted learning, coding, writing, workflow, portfolio, or income work into evidence-backed reusable capability assets
+kind: prompt_only
+tags:
+  - growth
+  - ai-era-programmer
+  - evidence
+  - portfolio
+  - learning-loop
+  - verification
+triggers:
+  keywords:
+    - evidence card loop
+    - evidence card
+    - reusable capability asset
+    - AI-assisted learning evidence
+    - portfolio evidence
+    - compound growth with AI
+    - continue narrow switch stop
+    - 证据卡
+    - 能力资产
+    - AI 时代程序员成长
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity
