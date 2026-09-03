@@ -233,6 +233,16 @@ summary: Use when [specific trigger conditions]
 kind: prompt_only
 ```
 
+Before publishing or committing a new manual skill, run the lightweight metadata
+check so `skills-linker list` and slash-command installation do not fall back to
+blank titles or incomplete summaries:
+
+```bash
+python3 apps/scripts/check-skill-metadata.py
+```
+
+Use `--category all` when intentionally auditing auto and cron skills too.
+
 ## Trigger Evaluation
 
 This repo includes a trigger evaluation workflow for testing skill trigger recall/precision.

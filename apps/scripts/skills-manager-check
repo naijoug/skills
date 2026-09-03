@@ -5,6 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 APPS_DIR="$ROOT_DIR/apps"
 cd "$APPS_DIR"
 
+python3 scripts/check-skill-metadata.py
 pnpm test
 pnpm typecheck
 
