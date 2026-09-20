@@ -235,7 +235,9 @@ kind: prompt_only
 
 Before publishing or committing a new manual skill, run the lightweight metadata
 check so `skills-linker list` and slash-command installation do not fall back to
-blank titles or incomplete summaries:
+blank titles or incomplete summaries. The check requires every skill with
+`SKILL.md` to have `skill.yaml` plus non-empty `id`, `version`, `title`,
+`summary`, `kind`, `tags`, `triggers.keywords`, and `compatibility.tools`:
 
 ```bash
 python3 apps/scripts/check-skill-metadata.py

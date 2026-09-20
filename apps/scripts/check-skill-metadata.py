@@ -11,11 +11,24 @@ from __future__ import annotations
 
 import argparse
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
 SKILLS_DIR = ROOT / "skills"
+REQUIRED_SCALAR_FIELDS = ("id", "version", "title", "summary", "kind")
+REQUIRED_LIST_FIELDS = (
+    ("tags",),
+    ("triggers", "keywords"),
+    ("compatibility", "tools"),
+)
+
+
+@dataclass(frozen=True)
+class MetadataProblem:
+    skill_dir: Path
+    message: str
 
 
 def rel(path: Path) -> str:
@@ -36,19 +49,77 @@ def category_for(skill_dir: Path, skills_dir: Path) -> str:
         return "unknown"
 
 
-def check_metadata(skills_dir: Path, category: str | None) -> list[Path]:
-    missing: list[Path] = []
+def scalar_value(lines: list[str], field: str) -> str | None:
+    prefix = f"{field}:"
+    for line in lines:
+        if line.startswith(prefix):
+            return line[len(prefix) :].strip().strip('"\'')
+    return None
+
+
+def has_non_empty_list(lines: list[str], path: tuple[str, ...]) -> bool:
+    """Return whether a simple YAML list under a top-level/nested key has items.
+
+    This intentionally parses only the metadata shape used in this repository;
+    keeping it dependency-free lets the check run before package installation.
+    """
+    indent = 0
+    start = 0
+    for key in path:
+        prefix = " " * indent + f"{key}:"
+        for index in range(start, len(lines)):
+            line = lines[index]
+            if line.startswith(prefix):
+                start = index + 1
+                indent += 2
+                break
+        else:
+            return False
+
+    for line in lines[start:]:
+        if not line.strip():
+            continue
+        line_indent = len(line) - len(line.lstrip(" "))
+        if line_indent < indent:
+            return False
+        if line_indent == indent and line.lstrip().startswith("- ") and line.lstrip()[2:].strip():
+            return True
+    return False
+
+
+def validate_skill_yaml(skill_dir: Path) -> list[MetadataProblem]:
+    metadata_path = skill_dir / "skill.yaml"
+    if not metadata_path.exists():
+        return [MetadataProblem(skill_dir, "missing skill.yaml")]
+
+    lines = metadata_path.read_text(encoding="utf-8").splitlines()
+    problems: list[MetadataProblem] = []
+    for field in REQUIRED_SCALAR_FIELDS:
+        value = scalar_value(lines, field)
+        if value is None:
+            problems.append(MetadataProblem(skill_dir, f"missing `{field}`"))
+        elif not value:
+            problems.append(MetadataProblem(skill_dir, f"empty `{field}`"))
+
+    for field_path in REQUIRED_LIST_FIELDS:
+        if not has_non_empty_list(lines, field_path):
+            problems.append(MetadataProblem(skill_dir, f"missing or empty `{'.'.join(field_path)}`"))
+
+    return problems
+
+
+def check_metadata(skills_dir: Path, category: str | None) -> list[MetadataProblem]:
+    problems: list[MetadataProblem] = []
     for skill_dir in iter_skill_dirs(skills_dir):
         if category and category_for(skill_dir, skills_dir) != category:
             continue
-        if not (skill_dir / "skill.yaml").exists():
-            missing.append(skill_dir)
-    return missing
+        problems.extend(validate_skill_yaml(skill_dir))
+    return problems
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Fail when skill directories with SKILL.md are missing skill.yaml."
+        description="Fail when skill directories with SKILL.md are missing required skill.yaml metadata."
     )
     parser.add_argument(
         "--skills-dir",
@@ -64,16 +135,16 @@ def main(argv: list[str] | None = None) -> int:
 
     skills_dir = Path(args.skills_dir).resolve()
     category = None if args.category == "all" else args.category
-    missing = check_metadata(skills_dir, category)
+    problems = check_metadata(skills_dir, category)
 
     scanned_label = args.category if category else "all"
-    if missing:
-        print(f"Missing skill.yaml in {len(missing)} {scanned_label} skill(s):", file=sys.stderr)
-        for skill_dir in missing:
-            print(f"- {rel(skill_dir)}", file=sys.stderr)
+    if problems:
+        print(f"Skill metadata check failed: {len(problems)} problem(s) in {scanned_label} skill(s):", file=sys.stderr)
+        for problem in problems:
+            print(f"- {rel(problem.skill_dir)}: {problem.message}", file=sys.stderr)
         return 1
 
-    print(f"Skill metadata check passed: missing skill.yaml: 0 ({scanned_label})")
+    print(f"Skill metadata check passed: 0 problem(s) ({scanned_label})")
     return 0
 
 
