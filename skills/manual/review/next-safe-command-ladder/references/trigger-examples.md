@@ -31,7 +31,7 @@ Use these phrases to recognize when the skill should be applied.
 - "Write a general testing strategy" without a concrete change or risk to ladder.
 - "Explain what CI is" when no concrete failure, change, or verification decision is present.
 
-## Narrow first
+## Routing notes (not evaluation inputs)
 
 - If the requested next command might affect production, first ask for authorization or choose a read-only check.
 - If the failure log is missing, start with a command that captures the smallest relevant log slice.

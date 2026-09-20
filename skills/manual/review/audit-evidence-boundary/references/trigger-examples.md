@@ -32,7 +32,7 @@ Use these examples to decide when `ng-review-audit-evidence-boundary` should run
 - "Generate marketing copy from these general benefits." Use an offer or validation skill unless claims need evidence classification.
 - "Review this code diff and suggest tests." Use PR review / next-safe-command skills first unless a publishable audit report is being prepared.
 
-## Narrow first
+## Routing notes (not evaluation inputs)
 
 - If the user says "case study" but provides no source artifact, ask for the source or produce only a method skeleton.
 - If the user says "anonymous" but not what must be hidden, first identify sensitive fields: names, paths, hosts, screenshots, user data, and private URLs.

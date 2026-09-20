@@ -21,10 +21,10 @@
 
 ## Negative / Near Miss
 
-- "帮我看看这份 plan 写得对不对" (use ng-plan-review)
-- "改一下 login.ts 里的 typo" (single-file edit)
-- "解释这段代码做了什么" (use code-reading)
-- "为这个 API 设计测试用例" (use test-case)
+- "帮我看看这份 plan 写得对不对" (use ng-plan-review) <!-- eval: {"route":"select","skills":["ng-plan-review"]} -->
+- "改一下 login.ts 里的 typo" (single-file edit) <!-- eval: {"route":"none"} -->
+- "解释这段代码做了什么" (use code-reading) <!-- eval: {"route":"select","skills":["ng-plan-code-reading"]} -->
+- "为这个 API 设计测试用例" (use test-case) <!-- eval: {"route":"select","skills":["ng-plan-test-case"]} -->
 - "Run the existing migration script" (execution, not planning)
 - "What do you think of the architecture here?" (review/critique, not draft)
 - "直接实现这个登录按钮" (implementation, not planning)

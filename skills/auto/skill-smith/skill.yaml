@@ -1,5 +1,5 @@
 id: skill-smith
-version: 1.1.0
+version: 1.2.0
 title: Skill Smith
 summary: Targeted fix to an existing personal skill (SKILL.md) — missing scenario, ambiguous wording, wrong format, bad trigger, or workflow gap — based on real usage feedback
 kind: prompt_only

@@ -1,6 +1,6 @@
 ---
 name: ng-growth-engineering
-description: Use when practicing or analyzing algorithms, debugging bugs, evaluating design patterns, or investigating performance — a unified coaching skill with mode auto-detection for structured, question-driven guidance
+description: Coach algorithm, debugging, design-pattern, or performance practice when the user requests guided learning or hints. Exclude ordinary implementation and incident response.
 ---
 
 # Engineering Coach
@@ -26,17 +26,17 @@ Core principles shared across all modes:
 
 ## Mode Detection
 
-1. Scan user input for trigger signals (see table above)
-2. If ambiguous, ask: "Which coaching mode fits best — algorithm, debugging, design-pattern, or performance?"
+1. Establish guided-learning intent first; then use the signals below to select the mode. A bug or performance keyword alone is insufficient.
+2. If the user requested coaching but the mode would change the exercise, ask: "Which coaching mode fits best — algorithm, debugging, design-pattern, or performance?"
 3. User can switch mid-session: "switch to debugging mode"
 4. Acknowledge the detected/selected mode before starting
 
 ## When to Use
 
 - Practicing algorithms with guided hints instead of direct answers
-- Debugging unclear bugs with structured investigation before code changes
-- Evaluating whether a design pattern fits, with trade-off analysis
-- Investigating performance issues with measurement-first approach
+- Practicing bug investigation with guided questions and experiments
+- Learning to assess a design pattern through a guided trade-off exercise
+- Practicing performance diagnosis through measurement and reflection
 
 ## When Not to Use
 

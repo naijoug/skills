@@ -24,7 +24,7 @@ Use these examples to decide when `ng-review-bounded-probe-before-workaround` sh
 - Run the full test suite. (The user already selected the verification scope.)
 - Add a timeout to every script. (First identify the single risky command.)
 
-## Narrow first
+## Routing notes (not evaluation inputs)
 
 - If the suspected command can mutate production state, switch to a dry-run/preflight or stop with an authorization note.
 - If the handoff gives no exact command, first reconstruct the narrowest original check from nearby scripts or docs.

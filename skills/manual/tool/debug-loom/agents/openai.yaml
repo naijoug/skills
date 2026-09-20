@@ -1,3 +1,7 @@
-display_name: Debug Loom
-short_description: Create lightweight launchers or a full local debug stack
-default_prompt: Use $ng-tool-debug-loom to create the smallest fitting local debug workflow for this project, from lightweight frontend/backend launchers to a full service-mode orchestrator when requested.
+interface:
+  display_name: "Debug Loom"
+  short_description: "Create lightweight launchers or a full local debug stack"
+  default_prompt: "Use $ng-tool-debug-loom to create the smallest fitting local debug workflow for this project, from lightweight frontend/backend launchers to a full service-mode orchestrator when requested."
+
+policy:
+  allow_implicit_invocation: false

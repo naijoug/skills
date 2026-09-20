@@ -28,7 +28,7 @@
 - "Run the plan for me" (execution, not review)
 - "Summarize this roadmap for a weekly update" (summary, not validation)
 
-## Narrow first
+## Routing notes (not evaluation inputs)
 
 - If the user asks to "review the plan" but provides no plan path or pasted plan, first locate or request the plan before applying this skill.
 - If the user wants both plan creation and plan review, create or locate the draft first, then run review as a separate pass.

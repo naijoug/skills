@@ -1,5 +1,5 @@
 id: ng-review-path-scoped-commit-boundary
-version: 1.0.0
+version: 1.0.1
 title: Path-Scoped Commit Boundary
 summary: Keep work moving in a dirty repository by choosing owned paths, verifying narrowly, staging explicitly, and committing only the current task's slice
 kind: prompt_only

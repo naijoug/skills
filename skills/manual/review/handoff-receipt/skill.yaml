@@ -1,5 +1,5 @@
 id: ng-review-handoff-receipt
-version: 1.0.0
+version: 1.0.1
 title: Handoff Receipt
 summary: Finish or receive agent work with a compact receipt that separates owned changes from avoided dirty paths, verified facts, open risks, and the next safe command
 kind: prompt_only

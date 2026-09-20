@@ -80,6 +80,12 @@ Behavior:
 - `manual` skills are the ones exposed by `./apps/skills-manager-tui/ng` and `--with-slash-commands`
 - manual subgroup comes from the second directory level under `skills/manual/`
 
+Manual skills are explicit-only in Codex: each one carries
+`agents/openai.yaml` with `policy.allow_implicit_invocation: false`. Invoke them
+with `$skill-id` or a generated slash-command wrapper. Auto skills may be
+injected only when they provide `inject.md`; `skills-linker doctor` reports stale
+or malformed managed blocks.
+
 > Note: the `global/` category was deprecated and merged into `auto/`. The script still recognizes `global` for backward compatibility, but new skills should use `auto/`.
 
 Recommended manual subdirectories:
@@ -200,8 +206,7 @@ Notes:
 ## Creating a New Skill
 
 ```bash
-mkdir -p skills/my-skill
-mkdir -p skills/manual/plan/my-skill
+mkdir -p skills/manual/plan/my-skill/agents
 cat > skills/manual/plan/my-skill/SKILL.md << 'EOF'
 ---
 name: ng-plan-my-skill
@@ -231,6 +236,21 @@ version: 1.0.0
 title: My Skill
 summary: Use when [specific trigger conditions]
 kind: prompt_only
+tags:
+  - planning
+triggers:
+  keywords:
+    - implementation plan
+compatibility:
+  tools:
+    - codex
+```
+
+Manual skills also need `agents/openai.yaml`:
+
+```yaml
+policy:
+  allow_implicit_invocation: false
 ```
 
 Before publishing or committing a new manual skill, run the lightweight metadata
@@ -243,11 +263,23 @@ blank titles or incomplete summaries. The check requires every skill with
 python3 apps/scripts/check-skill-metadata.py
 ```
 
+The checker also requires manual skills to declare the explicit-only invocation
+policy as a boolean under `policy`, and checks frontmatter names, matching IDs,
+semantic versions, duplicate IDs and bundled Markdown links. Metadata uses the
+repository's block-style YAML subset (two-space indentation, scalars and block
+lists); this lightweight checker is not a general YAML parser.
+
+Use [skill authoring guidance](docs/skill-authoring.md) for scope, completion criteria,
+conditional references and routing fixtures. Run the full local skill check with
+`bash apps/scripts/skills-quality-check`; it does not start the application.
+
 Use `--category all` when intentionally auditing auto and cron skills too.
 
 ## Trigger Evaluation
 
-This repo includes a trigger evaluation workflow for testing skill trigger recall/precision.
+The routing tools evaluate capability selection among explicitly offered skill
+candidates. Host activation policy and end-to-end model task quality are separate
+checks. See [the evaluation contract](docs/skill-authoring.md#routing-evaluation).
 
 - Per-skill examples: `skills/**/references/trigger-examples.md`
 - Export + scoring: `apps/skills-manager-tui/trigger_examples_tool.py`
@@ -261,7 +293,14 @@ This repo includes a trigger evaluation workflow for testing skill trigger recal
 # Include non-manual skills in dataset when needed
 python3 ./apps/skills-manager-tui/trigger_examples_tool.py --include-non-manual summary
 
+# Fail if a skill has no routing examples
+python3 ./apps/skills-manager-tui/trigger_examples_tool.py --include-non-manual --require-coverage summary
+
 # Custom predictor
 ./apps/skills-manager-tui/run_trigger_eval.sh --mode custom \
   --predict-cmd 'python3 "$ROOT_DIR/apps/skills-manager-tui/predictor_adapter_template.py" --input "$CASES_FILE" --output "$PREDS_FILE"'
 ```
+
+`perfect` reads the answer labels to test the scorer. The supplied custom adapter
+uses demonstration keywords; neither measures a model. Real predictors receive
+blind `id`/`prompt` records plus `CATALOG_FILE`, and must not inspect gold examples.

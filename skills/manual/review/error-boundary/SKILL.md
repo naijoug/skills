@@ -57,34 +57,13 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
    - Produce or update a table with these columns: `底层错误`, `领域错误`, `调用方动作`, `重试/降级策略`, `对外消息`, `证据/测试`.
    - If no table exists, create the minimum table for the reviewed module before recommending broad refactors.
 
-8. **Calibrate against the sample output when uncertain**
-   - If the review feels too generic, compare it with `references/sample-review-output.md`.
-   - Make sure the final review catches the three frequent misses: public SQL/SDK leakage, lost cause chains, and hidden retry/degrade ownership.
-   - If the user needs a PR review comment, convert the highest-priority finding to the `[error-boundary][P0/P1/P2]` form shown in the sample output and the source checklist.
-   - When public leakage, recovery ownership, and cause preservation need different owners, split them into separate P0/P1/P2 PR comments instead of hiding all risks in one broad comment.
-   - If the user explicitly asks for paste-ready PR comments, use the `PR-comments-only mode` in `references/sample-review-output.md`: output 1–3 focused comments with Evidence, Risk, Expected decision-table row, and Suggested tests, and omit the full review table unless requested.
-   - Before using short mode on a sparse diff, compare against the `PR-comments-only mini fixture` so comments stay path-evidenced and do not invent line numbers, logs, traces, or hidden implementation details.
-   - If the user asks for PR comments but provides no concrete diff, relative path, function name, or error-flow evidence, compare against the `PR-comments-only insufficient-evidence fixture` and refuse to invent paste-ready comments; ask for the missing target or fall back to full review only when enough design context exists.
-
-9. **Check near-miss routing before forcing the workflow**
-   - If the prompt only asks for syntax, concept explanation, broad API design, or debugging, compare it with `references/near-miss-eval.md` before triggering this skill.
-   - Use `TRIGGER`, `NO_TRIGGER`, or `NARROW_FIRST` routing when the request mentions errors but lacks a concrete boundary review target.
-   - When tuning triggers, keep the scriptable routing cases in `references/near-miss-eval.md` balanced across trigger, no-trigger, and narrow-first examples.
-   - Keep the machine-readable fixture in `references/routing-cases.json` synchronized with the markdown table before changing trigger wording.
-   - Use `scripts/dry_run_routing_cases.py` for a no-model sanity check that the fixture labels still match the documented routing rule.
-   - Add `--report` when you need a readable per-case PASS/FAIL handoff for trigger tuning.
-   - Add `--json` when CI or another agent needs machine-readable `expected_route` / `actual_route` / `passed` results.
-   - Add `--json --output <path>` when the routing result should be saved as an artifact instead of pasted into the conversation.
-   - If the artifact is for CI or cross-agent handoff, record the output path next to the PR, issue, or notebook entry and treat non-zero `failure_count` as a routing regression.
-   - For PR/CI handoff, copy the compact `CI / agent handoff example` from `references/near-miss-eval.md` so the next reviewer gets artifact path, command, gate, route drift, and PR comment evidence in one place.
-
-10. **Run the lightweight regression check after editing this skill**
-   - From this skill directory, run `python3 scripts/validate_error_boundary_skill.py`.
-   - Also run `python3 scripts/dry_run_routing_cases.py` after changing trigger wording or routing fixtures.
-   - Run `python3 scripts/dry_run_routing_cases.py --report` when a route drifts, so the next editor can see which prompt label failed without opening the fixture first.
-   - Run `python3 scripts/dry_run_routing_cases.py --json` when you need a machine-readable routing result for automation or cross-agent handoff.
-   - Run `python3 scripts/dry_run_routing_cases.py --json --output <path>` when CI or another agent needs a saved artifact.
-   - The validation script checks required references, trigger keywords, trigger-example coverage, near-miss eval markers, scriptable routing cases, routing fixture shape, dry-run script presence, sample-output markers including the PR-comments-only mini fixture and insufficient-evidence fixture, language probe sections, version metadata, and accidental absolute user paths.
+8. **Choose an output that fits the request**
+   - For a full review, use the decision table and priorities below.
+   - For paste-ready PR comments, use the comments-only mode in
+     [sample output](references/sample-review-output.md). Keep each comment tied
+     to an inspected path and concrete failure; do not invent lines, logs, or code.
+   - If a needed target is missing, inspect available context first, then ask for
+     only the evidence needed to proceed. Complete any supported findings meanwhile.
 
 ## Output Template
 
@@ -137,14 +116,10 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
 - "Our handler returns raw SDK errors; design a safer error boundary."
 - "帮我审查这段错误处理，重点看重试、降级和错误码是否稳定。"
 
-## References
+## Conditional references
 
-- Source checklist in this workspace: `books/tech-cards-handbook/chapters/error-boundary-review-checklist.md`
-- Language-specific probes and red flags: `references/language-probes.md`
-- Sample review output and eval rubric: `references/sample-review-output.md`
-- PR review comment format source: `books/tech-cards-handbook/chapters/error-boundary-review-checklist.md`
-- Trigger examples for recall/precision testing: `references/trigger-examples.md`
-- Near-miss routing eval, saved routing artifact guidance, and CI / agent handoff example for syntax/concept/debugging/broad-API prompts: `references/near-miss-eval.md`
-- Machine-readable routing fixture for local checks: `references/routing-cases.json`
-- No-model routing dry-run with readable and JSON outputs: `scripts/dry_run_routing_cases.py`
-- Local regression check for this skill, including trigger-example coverage: `scripts/validate_error_boundary_skill.py`
+- Language-specific review: [probes](references/language-probes.md).
+- Output calibration or PR-comments-only mode: [sample output](references/sample-review-output.md).
+- Editing this skill or its routing fixtures: [maintenance](references/maintenance.md).
+- Auditing skill selection: [trigger examples](references/trigger-examples.md) and
+  [near-miss cases](references/near-miss-eval.md).

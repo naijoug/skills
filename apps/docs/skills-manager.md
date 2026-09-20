@@ -10,6 +10,7 @@
 - `apps/packages/*`：领域核心、平台适配、UI、翻译 provider、agent 安装抽象。
 - `apps/package.json`、`apps/pnpm-workspace.yaml`、`apps/pnpm-lock.yaml`、`apps/tsconfig.base.json`：Web/Desktop monorepo 的 pnpm 和 TypeScript workspace 根；仓库根 `scripts/` 只保留本地启动/调试入口，不放 smoke/test 工具或前端 workspace 配置。
 - 旧 Python MVP 已退役并删除；常规开发、验证和发布路径以 monorepo Web/Desktop 为准。
+- 本仓库 manual skill 的 Codex 配置使用显式调用策略：`agents/openai.yaml` 设置 `allow_implicit_invocation: false`。CLI/TUI linker 会管理 auto skill 的 `inject.md` 注入；桌面安装器目前只安装技能文件，不执行注入同步。
 
 ## 开发启动
 
@@ -22,24 +23,6 @@ pnpm install
 
 以下命令除特别说明外，都从仓库根目录运行。
 
-启动 Web API：
-
-```bash
-./scripts/skills-manager-api
-```
-
-启动 Web 前端：
-
-```bash
-./scripts/skills-manager-web
-```
-
-同时启动 Web API 和 Web 前端：
-
-```bash
-./scripts/skills-manager-dev
-```
-
 常规本地启动推荐使用统一入口：
 
 ```bash
@@ -48,6 +31,9 @@ pnpm install
 ./scripts/start-local.sh status
 ./scripts/start-local.sh stop
 ```
+
+仅排查单个进程时，才使用 `scripts/README.md` 中的底层 API/Web 入口；保持
+同一个预览实例及稳定端口，验证后通过统一入口停止进程。
 
 在 Web API 和 Web 前端已启动后，运行 smoke 检查：
 
@@ -85,6 +71,18 @@ OpenAI smoke 会启动临时 API、确认 OpenAI provider 已配置、从本地 
 
 如果 OpenAI 返回 `insufficient_quota` 或 `invalid_api_key`，说明本地 API 和外部请求链路已到达 OpenAI，但当前 key 的额度、账单或有效性需要处理后才能完成 live 翻译验收。
 
+检查 auto skill 注入状态：
+
+```bash
+./apps/skills-manager-tui/skills-linker doctor --category auto
+```
+
+`doctor` 是只读检查；重装 symlink 技能会同步 linker 托管的注入区块，保留同一
+`AGENTS.md` / `CLAUDE.md` 中的用户规则。copy 副本可能包含本地修改，因此默认
+跳过；确认可替换后使用 `install --force` 刷新副本与注入内容。路由评估默认导出不含答案标签的
+`id`/`prompt` 输入，并把 `select`、`none`、`clarify` 分开计分；`perfect`
+模式只验证评分链路，不代表真实模型质量。
+
 如果端口不是默认值：
 
 ```bash
@@ -111,15 +109,25 @@ VITE_SKILLS_MANAGER_API_URL=http://127.0.0.1:8787 ./scripts/skills-manager-web
 
 ## 验证
 
+从改动范围选择检查，已有检查通过后只在新改动、失败或未解决疑点出现时扩大范围：
+
+| 改动 | 验证入口 |
+| --- | --- |
+| 技能、元数据、路由样例或 CLI/TUI 工具 | 仓库根目录 `bash apps/scripts/skills-quality-check` |
+| 纯说明文案 | 读回修改、检查实际链接及 `git diff --check` |
+| 某个应用包 | `cd apps` 后运行对应包的测试与 typecheck |
+| 跨包或桌面运行时 | 仓库根目录 `./apps/scripts/skills-manager-check` |
+| 需要运行界面或真实外部服务 | 按任务需求使用下面的 smoke 入口 |
+
+以下是独立应用检查；所有包命令以 `apps/` 为工作目录：
+
 ```bash
 cd apps
 pnpm typecheck
 pnpm test
-cd skills-manager-desktop/src-tauri
-cargo check
-cargo test
-cd ../../..
-./apps/scripts/skills-manager-desktop-smoke
+cargo check --manifest-path skills-manager-desktop/src-tauri/Cargo.toml
+cargo test --manifest-path skills-manager-desktop/src-tauri/Cargo.toml
+./scripts/skills-manager-desktop-smoke
 ```
 
 或直接运行完整检查：
@@ -130,7 +138,7 @@ cd ../../..
 
 当前测试覆盖：
 
-- `skills-core`：frontmatter / `skill.yaml` 解析、稳定 ID、搜索、本仓库 24 个本地 skills。
+- `skills-core`：frontmatter / `skill.yaml` 解析、稳定 ID、搜索、本仓库本地 skills 扫描；数量随技能集合变化。
 - `skills-manager-api`：本地 library、GitHub URL 归一化、服务端 clone/cache 导入/刷新/删除路径、GitHub API 只读导入路径、导入仓库删除、HTTP route smoke、CORS preflight、坏 JSON / 非对象 body / 缺失 URL 的 400 错误语义、翻译请求目标语言和 provider 校验、Web 安装/卸载边界、Web provider secret 边界。
 - `skills-platform`：Web adapter API route 映射、Desktop adapter Tauri command 映射，包含 provider 配置、安装和卸载动作。
 - `skills-ui`：group / query / import / refresh 后的可见列表和详情选择规则，防止详情停留在当前列表之外的 skill；翻译面板带请求序号防护，避免切换 skill 后旧翻译结果覆盖当前详情；安装面板区分 loading / unavailable / available 状态，切换 skill 时会按当前 skill 的安装状态重置目标勾选，防止继承上一个 skill 的手动选择；安装状态加载带请求序号防护，避免快速切换 skill 时旧响应覆盖当前状态。

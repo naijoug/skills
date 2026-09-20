@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT_DIR"
+
+# These checks use temporary local fixtures; no API keys, network, or preview.
+python3 apps/scripts/check-skill-metadata.py --category all
+python3 -m unittest discover -s apps/scripts/tests
+python3 skills/manual/review/error-boundary/scripts/validate_error_boundary_skill.py
+python3 skills/manual/review/error-boundary/scripts/dry_run_routing_cases.py
+python3 apps/skills-manager-tui/trigger_examples_tool.py --include-non-manual --require-coverage summary
+./apps/skills-manager-tui/run_trigger_eval.sh --include-non-manual --mode perfect --no-details --fail-on-miss

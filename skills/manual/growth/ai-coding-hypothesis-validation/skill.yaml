@@ -1,5 +1,5 @@
 id: ng-growth-ai-coding-hypothesis-validation
-version: 1.0.0
+version: 1.0.1
 title: AI Coding Hypothesis Validation
 summary: Write a falsifiable human hypothesis before agent-assisted code or docs changes, then decide from real verification output
 kind: prompt_only

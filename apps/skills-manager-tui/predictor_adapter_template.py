@@ -12,6 +12,10 @@ Usage:
 
 Integration point:
   Replace `predict_case()` with a call into your real trigger engine.
+  Inputs are blind id/prompt records; CATALOG_FILE supplied by the runner has
+  canonical IDs and descriptions. Return decision="clarify" with predicted=[]
+  when clarification is necessary. Never send gold annotations to the model.
+  Keyword-demo is a plumbing example, not evidence of model quality.
 """
 
 from __future__ import annotations
@@ -48,21 +52,21 @@ def predict_case(case: dict, mode: str = "keyword-demo") -> list[str]:
             "design pattern", "strategy vs state", "设计模式", "overengineering",
         ]
     ):
-        out.append("engineering")
+        out.append("ng-growth-engineering")
     if any(k in p for k in ["test matrix", "测试用例", "边界", "regression test"]):
-        out.append("test-case")
+        out.append("ng-plan-test-case")
     if any(k in p for k in ["codebase", "读代码", "调用链", "request flow"]):
-        out.append("code-reading")
+        out.append("ng-plan-code-reading")
     if any(k in p for k in ["refactor", "重构", "behavior-preserving"]):
-        out.append("refactor")
+        out.append("ng-review-refactor")
     if any(k in p for k in ["self-review", "自检", "reviewer comments", "pr "]):
-        out.append("pr")
+        out.append("ng-review-pr")
     if any(k in p for k in ["api contract", "接口设计", "idempotency", "幂等"]):
-        out.append("api-design")
+        out.append("ng-review-api-design")
     if any(k in p for k in ["retro", "复盘", "this week", "weekly"]):
         out.append("weekly-retro")
     if any(k in p for k in ["debugging kata", "incident practice", "调试练习", "drill"]):
-        out.append("debugging-kata")
+        out.append("ng-growth-debugging-kata")
     if any(
         k in p
         for k in [
@@ -70,7 +74,7 @@ def predict_case(case: dict, mode: str = "keyword-demo") -> list[str]:
             "search for", "search recent", "research ", "look up", "find out", "find reliable references",
         ]
     ):
-        out.append("search")
+        out.append("ng-tool-search")
 
     # stable de-dup preserving order
     seen = set()
@@ -115,12 +119,13 @@ def main() -> int:
                 raise ValueError(f"{in_path}:{lineno}: missing string field 'id'")
 
             predicted = predict_case(case, mode=args.mode)
+            decision = "select" if predicted else "none"
             dst.write(
-                json.dumps({"id": case_id, "predicted": predicted}, ensure_ascii=False) + "\n"
+                json.dumps({"id": case_id, "predicted": predicted, "decision": decision}, ensure_ascii=False) + "\n"
             )
             count += 1
 
-    print(f"Wrote {count} predictions to {out_path}")
+    print(f"Wrote {count} DEMO predictions to {out_path}; no model was evaluated")
     return 0
 
 

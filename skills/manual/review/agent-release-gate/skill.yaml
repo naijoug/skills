@@ -1,5 +1,5 @@
 id: ng-review-agent-release-gate
-version: 1.0.0
+version: 1.0.1
 title: Agent Release Gate
 summary: Map Agent evaluation evidence, release controls, external publish gates, and safety checks into an auditable pass/warn/block rollout decision
 kind: prompt_only

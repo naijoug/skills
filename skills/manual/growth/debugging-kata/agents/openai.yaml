@@ -2,3 +2,6 @@ interface:
   display_name: "Debugging Kata Generator"
   short_description: "Help with debugging practice scenarios"
   default_prompt: "Use $ng-growth-debugging-kata to create a realistic debugging practice scenario with tiered hints and an answer key."
+
+policy:
+  allow_implicit_invocation: false

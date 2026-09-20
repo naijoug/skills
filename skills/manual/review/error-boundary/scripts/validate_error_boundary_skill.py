@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_FILES = [
     "SKILL.md",
     "skill.yaml",
+    "references/maintenance.md",
     "references/trigger-examples.md",
     "references/language-probes.md",
     "references/sample-review-output.md",
@@ -33,12 +34,7 @@ REQUIRED_SKILL_REFERENCES = [
     "references/sample-review-output.md",
     "references/trigger-examples.md",
     "references/near-miss-eval.md",
-    "references/routing-cases.json",
-    "scripts/dry_run_routing_cases.py",
-    "--report",
-    "--json",
-    "--output",
-    "scripts/validate_error_boundary_skill.py",
+    "references/maintenance.md",
     "Decision Table",
     "P0",
     "P1",
@@ -194,7 +190,11 @@ def main() -> int:
         require(marker in skill, f"SKILL.md missing marker: {marker}", failures)
 
     yaml = files["skill.yaml"]
-    require("version: 1.18.0" in yaml, "skill.yaml version is not 1.18.0", failures)
+    require(bool(re.search(r"(?m)^version: \d+\.\d+\.\d+$", yaml)), "skill.yaml needs a semantic version", failures)
+    # Authoring commands live in a conditional reference, not the runtime prompt.
+    maintenance = files["references/maintenance.md"]
+    for path in ("references/routing-cases.json", "scripts/dry_run_routing_cases.py", "scripts/validate_error_boundary_skill.py"):
+        require(path in maintenance and (ROOT / path).exists(), f"maintenance command/resource is missing: {path}", failures)
     for keyword in REQUIRED_TRIGGER_KEYWORDS:
         require(keyword in yaml, f"skill.yaml missing trigger keyword: {keyword}", failures)
 

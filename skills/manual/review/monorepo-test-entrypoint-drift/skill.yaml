@@ -1,5 +1,5 @@
 id: ng-review-monorepo-test-entrypoint-drift
-version: 1.0.0
+version: 1.0.1
 title: Monorepo Test Entrypoint Drift
 summary: Diagnose when monorepo tests, typechecks, or package scripts resolve different code from different cwd, aliases, or built dist artifacts
 kind: prompt_only

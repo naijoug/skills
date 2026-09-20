@@ -1,7 +1,7 @@
 id: ng-growth-engineering
-version: 1.0.1
+version: 1.1.0
 title: Engineering Coach
-summary: Unified coaching skill for algorithm practice, bug investigation, design pattern evaluation, and performance analysis — auto-detects mode from context
+summary: Guided algorithm, debugging, design-pattern, or performance practice; excludes ordinary implementation and incident response
 kind: prompt_only
 tags:
   - algorithm

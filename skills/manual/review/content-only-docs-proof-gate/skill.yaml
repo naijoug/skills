@@ -1,5 +1,5 @@
 id: ng-review-content-only-docs-proof-gate
-version: 1.0.0
+version: 1.0.1
 title: Content-Only Docs Proof Gate
 summary: Prove markdown-only documentation and catalog changes with scoped checks, explicit ownership, and path-limited commits before deciding whether heavier renderer builds are necessary
 kind: prompt_only

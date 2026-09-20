@@ -28,7 +28,7 @@ Use these phrases to recognize when the skill should be applied.
 - "Explain cron" when there is no repeated script or guardrail contract to test.
 - "Run tests before committing" when there is no preflight-script contract, default inference, or guardrail behavior to improve.
 
-## Narrow first
+## Routing notes (not evaluation inputs)
 
 - If the real repository is dirty, build the fixture in `mktemp` and stage only owned script/test paths.
 - If the script relies on git state, initialize a temporary git repo inside the fixture instead of using the real repo.

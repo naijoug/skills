@@ -1,5 +1,5 @@
 id: ng-tool-openclaw
-version: 1.1.0
+version: 1.1.1
 title: OpenClaw Service Manager
 summary: Manage the local OpenClaw gateway service — start, stop, status, logs, diagnostics, config, and channel management
 kind: prompt_only

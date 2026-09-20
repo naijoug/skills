@@ -1,7 +1,7 @@
 id: ng-meta-example
-version: 1.0.1
+version: 1.1.0
 title: Example Skill
-summary: A starter template for new skills with standard metadata and triggers
+summary: Create a scoped repository skill with compatible metadata, conditional guidance, and routing examples
 kind: prompt_only
 tags:
   - template

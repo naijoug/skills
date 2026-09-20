@@ -21,10 +21,13 @@ Use these prompts to test whether `in-english` triggers correctly.
 - I need create a component for show user data. (Missing articles/prepositions)
 - Make the code to run more faster. (Multiple expression issues)
 - How to make this function works correctly? (Grammar correction needed)
-- Implement a binary search algorithm that handles edge cases. (Already good English; minimal notes)
-- Refactor this function to use async/await instead of callbacks. (Already good English; minimal notes)
 
 ## Negative / Near Miss
+
+- "本任务关闭英语辅导，接下来帮我实现这个功能。"
+- "Disable English coaching for this task and fix the parser."
+- "Implement a binary search algorithm that handles edge cases." (Already correct English)
+- "Return JSON only with the status field." (Exact output contract)
 
 - yes (Single-word acknowledgment; no translation value)
 - ok (Single-word acknowledgment; no translation value)
@@ -32,3 +35,9 @@ Use these prompts to test whether `in-english` triggers correctly.
 - /help (CLI command)
 - 直接回答：帮我写一个函数。 (Explicit opt-out with "直接回答")
 - skip - explain this error message. (Explicit opt-out with "skip")
+
+## Stateful checks (not single-turn routing inputs)
+
+- After a task-level opt-out, an ordinary Chinese follow-up still receives no coaching.
+- After “恢复英语辅导”, coaching resumes for messages that need it.
+- A one-message “直接回答” does not disable coaching for later eligible messages.

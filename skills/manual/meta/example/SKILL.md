@@ -1,53 +1,50 @@
 ---
 name: ng-meta-example
-description: Use when creating a new Alma skill and needing a clean starter template with standard sections
+description: Create a repository skill with a precise trigger, useful completion criteria, and compatible metadata.
 ---
 
-# Example Skill
+# Repository Skill Starter
 
-Use this as a starter template when adding a new skill under one of the categorized paths such as `skills/manual/<group>/<name>/SKILL.md`.
+Create a skill only for a reusable workflow that benefits from task-specific
+guidance. Place it under `skills/manual/<group>/<name>`, `skills/auto/<name>`, or
+`skills/cron/<name>` according to its intended activation.
 
-## Overview
+## Define the result
 
-Briefly describe what the skill helps with and the core principle behind it.
+Write a short description naming the concrete task and its distinguishing trigger.
+Exclude a likely near miss when needed. State what the user receives and what
+evidence makes the task complete. Include only inputs and constraints that affect
+decisions; infer routine details from context rather than adding a standard interview.
 
-## When to Use
+## Choose the minimum useful structure
 
-- Describe trigger conditions ("Use when ...")
-- List concrete symptoms or scenarios
-- List when NOT to use if it is commonly confused with something else
+A short skill can be self-contained. For multiple substantial workflows, keep a
+compact route selector in `SKILL.md` and put conditional details in references.
+Do not duplicate instructions in the workflow, reference map and final checklist.
+Preserve authorization and operational boundaries while allowing the agent to
+choose routine implementation steps.
 
-## When Not to Use
+Keep `name` and `skill.yaml` `id` identical. Repository metadata requires `version`,
+`title`, `summary`, `kind`, `tags`, `triggers.keywords` and `compatibility.tools`.
+Manual skills also need this Codex policy in `agents/openai.yaml`:
 
-- Scenario 1 where this skill is inappropriate
-- Scenario 2 where another skill should be used instead
+```yaml
+policy:
+  allow_implicit_invocation: false
+```
 
-## Workflow / Steps
+Add optional interface fields only when useful. Auto injection text should be
+short; scheduled skills do not gain scheduling just by being installed.
 
-1. **Phase 1**: Initial discovery and context gathering.
-2. **Phase 2**: Core logic or transformation.
-3. **Phase 3**: Final validation and output formatting.
+## Validate the contract
 
-## Quality Checklist
+Add realistic positive and near-miss prompts to `references/trigger-examples.md`.
+Keep author notes outside the prompt and add explicit no-skill or redirect labels
+when they are known. These fixtures support maintenance and are not compulsory
+reads during ordinary execution.
 
-- [ ] Requirement 1 is met
-- [ ] Requirement 2 is met
-- [ ] Output follows the specified format
+Run `bash apps/scripts/skills-quality-check` from the repository root. Inspect
+the result and report the created skill's scope, source files and checks. A perfect
+predictor validates the scorer, not the quality of the new skill's decisions.
 
-## Examples
-
-Add one or two short examples:
-
-- A command example
-- An input/output example
-- A common edge case
-
-## Notes
-
-- Keep frontmatter minimal (`name`, `description`)
-- Prefer searchable wording in `description`
-- Keep instructions concise and reusable (not project-specific history)
-
-## References
-
-- Trigger examples for recall/precision testing: `references/trigger-examples.md`
+For this starter's selection boundary, see [trigger examples](references/trigger-examples.md).

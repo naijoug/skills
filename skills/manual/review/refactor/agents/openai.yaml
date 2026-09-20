@@ -2,3 +2,6 @@ interface:
   display_name: "Refactor Safely"
   short_description: "Help with behavior-preserving refactors"
   default_prompt: "Use $ng-review-refactor to break this cleanup into small behavior-preserving steps with verification checkpoints."
+
+policy:
+  allow_implicit_invocation: false

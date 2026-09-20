@@ -35,7 +35,7 @@
 - "Validate demand by assuming users will like it."
   Replace assumptions with observable behavior: reply, sample request, PR review, waitlist, deposit, or repeated self-use.
 
-## Narrow first
+## Routing notes (not evaluation inputs)
 
 Use these prompts to make an overly broad request actionable before invoking the skill:
 

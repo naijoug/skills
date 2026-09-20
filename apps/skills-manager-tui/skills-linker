@@ -12,7 +12,7 @@ usage() {
 Usage:
   skills-linker tools
   skills-linker list [--skills-root DIR] [--category NAME]
-  skills-linker install|uninstall|status [options] [skill ...]
+  skills-linker install|uninstall|status|doctor [options] [skill ...]
   skills-linker tui [options]
 
 Options:
@@ -409,55 +409,39 @@ resolve_instruction_file() {
 }
 
 inject_always_on() {
-  local skill_id="$1"
-  local skill_dir="$2"
-  local instruction_file="$3"
-  local inject_file="$skill_dir/inject.md"
-  [[ -f "$inject_file" ]] || return 0
-
-  local begin_marker="<!-- skills-linker:${skill_id}:begin -->"
-  local end_marker="<!-- skills-linker:${skill_id}:end -->"
-
-  if [[ -f "$instruction_file" ]] && grep -qF "$begin_marker" "$instruction_file" 2>/dev/null; then
-    return 1
-  fi
-
-  mkdir -p "$(dirname "$instruction_file")"
-  {
-    if [[ -f "$instruction_file" ]] && [[ -s "$instruction_file" ]]; then
-      printf '\n'
-    fi
-    printf '%s\n' "$begin_marker"
-    cat "$inject_file"
-    printf '%s\n' "$end_marker"
-  } >> "$instruction_file"
+  local skill_id="$1" skill_dir="$2" instruction_file="$3"
+  [[ -f "$skill_dir/inject.md" ]] || return 0
+  python3 "$ROOT_DIR/apps/skills-manager-tui/managed_instructions.py" sync \
+    --skill-id "$skill_id" --source "$skill_dir/inject.md" --target "$instruction_file"
 }
 
 remove_always_on() {
-  local skill_id="$1"
-  local instruction_file="$2"
-  [[ -f "$instruction_file" ]] || return 0
+  python3 "$ROOT_DIR/apps/skills-manager-tui/managed_instructions.py" remove \
+    --skill-id "$1" --target "$2"
+}
 
-  local begin_marker="<!-- skills-linker:${skill_id}:begin -->"
-  local end_marker="<!-- skills-linker:${skill_id}:end -->"
-  grep -qF "$begin_marker" "$instruction_file" 2>/dev/null || return 0
-
-  local tmp
-  tmp="$(mktemp)"
-  awk -v begin="$begin_marker" -v end="$end_marker" '
-    $0 == begin { skip=1; next }
-    $0 == end   { skip=0; next }
-    !skip       { print }
-  ' "$instruction_file" > "$tmp"
-
-  # Remove trailing blank lines (POSIX compatible — works on macOS BSD and GNU)
-  awk '{lines[NR]=$0} /./{last=NR} END{for(i=1;i<=last;i++)print lines[i]}' "$tmp" > "$instruction_file"
-  rm -f "$tmp"
-
-  # Clean up empty instruction file
-  if [[ -f "$instruction_file" ]] && [[ ! -s "$instruction_file" ]]; then
-    rm -f "$instruction_file"
+run_injection_doctor() {
+  local instruction_file skill source state reason
+  local failed=0 out=()
+  instruction_file="$(resolve_instruction_file "$tool" "$scope" "$project_root")" || instruction_file=""
+  for skill in "${selected[@]}"; do
+    source="$(resolve_skill_dir "$skills_root" "$skill")"
+    state="not-applicable"
+    reason=""
+    if is_auto_injected_skill "$skills_root" "$source" && [[ -f "$source/inject.md" && -n "$instruction_file" ]]; then
+      reason="$instruction_file"
+      state="$(python3 "$ROOT_DIR/apps/skills-manager-tui/managed_instructions.py" status \
+        --skill-id "$skill" --source "$source/inject.md" --target "$instruction_file")" || state="malformed"
+      [[ "$state" == "current" ]] || failed=1
+    fi
+    out+=("$skill"$'\t'"$state"$'\t'"$reason")
+  done
+  if [[ "$as_json" == "1" ]]; then
+    print_json_results "doctor" "$skills_root" "$target_dir" "$(printf '%s\n' "${out[@]}")"
+  else
+    printf '%s\n' "${out[@]}"
   fi
+  return "$failed"
 }
 
 handle_always_on_install() {
@@ -474,12 +458,13 @@ handle_always_on_install() {
   local skill source
   for skill in "${skills[@]}"; do
     source="$(resolve_skill_dir "$skills_root" "$skill")" || continue
+    # A conflicting, unmanaged directory must not gain always-on instructions.
+    [[ -n "$(manifest_get_mode "$target_dir" "$skill")" ]] || continue
+    [[ -f "$target_dir/$skill/SKILL.md" ]] || continue
     if is_auto_injected_skill "$skills_root" "$source"; then
-      if inject_always_on "$skill" "$source" "$instruction_file"; then
-        echo "$skill: injected always-on instruction → $instruction_file"
-      else
-        echo "$skill: always-on instruction already present in $instruction_file"
-      fi
+      local result
+      result="$(inject_always_on "$skill" "$target_dir/$skill" "$instruction_file")" || return $?
+      [[ -z "$result" ]] || echo "$skill: always-on instruction $result → $instruction_file" >&2
     fi
   done
 }
@@ -499,8 +484,8 @@ handle_always_on_uninstall() {
   for skill in "${skills[@]}"; do
     source="$(resolve_skill_dir "$skills_root" "$skill")" || continue
     if is_auto_injected_skill "$skills_root" "$source"; then
-      remove_always_on "$skill" "$instruction_file"
-      echo "$skill: removed always-on instruction ← $instruction_file"
+      remove_always_on "$skill" "$instruction_file" >&2 || return $?
+      echo "$skill: removed always-on instruction ← $instruction_file" >&2
     fi
   done
 }
@@ -855,6 +840,8 @@ run_install() {
 
     if [[ -e "$dest" || -L "$dest" ]]; then
       if [[ "$force" == "1" ]]; then
+        # A managed copy may contain user edits; updating it requires --force.
+        # Existing symlinks already see source updates without replacement.
         rm -rf "$dest"
       else
         out+=("$skill"$'\t'"skip"$'\t'"path exists")
@@ -1275,7 +1262,7 @@ aliases:
 EOF
     exit 0
     ;;
-  list|install|uninstall|status|tui)
+  list|install|uninstall|status|doctor|tui)
     ;;
   *)
     die "unknown command: $cmd"
@@ -1472,8 +1459,6 @@ done
 selected=("${normalized_selected[@]}")
 
 target_dir="$(resolve_target_dir "$tool" "$scope" "$project_root" "$target_dir_override")"
-mkdir -p "$target_dir"
-
 case "$cmd" in
   install)
     run_install "$skills_root" "$target_dir" "$mode" "$force" "$as_json" "${selected[@]}"
@@ -1489,5 +1474,8 @@ case "$cmd" in
     ;;
   status)
     run_status "$skills_root" "$target_dir" "$as_json" "${selected[@]}"
+    ;;
+  doctor)
+    run_injection_doctor
     ;;
 esac

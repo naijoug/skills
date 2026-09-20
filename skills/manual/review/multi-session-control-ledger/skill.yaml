@@ -1,5 +1,5 @@
 id: ng-review-multi-session-control-ledger
-version: 1.0.0
+version: 1.0.1
 title: Multi-Session Control Ledger
 summary: Coordinate overlapping local, remote, cron, and review agent sessions with explicit outcomes, owned paths, permission ceilings, evidence, and next safe commands
 kind: prompt_only

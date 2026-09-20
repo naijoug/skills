@@ -1,5 +1,5 @@
 id: ng-design-inline-command-palette-minimum
-version: 1.0.0
+version: 1.0.1
 title: Inline Command Palette Minimum
 summary: Add a small, testable inline command surface to an existing search field without fake commands or premature overlay architecture
 kind: prompt_only

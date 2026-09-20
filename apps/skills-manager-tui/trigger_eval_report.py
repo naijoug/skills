@@ -135,7 +135,7 @@ def confusion_table_html(
 def details_table_html(rows: list[dict[str, str]], max_rows: int | None = None) -> str:
     shown = rows if max_rows is None else rows[:max_rows]
     skills = sorted({r.get("skill", "") for r in shown if r.get("skill", "")})
-    kinds = ["MISS", "EXTRA", "FALSE_TRIGGER"]
+    kinds = ["MISS", "EXTRA", "FALSE_TRIGGER", "CLARIFY", "MISSING"]
     count_note = ""
     if max_rows is not None and len(rows) > max_rows:
         count_note = f' <span class="muted">(showing {len(shown)} / {len(rows)})</span>'
@@ -143,7 +143,7 @@ def details_table_html(rows: list[dict[str, str]], max_rows: int | None = None) 
     options_skill = ['<option value="">All skills</option>'] + [
         f'<option value="{esc(s)}">{esc(s)}</option>' for s in skills
     ]
-    options_kind = ['<option value="">All error types</option>'] + [
+    options_kind = ['<option value="">All routing outcomes</option>'] + [
         f'<option value="{k}">{k}</option>' for k in kinds
     ]
 
@@ -152,6 +152,9 @@ def details_table_html(rows: list[dict[str, str]], max_rows: int | None = None) 
         kind = row.get("kind", "")
         skill = row.get("skill", "")
         polarity = row.get("polarity", "")
+        route = row.get("route", "")
+        expected = row.get("expected_skills", "")
+        decision = row.get("decision", "")
         predicted = row.get("predicted_skills", "")
         prompt = row.get("prompt", "")
         source = row.get("source", "")
@@ -161,11 +164,14 @@ def details_table_html(rows: list[dict[str, str]], max_rows: int | None = None) 
             <tr class="detail-row"
                 data-kind="{esc(kind)}"
                 data-skill="{esc(skill)}"
-                data-search="{esc((prompt + ' ' + predicted + ' ' + case_id).lower())}">
+                data-search="{esc((prompt + ' ' + expected + ' ' + decision + ' ' + predicted + ' ' + case_id).lower())}">
               <td><span class="pill pill-{esc(kind.lower())}">{esc(kind)}</span></td>
               <td>{esc(skill)}</td>
               <td>{esc(polarity)}</td>
               <td><code>{esc(case_id)}</code></td>
+              <td>{esc(route)}</td>
+              <td>{esc(expected)}</td>
+              <td>{esc(decision)}</td>
               <td>{esc(predicted)}</td>
               <td>{esc(prompt)}</td>
               <td><code>{esc(source)}</code></td>
@@ -173,11 +179,11 @@ def details_table_html(rows: list[dict[str, str]], max_rows: int | None = None) 
             """
         )
     if not body_rows:
-        body_rows.append('<tr><td colspan="7" class="muted">No data</td></tr>')
+        body_rows.append('<tr><td colspan="10" class="muted">No data</td></tr>')
 
     return f"""
     <section class="panel">
-      <h2>Error Details (Filterable){count_note}</h2>
+      <h2>Routing Details (Filterable){count_note}</h2>
       <div class="filters" id="details-filters">
         <label>
           <span>Skill</span>
@@ -206,6 +212,9 @@ def details_table_html(rows: list[dict[str, str]], max_rows: int | None = None) 
               <th>skill</th>
               <th>polarity</th>
               <th>id</th>
+              <th>route</th>
+              <th>expected_skills</th>
+              <th>decision</th>
               <th>predicted_skills</th>
               <th>prompt</th>
               <th>source</th>
@@ -246,6 +255,8 @@ def per_skill_table(rows: list[dict[str, str]]) -> str:
         n_false = as_int(r.get("negative_false_trigger", "0"))
         n_false_self = as_int(r.get("negative_false_trigger_self", "0"))
         miss = as_int(r.get("missing_predictions", "0"))
+        clarify_total = as_int(r.get("clarify_total", "0"))
+        clarify_hit = as_int(r.get("clarify_hit", "0"))
         pos_bar = bar_cell(p_hit, p_total, f"{p_hit}/{p_total}")
         neg_reject = max(0, n_total - n_false)
         neg_bar = bar_cell(neg_reject, n_total, f"{neg_reject}/{n_total}")
@@ -257,6 +268,7 @@ def per_skill_table(rows: list[dict[str, str]]) -> str:
               <td>{neg_bar}</td>
               <td>{esc(n_false)}</td>
               <td>{esc(n_false_self)}</td>
+              <td>{bar_cell(clarify_hit, clarify_total, f"{clarify_hit}/{clarify_total}")}</td>
               <td>{esc(miss)}</td>
             </tr>
             """
@@ -272,8 +284,9 @@ def per_skill_table(rows: list[dict[str, str]]) -> str:
               <th>skill</th>
               <th>positive recall</th>
               <th>negative reject rate</th>
-              <th>neg false any</th>
+              <th>negative failures</th>
               <th>neg false self</th>
+              <th>clarification accuracy</th>
               <th>missing preds</th>
             </tr>
           </thead>
@@ -289,6 +302,8 @@ def per_skill_table(rows: list[dict[str, str]]) -> str:
 def summary_cards(overall_rows: list[dict[str, str]]) -> str:
     m = metric_map(overall_rows)
     cards = [
+        ("Exact Routing Accuracy", f"{as_float(m.get('case_accuracy', '0')):.3f}"),
+        ("Clarification Accuracy", f"{as_float(m.get('clarify_accuracy', '0')):.3f}"),
         ("Positive Recall", f"{as_float(m.get('positive_recall', '0')):.3f}"),
         ("Negative Reject Rate", f"{as_float(m.get('negative_reject_rate', '0')):.3f}"),
         ("Positive Cases", m.get("positive_total", "0")),

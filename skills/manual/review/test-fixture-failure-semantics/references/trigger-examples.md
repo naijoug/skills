@@ -27,7 +27,7 @@ Use these phrases to recognize when the skill should be applied.
 - "Rewrite this test suite" when the request is broad and not focused on setup failure semantics.
 - "Make assertions more detailed" when the behavior assertion itself is vague but the fixture setup is already clear.
 
-## Narrow first
+## Routing notes (not evaluation inputs)
 
 - If the workspace has unrelated dirty paths, restrict edits to the owned test helper or fixture file and stage by path.
 - If a preflight negative case fails before reaching the guard, label fixture phases first, then rerun the focused harness.

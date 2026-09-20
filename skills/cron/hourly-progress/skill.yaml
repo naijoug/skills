@@ -1,5 +1,5 @@
 id: hourly-progress
-version: 1.0.0
+version: 1.0.2
 title: Hourly Autonomous Progress Beat
 summary: Cron-driven work rhythm for autonomous planning, cadence-sized verified execution, and durable notebook handoff in a multi-repo workspace
 kind: prompt_only

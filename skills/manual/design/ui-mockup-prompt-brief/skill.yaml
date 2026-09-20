@@ -1,5 +1,5 @@
 id: ng-design-ui-mockup-prompt-brief
-version: 1.0.0
+version: 1.0.1
 title: UI Mockup Prompt Brief
 summary: Turn an existing product screen or feature idea into a grounded high-fidelity UI mockup prompt with one focused design direction and verifiable workflow constraints
 kind: prompt_only

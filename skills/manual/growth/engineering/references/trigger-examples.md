@@ -42,6 +42,9 @@ Use these prompts to test whether `engineering` triggers correctly. The skill co
 
 ## Negative / Near Miss
 
+- "Fix the production login failure and run the affected tests."
+- "Profile this endpoint and implement the measured performance improvement."
+
 - Give me the optimal solution code immediately. (Direct solution, no coaching)
 - Explain what a race condition is. (Concept question, not guided engineering practice)
 - Fix this bug by changing the retry count to 5. (Direct patch, skips investigation)
@@ -51,8 +54,8 @@ Use these prompts to test whether `engineering` triggers correctly. The skill co
 - List all GoF patterns and examples. (Reference request, not coaching)
 - Generate 20 interview questions and answers. (Question bank, not guided practice)
 
-## Narrow first
+## Routing notes (not evaluation inputs)
 
-- If the user asks for a direct implementation or patch, clarify whether they want coaching / investigation or immediate execution before applying this skill.
+- A direct implementation or patch request is already clear: carry it out without introducing a coaching question.
 - If the request is only a concept definition, answer directly or use a teaching skill instead of this practice-oriented skill.
 - If production debugging or performance work requires logs, metrics, or authorization that are missing, first collect safe evidence and define what cannot be verified.
