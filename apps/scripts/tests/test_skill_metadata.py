@@ -1,5 +1,7 @@
+import io
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
 
 from support import load_checker, make_skill
@@ -19,6 +21,26 @@ class SkillMetadataTests(unittest.TestCase):
 
     def test_complete_skill_passes(self):
         self.assertEqual(self.problems(), [])
+
+    def test_metadata_only_skill_fails_with_actionable_cli_error(self):
+        (self.skill / "SKILL.md").unlink()
+        errors = io.StringIO()
+        with redirect_stderr(errors):
+            result = checker.main(["--skills-dir", str(self.root), "--category", "all"])
+        self.assertEqual(result, 1)
+        self.assertIn(str(self.skill), errors.getvalue())
+        self.assertIn("missing SKILL.md", errors.getvalue())
+
+    def test_instruction_only_skill_still_requires_metadata(self):
+        (self.skill / "skill.yaml").unlink()
+        self.assertTrue(any("missing skill.yaml" in problem.message for problem in self.problems()))
+
+    def test_metadata_only_skill_respects_category_filter(self):
+        orphan = make_skill(self.root, "auto/orphan", "orphan")
+        (orphan / "SKILL.md").unlink()
+        self.assertEqual(checker.check_metadata(self.root, "manual"), [])
+        problems = checker.check_metadata(self.root, "auto")
+        self.assertTrue(any(problem.skill_dir == orphan and "missing SKILL.md" in problem.message for problem in problems))
 
     def test_policy_must_be_boolean_under_policy(self):
         invalid = [

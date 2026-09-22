@@ -1,0 +1,31 @@
+id: ng-review-deployed-is-not-public-go
+version: 1.0.0
+title: Deployed Is Not Public GO
+summary: Separate deployed endpoints, release evidence, and public launch approval so agents do not turn a URL or rollback note into an unauthorized production GO claim
+kind: prompt_only
+tags:
+  - review
+  - release
+  - deployment
+  - verification
+  - ai-agent
+triggers:
+  keywords:
+    - deployed is not public GO
+    - public launch boundary
+    - production URL evidence
+    - release checklist boundary
+    - controlled deployment
+    - V1 public GO
+    - 已部署不等于公开发布
+    - 生产环境边界
+    - 发布 GO
+compatibility:
+  tools:
+    - codex
+    - claude-code
+    - cursor
+    - vscode
+    - amp
+    - trae
+    - antigravity

@@ -88,7 +88,12 @@ use an explicit `select`, `none` or `clarify` label for stronger assertions.
 bash apps/scripts/skills-quality-check
 ```
 
-This runs metadata checks, disposable-fixture regression tests, the error-boundary
+The metadata checker discovers directories containing either `SKILL.md` or
+`skill.yaml` and requires both files, including the invocation policy for manual
+skills. A metadata-only draft in `skills/` fails validation rather than being
+silently omitted.
+
+The full check runs metadata checks, disposable-fixture regression tests, the error-boundary
 package checks, coverage checks, and the perfect-predictor scorer smoke. It does
 not access production, require an API key, or start a preview. App changes should
 use the appropriate checks in [Skills Manager operations](../apps/docs/skills-manager.md).

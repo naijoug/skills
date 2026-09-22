@@ -2,7 +2,15 @@
 
 - **日期**：2026-08-24
 - **作者**：Hermes
-- **状态**：draft-for-implementation
+- **状态**：核心切片已实现；保留原始设计方向供后续验收参考
+- **最近核对**：2026-09-22（代码核对；本次未重新执行视觉验收）
+
+## 当前实现
+
+- Library shell 已有 `Your skills`、技能总数、搜索框和按需展开的仓库面板；样式采用 sidebar / list / detail 三列布局。
+- 详情已提供 `Manage installs` 主动作，复制路径、导出等操作位于 overflow；保留 Overview / Markdown / Files / Install tabs。
+- `⌘K` / `Ctrl+K` 聚焦搜索，输入 `>` 显示轻量命令列表。命令注册、键盘交互和 DOM 测试已落地，详见[命令入口实现记录](2026-08-25-skills-manager-command-palette-minimum.md)。
+- 下文的尺寸、视觉风格和切片描述保留原始建议，不表示每一项视觉目标都已经验收。后续应验证现有实现，而不是重新从 Slice 1 开始。
 
 ## 背景
 
@@ -75,7 +83,7 @@
 
 目标：把搜索框升级为轻量命令入口，但不阻断基础 redesign。
 
-- search placeholder 改为 `Search skills or run a command…`。
+- 原建议将 placeholder 改为 `Search skills or run a command…`；当前实现保留 `Search skills...`，通过下方 helper 提示输入 `>` 使用命令。
 - 支持 `⌘K`/`Ctrl+K` focus search。
 - 快捷键 hint、active result focus ring、filter count 变清晰。
 - 真正的 command palette 另立设计，不和 Slice 1/2 混做。
@@ -104,4 +112,4 @@
 
 ## 下一步建议
 
-下一轮如果要实际改 UI，优先做 Slice 1：只动 `apps/packages/skills-ui/src/App.tsx`、相关 component className 结构和样式文件，避免碰 adapter、installer、desktop Rust 后端。提交前记录启动 dirty paths，并只暂存 UI layout 相关文件。
+下一轮 UI 工作应先用现有 Web/Desktop 界面验收搜索、group 切换、详情阅读、命令反馈和安装入口，再按观察到的问题修正。命令列表仅在规模或实际溢出问题需要时增加滚动或分组；当前不需要重新实施 Library shell 或新增 overlay。

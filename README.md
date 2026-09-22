@@ -37,6 +37,7 @@ Personal collection of AI coding skills. Skills are classified by directory unde
         │   ├── audit-evidence-boundary/
         │   ├── bounded-probe-before-workaround/
         │   ├── content-only-docs-proof-gate/
+        │   ├── deployed-is-not-public-go/
         │   ├── error-boundary/
         │   ├── handoff-receipt/
         │   ├── monorepo-test-entrypoint-drift/
@@ -255,8 +256,9 @@ policy:
 
 Before publishing or committing a new manual skill, run the lightweight metadata
 check so `skills-linker list` and slash-command installation do not fall back to
-blank titles or incomplete summaries. The check requires every skill with
-`SKILL.md` to have `skill.yaml` plus non-empty `id`, `version`, `title`,
+blank titles or incomplete summaries. The check discovers directories containing
+either `SKILL.md` or `skill.yaml` and requires both files, so unfinished
+metadata-only skills cannot silently pass. Metadata needs non-empty `id`, `version`, `title`,
 `summary`, `kind`, `tags`, `triggers.keywords`, and `compatibility.tools`:
 
 ```bash

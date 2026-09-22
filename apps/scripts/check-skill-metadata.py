@@ -41,7 +41,12 @@ def rel(path: Path) -> str:
 
 
 def iter_skill_dirs(skills_dir: Path) -> list[Path]:
-    return sorted({skill_file.parent for skill_file in skills_dir.rglob("SKILL.md")})
+    # Either entrypoint marks a skill, including an unfinished metadata-only one.
+    return sorted({
+        skill_file.parent
+        for filename in ("SKILL.md", "skill.yaml")
+        for skill_file in skills_dir.rglob(filename)
+    })
 
 
 def category_for(skill_dir: Path, skills_dir: Path) -> str:
@@ -151,7 +156,10 @@ def validate_openai_policy(skill_dir: Path, category: str) -> list[MetadataProbl
 
 
 def validate_frontmatter(skill_dir: Path) -> list[MetadataProblem]:
-    lines = (skill_dir / "SKILL.md").read_text(encoding="utf-8").splitlines()
+    skill_path = skill_dir / "SKILL.md"
+    if not skill_path.is_file():
+        return [MetadataProblem(skill_dir, "missing SKILL.md")]
+    lines = skill_path.read_text(encoding="utf-8").splitlines()
     if not lines or lines[0] != "---" or "---" not in lines[1:]:
         return [MetadataProblem(skill_dir, "SKILL.md missing closed YAML frontmatter")]
     frontmatter = lines[1:lines.index("---", 1)]
@@ -203,7 +211,7 @@ def check_metadata(skills_dir: Path, category: str | None) -> list[MetadataProbl
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Fail when skill directories with SKILL.md are missing required skill.yaml metadata."
+        description="Check directories containing SKILL.md or skill.yaml for complete instructions, metadata and invocation policy."
     )
     parser.add_argument(
         "--skills-dir",

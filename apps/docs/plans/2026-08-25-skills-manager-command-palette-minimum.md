@@ -6,9 +6,9 @@
 
 ## 背景
 
-`apps/packages/skills-ui/` 已完成 Library shell、列表/详情信息层级、`Manage installs` 主动作、搜索空状态和 `⌘K`/`Ctrl+K` 聚焦搜索。当前 search helper 明确写着 command palette actions 尚未启用，避免把搜索框误包装成完整 palette。
+立项时，`apps/packages/skills-ui/` 已完成 Library shell、列表/详情信息层级、`Manage installs` 主动作、搜索空状态和 `⌘K`/`Ctrl+K` 聚焦搜索，尚未启用 command actions。现已完成下述命令入口，search helper 提示输入 `>` 显示命令；实施记录见下文。
 
-下一步如果要把 `⌘K` 从“聚焦搜索”升级为“轻量命令入口”，需要先定义最小真实命令集与不可做边界，避免继续堆 placeholder 或引入无法执行的动作。
+本记录保留从“聚焦搜索”扩展到“轻量命令入口”的命令范围与边界，后续改动应以已实现的命令集为基础。
 
 ## 原则
 
@@ -61,10 +61,9 @@
 
 ### 阶段 B：搜索框下方的 inline command rows
 
-- 当 query 以 `>` 开头，在 search area 下方显示最多 4 条命令：
-
-- 第一行固定是 `Search skills`。
-- 后三行是 `Open repositories`、`Manage installs`、`Open settings`。
+- 当 query 以 `>` 开头，在 search area 下方显示匹配命令。当前 registry 有 7 条命令。
+- 空查询 `>` 只显示前 4 条：`Search skills`、`Open repositories`、`Manage installs`、`Copy skill path`。
+- 输入关键词时展示全部匹配项，不套用 4 条限制；`Translate summary`、`Export Gist bundle`、`Open settings` 可通过关键词查找。
 - disabled row 使用 `aria-disabled` 而不是原生 `disabled`，仍允许点击/Enter 进入执行层，以便在 command rows 附近显示同一条原因反馈。
 - `Enter` 执行 active command；`Escape` 清空 query 并关闭 command rows；`ArrowUp` / `ArrowDown` 在可见命令中循环移动 active row。
 

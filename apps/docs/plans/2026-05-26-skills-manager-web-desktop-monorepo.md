@@ -2,7 +2,8 @@
 
 - **日期**：2026-05-26
 - **作者**：Codex
-- **状态**：in-progress
+- **状态**：核心功能已实现；真实外部服务、界面和发布包验收需按目标环境确认
+- **最近核对**：2026-09-22（代码与本地测试；不代表生产发布验收）
 
 ## 目标
 
@@ -19,7 +20,7 @@
 
 - `apps/` 下的 monorepo 可以分别运行 Web App 和 Desktop App，并共享同一套 skills 列表、group 视图、详情页、搜索和翻译 UI。
 - Monorepo 使用 `pnpm` 管理 workspace、依赖和脚本。
-- 共享解析逻辑可以处理当前仓库的 24 个本地 skills，也可以处理导入的 GitHub skills 仓库，且 Web/Desktop 不重复实现解析逻辑。
+- 解析逻辑可以处理当前仓库的全部本地 skills（数量随技能库变化），也可以处理导入的 GitHub skills 仓库；Web/Desktop 遵循相同的解析约定。
 - 桌面端可以将 GitHub 仓库导入本地缓存，并支持刷新。
 - Web 端同时支持服务端 clone/cache 和 GitHub API 只读读取两种仓库来源，不直接访问用户本地文件系统，也不在浏览器中持有敏感 API Key。
 - 翻译能力通过 provider 抽象接入，第一阶段至少提供 OpenAI provider。
@@ -36,8 +37,10 @@
 - `apps/packages/*`：领域核心、平台适配、UI、翻译 provider、agent 安装抽象。
 - `apps/package.json`、`apps/pnpm-workspace.yaml`、`apps/pnpm-lock.yaml`、`apps/tsconfig.base.json`：pnpm workspace 和 TypeScript workspace 根。
 - `.skills-manager-data/`：已忽略的本地缓存目录，用于保存导入仓库和 library 元数据。
-- `skills/**/SKILL.md` 与可选 `skill.yaml`：当前需要解析的主要内容格式。
+- `skills/**/SKILL.md` 与 `skill.yaml`：本仓库技能必备的正文和元数据；导入的第三方技能仍支持缺少元数据时从 frontmatter 读取。
 - `README.md`：记录当前 skills 仓库结构和已有 CLI/TUI 工具。
+- Web API 和桌面端均已注册 OpenAI、OpenRouter、Local Codex、Local Claude Code 四个翻译 provider；配置方式见[运行说明](../skills-manager.md#当前能力边界)。
+- Library 布局、详情主动作及轻量命令入口已实现；当前命令和交互范围见[命令入口记录](2026-08-25-skills-manager-command-palette-minimum.md)。
 
 可复用内容：
 
@@ -45,18 +48,20 @@
 - 当前 UI 形态：仓库输入框、group sidebar、全局 skills 列表、详情 tab、目标语言翻译控件。
 - 当前本地缓存约定：导入仓库放入被 git 忽略的本地数据目录。
 
-需要新增内容：
+原计划交付内容（以下模块现已实现，不再作为待办）：
 
 - TypeScript 领域核心：skills 解析、ID、搜索、repository group、翻译请求模型。
 - 共享 React/Vite UI 包。
 - 平台适配接口，以及 Web/Desktop 两套实现。
 - 桌面端命令：文件系统、Git、本地缓存。
 - Web 后端/API：服务端 clone/cache、GitHub API 只读读取、详情读取、翻译代理。
-- 翻译 provider 抽象和 OpenAI provider。
+- 翻译 provider 抽象，以及 OpenAI、OpenRouter 和本地 Codex / Claude Code provider。
 - Agent 工具安装抽象，以及 Codex / Claude Code 安装实现。
 - 覆盖 core 解析、adapter 行为、translation provider、agent installer 的测试体系。
 
-## 目标架构
+## 原始目标架构
+
+以下结构和接口保留最初设计上下文；当前运行方式与能力边界以[运行说明](../skills-manager.md)和实际代码为准。
 
 ```text
 apps/
@@ -351,7 +356,7 @@ Desktop 边界：
 - [ ] Web 端是否需要账号级持久化，还是先完全依赖服务端部署环境的 cache？
 - [x] Codex / Claude Code 安装模式默认使用 symlink 还是 copy？桌面 UI 默认使用 copy，避免导入仓库 cache 删除后留下断开的 symlink；需要实时联动源码时仍可手动选择 symlink。
 - [x] 安装时是否需要同步生成 slash command wrappers，还是第一阶段只安装 skills 内容？已实现为可选项，仅对 `manual/**` skills 生成托管 wrapper。
-- [ ] 除 OpenAI 外，第二个 translation provider 优先支持哪个服务？
+- [x] 第二个远程 translation provider 已实现为 OpenRouter；同时已接入 Local Codex、Local Claude Code。provider 可列出或显示已配置，不代表真实调用已验收。
 
 ## 验证策略
 

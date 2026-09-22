@@ -142,7 +142,7 @@ cargo test --manifest-path skills-manager-desktop/src-tauri/Cargo.toml
 - `skills-manager-api`：本地 library、GitHub URL 归一化、服务端 clone/cache 导入/刷新/删除路径、GitHub API 只读导入路径、导入仓库删除、HTTP route smoke、CORS preflight、坏 JSON / 非对象 body / 缺失 URL 的 400 错误语义、翻译请求目标语言和 provider 校验、Web 安装/卸载边界、Web provider secret 边界。
 - `skills-platform`：Web adapter API route 映射、Desktop adapter Tauri command 映射，包含 provider 配置、安装和卸载动作。
 - `skills-ui`：group / query / import / refresh 后的可见列表和详情选择规则，防止详情停留在当前列表之外的 skill；翻译面板带请求序号防护，避免切换 skill 后旧翻译结果覆盖当前详情；安装面板区分 loading / unavailable / available 状态，切换 skill 时会按当前 skill 的安装状态重置目标勾选，防止继承上一个 skill 的手动选择；安装状态加载带请求序号防护，避免快速切换 skill 时旧响应覆盖当前状态。
-- `skills-translation`：OpenAI provider 配置检测、Responses API 请求形态、翻译文本提取。
+- `skills-translation`：OpenAI / OpenRouter provider 配置检测、请求形态、翻译文本提取、OpenRouter 网络失败重试，以及本地 agent CLI 调用和错误说明。
 - `skills-installers`：Codex / ChatGPT / Claude Code / Amp 全局和项目目标目录检测、copy/symlink 安装、mode/conflict policy 校验、卸载、`skills-linker` manifest 维护、可选 slash command wrapper、安装状态、冲突检测。
 - `skills-manager-desktop/src-tauri`：本地扫描、library 构建、Git clone/cache 导入和 refresh、root-level 与子目录 `SKILL.md` 发现、导入仓库删除、桌面 copy/symlink 安装和卸载命令、安装 mode/conflict policy/target id 校验、Codex / ChatGPT / Claude Code / Amp 全局和项目目标支持、`skills-linker` manifest 维护、可选 Codex/ChatGPT/Claude Code slash command wrapper、OpenAI key 本地配置、翻译请求校验、未配置 OpenAI key 的错误路径。
 - `apps/scripts/skills-manager-desktop-smoke`：执行 `tauri build --no-bundle --ci`，验证 Tauri release 编译路径可用，同时避开签名、notarization 和 installer 生成差异。
@@ -170,6 +170,8 @@ cargo test --manifest-path skills-manager-desktop/src-tauri/Cargo.toml
 - 桌面端卸载默认只删除 manifest 托管的 skill 目录；如果目标目录存在但没有 manifest 条目，会返回 skipped，避免误删用户手动放入的内容。
 - 桌面端安装 `manual/**` skills 时可以选择同步生成 slash command wrapper：Codex / ChatGPT 写入 `.codex/prompts/<skill-name>.md`，Claude Code 写入 `.claude/commands/<skill-name>.md`。wrapper 使用 `skills-linker:slash:<skill-name>` marker，卸载时只清理带 marker 的托管文件。
 - 桌面端安装目录名称使用 `SKILL.md` frontmatter 的 `name` 或 `skill.yaml` 的 `id`，与 `apps/skills-manager-tui/skills-linker` 的命名约定保持一致。
-- 翻译已抽象为 provider，并接入 OpenAI provider；未配置 provider 时 UI 会显示未配置。桌面端会优先读取 `OPENAI_API_KEY`，没有环境变量时读取 `.skills-manager-data/config.json` 中保存的 provider 配置，再调用 OpenAI Responses API。
-- Web 端不接受浏览器侧保存 provider secret；Web 翻译 key 需要通过服务端 `OPENAI_API_KEY` 配置。未配置时 `/api/translate` 会返回 `503`，让 UI 明确呈现 provider 不可用，而不是通用内部错误。
+- Web API 和桌面端均提供 OpenAI、OpenRouter、Local Codex、Local Claude Code 四个翻译 provider。OpenAI 使用 Responses API，OpenRouter 使用 Chat Completions API；本地 provider 在 API 服务所在机器或桌面应用所在机器调用 `codex` / `claude` CLI，不在浏览器里运行。
+- 桌面端远程 provider 优先读取 `OPENAI_API_KEY` / `OPENROUTER_API_KEY`，没有对应环境变量时读取 `.skills-manager-data/config.json` 中保存的配置。模型可通过 `SKILLS_MANAGER_OPENAI_MODEL` / `SKILLS_MANAGER_OPENROUTER_MODEL` 设置，桌面端也支持保存 provider model 配置。
+- Web 端不接受浏览器侧保存 provider secret；远程翻译 key 通过服务端对应环境变量配置。所选 provider 未配置时 `/api/translate` 返回 `503`。本地 provider 的可用性检测只证明 CLI 存在，不能证明登录、额度或真实翻译调用成功。
+- 共享包保留 Amp provider 实现及测试，但当前 Web API / 桌面 provider 列表没有注册 Amp，不作为可选翻译入口。
 - 翻译和安装面板会在请求进行中禁用相关控件，避免重复提交；翻译请求和安装状态请求都带异步竞态防护，快速切换 skill 时旧响应不会覆盖当前详情；安装结果会显示 agent 目标 label、状态和后端返回的说明信息。
