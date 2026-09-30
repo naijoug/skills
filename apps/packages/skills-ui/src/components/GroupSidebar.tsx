@@ -3,6 +3,7 @@ import { Aperture, BookOpen, ChevronDown, Database, GitFork, Monitor, Plus, Sett
 import type { SkillGroup } from "@skills-manager/core";
 
 export interface GroupSidebarProps {
+  appVersion?: string;
   groups: SkillGroup[];
   totalSkills: number;
   selectedGroupId: string;
@@ -18,6 +19,7 @@ export interface GroupSidebarProps {
 }
 
 export function GroupSidebar({
+  appVersion,
   groups,
   totalSkills,
   selectedGroupId,
@@ -97,7 +99,7 @@ export function GroupSidebar({
         <Aperture size={16} aria-hidden="true" />
         <span>
           <strong>Skills Manager</strong>
-          <small>1.4.2 · {platformLabel}</small>
+          <small>{appVersion ? `${appVersion} · ` : ""}{platformLabel}</small>
         </span>
         <ChevronDown size={15} />
       </div>

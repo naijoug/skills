@@ -1,3 +1,4 @@
+import { version } from "../package.json";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { invoke } from "@tauri-apps/api/core";
@@ -15,7 +16,7 @@ if (isTauriRuntime) {
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <SkillsManagerApp adapter={adapter} repositorySources={[{ id: "desktop-local", label: "Desktop local cache" }]} />
+    <SkillsManagerApp appVersion={version} adapter={adapter} repositorySources={[{ id: "desktop-local", label: "Desktop local cache" }]} />
   </React.StrictMode>
 );
 

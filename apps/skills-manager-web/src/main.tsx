@@ -1,3 +1,4 @@
+import { version } from "../package.json";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { createWebAdapter } from "@skills-manager/platform";
@@ -10,6 +11,6 @@ const adapter = createWebAdapter({
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <SkillsManagerApp adapter={adapter} />
+    <SkillsManagerApp appVersion={version} adapter={adapter} />
   </React.StrictMode>
 );

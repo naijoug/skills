@@ -1,6 +1,6 @@
 [package]
 name = "skills-manager-desktop"
-version = "0.1.0"
+version = "0.1.1"
 description = "Desktop shell for Skills Manager"
 authors = ["Codex"]
 edition = "2021"

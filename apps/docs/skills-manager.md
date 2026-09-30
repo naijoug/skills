@@ -12,6 +12,39 @@
 - 旧 Python MVP 已退役并删除；常规开发、验证和发布路径以 monorepo Web/Desktop 为准。
 - 本仓库 manual skill 的 Codex 配置使用显式调用策略：`agents/openai.yaml` 设置 `allow_implicit_invocation: false`。CLI/TUI linker 会管理 auto skill 的 `inject.md` 注入；桌面安装器目前只安装技能文件，不执行注入同步。
 
+## 0.1.1 发布边界与验收
+
+当前产品是 macOS 桌面应用和仅本机访问的 Web 界面，不是公网多人服务。
+
+- release 桌面应用从 `.app/Contents/Resources/skills` 读取随包分发的技能，不依赖构建机器的源码目录。打包使用 Git 的文件清单及 ignore 规则，包含当前工作区非忽略的技能文件；发布前需审阅当前工作区。
+- 桌面数据默认位于 Tauri 的用户应用数据目录；macOS 为 `~/Library/Application Support/com.naijoug.skills-manager/`。缓存、`library.json` 和 `config.json` 位于该目录。JSON 使用原子替换写入，Unix 权限为 `0600`。
+- `SKILLS_MANAGER_DATA_DIR` 可指定绝对数据目录。旧的仓库 `.skills-manager-data` 不自动迁移；需要保留旧数据时，可显式指定该目录。不要把 API key 或个人缓存提交到 Git。
+- release 默认只显示当前用户的全局安装目标。使用 `SKILLS_MANAGER_WORKSPACE=/absolute/project/path` 启动时，读取该目录的 `skills/` 并启用该项目的安装目标。开发模式继续使用当前源码工作区。
+- Web API 只允许 `127.0.0.1` 或 `::1` 绑定，检查连接来源及 Host，并按完整 Origin 白名单处理 CORS。默认允许 `http://127.0.0.1:5173` 和 `http://localhost:5173`；统一启动及 smoke 脚本会使用实际 Web 端口。自定义端口时可设置逗号分隔的 `SKILLS_MANAGER_ALLOWED_ORIGINS`，只接受本机 HTTP origin。不要通过反向代理暴露此 API。
+- 写接口只允许 POST + JSON；请求体限制为 64 KiB，读取超时 10 秒。
+- 桌面 WebView 启用 CSP；翻译网络请求继续由 Rust 后端执行。
+
+发布验证入口：
+
+```bash
+./apps/scripts/skills-manager-check
+./apps/scripts/skills-manager-web-smoke
+./scripts/package-macos.sh
+./apps/scripts/skills-manager-bundle-smoke
+```
+
+`package-macos.sh` 默认要求 Apple 公证凭据，校验 app/DMG 签名、磁盘镜像和 app 的公证/Gatekeeper 状态，并输出 SHA-256 文件。没有公证凭据时，可用 `--allow-unnotarized` 生成签名测试候选包，但不视为公开发布验收通过。
+
+`skills-manager-bundle-smoke` 把真实 `.app` 搬到临时目录，以隔离 HOME、数据目录和 PATH 启动两次，验证内置技能、全局安装目标及缓存元数据重启读取；结束后清理临时目录。可传入待测 `.app` 路径。此检查不替代另一台 Mac 上的 Gatekeeper 和交互验收。应用的 `--verify-installation` 参数输出不含 secret 的路径/技能数量诊断后退出。
+
+### 2026-09-30 本地验收记录
+
+- 通过：35 个技能工具测试、96 个应用测试、24 个 Rust 测试；类型检查、Web/桌面构建及 Web 冒烟检查。
+- 通过：0.1.1 Apple Silicon 签名 app/DMG、镜像校验；真实 app 搬迁启动、43 个内置技能、隔离用户安装目标和重启读取。桌面列表与详情已通过实际 UI 读取确认。
+- 通过：真实 Git clone 导入、刷新、详情和删除。
+- 尚未通过：Apple 公证及 Gatekeeper 公开分发验收（当前无公证凭据）；另一台干净 Mac 的交互验收；真实翻译调用。GitHub REST API 在线验收遇到共享出口限流，未计为通过。
+- 当前产物为签名候选包，不能据此宣称已经完成正式公开发布。
+
 ## 开发启动
 
 安装依赖：
@@ -162,7 +195,7 @@ cargo test --manifest-path skills-manager-desktop/src-tauri/Cargo.toml
 - 共享 UI 会在切换 group、导入仓库、刷新仓库和搜索过滤时同步当前详情选择：详情面板不会停留在当前列表之外的 skill；导入后会进入新导入仓库并选择该 group 的第一个 skill。
 - Web 端不会直接写本机 Codex 或 Claude Code 目录；本地 agent 安装能力放在桌面端。
 - Web 端没有本地安装目标时，安装面板只显示桌面端提示，不展示 copy/symlink、冲突策略和安装/卸载按钮；桌面端加载安装目标时显示 loading 状态，避免短暂误报为 Web-only 限制。
-- 桌面端导入 GitHub 仓库时会保存到 `.skills-manager-data/repos/`，并更新 `.skills-manager-data/library.json`；导入扫描会识别仓库根目录和任意子目录下的 `SKILL.md`。
+- 桌面端导入 GitHub 仓库时会保存到用户应用数据目录的 `repos/`，并更新 `library.json`；导入扫描会识别仓库根目录和任意子目录下的 `SKILL.md`。
 - 桌面端支持安装到全局目标 `~/.codex/skills`、`~/.claude/skills`、`~/.agents/skills`，也支持安装到当前项目目标 `{repo}/.codex/skills`、`{repo}/.claude/skills`、`{repo}/.agents/skills`。安装模式支持 copy 和 symlink，冲突策略由 UI 请求决定；同一目标也支持从 UI 触发卸载。ChatGPT 目标作为 Codex alias，使用 `.codex` 路径。桌面后端在 Unix/macOS 使用目录 symlink，在 Windows 使用 directory symlink。
 - 桌面端安装/卸载会拒绝未知 `targetId`，避免前端或外部调用把拼写错误静默执行为空操作。
 - 桌面端安装面板默认使用 copy 模式；切换 skill 时会根据当前 skill 的状态重置目标勾选并清理上一条安装消息，未安装的 skill 不会默认勾选任何目标，只有 manifest 托管的已安装 skill 会预选已安装目标，避免误装到多个 agent 目录。安装状态请求带竞态防护，快速切换 skill 时旧响应不会覆盖当前状态。目标路径存在但没有 manifest 记录时会显示为 conflict，而不是 installed。
@@ -171,7 +204,7 @@ cargo test --manifest-path skills-manager-desktop/src-tauri/Cargo.toml
 - 桌面端安装 `manual/**` skills 时可以选择同步生成 slash command wrapper：Codex / ChatGPT 写入 `.codex/prompts/<skill-name>.md`，Claude Code 写入 `.claude/commands/<skill-name>.md`。wrapper 使用 `skills-linker:slash:<skill-name>` marker，卸载时只清理带 marker 的托管文件。
 - 桌面端安装目录名称使用 `SKILL.md` frontmatter 的 `name` 或 `skill.yaml` 的 `id`，与 `apps/skills-manager-tui/skills-linker` 的命名约定保持一致。
 - Web API 和桌面端均提供 OpenAI、OpenRouter、Local Codex、Local Claude Code 四个翻译 provider。OpenAI 使用 Responses API，OpenRouter 使用 Chat Completions API；本地 provider 在 API 服务所在机器或桌面应用所在机器调用 `codex` / `claude` CLI，不在浏览器里运行。
-- 桌面端远程 provider 优先读取 `OPENAI_API_KEY` / `OPENROUTER_API_KEY`，没有对应环境变量时读取 `.skills-manager-data/config.json` 中保存的配置。模型可通过 `SKILLS_MANAGER_OPENAI_MODEL` / `SKILLS_MANAGER_OPENROUTER_MODEL` 设置，桌面端也支持保存 provider model 配置。
+- 桌面端远程 provider 优先读取 `OPENAI_API_KEY` / `OPENROUTER_API_KEY`，没有对应环境变量时读取用户应用数据目录中 `config.json` 保存的配置。模型可通过 `SKILLS_MANAGER_OPENAI_MODEL` / `SKILLS_MANAGER_OPENROUTER_MODEL` 设置，桌面端也支持保存 provider model 配置。
 - Web 端不接受浏览器侧保存 provider secret；远程翻译 key 通过服务端对应环境变量配置。所选 provider 未配置时 `/api/translate` 返回 `503`。本地 provider 的可用性检测只证明 CLI 存在，不能证明登录、额度或真实翻译调用成功。
 - 共享包保留 Amp provider 实现及测试，但当前 Web API / 桌面 provider 列表没有注册 Amp，不作为可选翻译入口。
 - 翻译和安装面板会在请求进行中禁用相关控件，避免重复提交；翻译请求和安装状态请求都带异步竞态防护，快速切换 skill 时旧响应不会覆盖当前详情；安装结果会显示 agent 目标 label、状态和后端返回的说明信息。

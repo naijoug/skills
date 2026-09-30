@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""Verify a macOS release bundle after relocation, with an isolated new user."""
+import json
+from pathlib import Path
+import plistlib
+import shutil
+import subprocess
+import sys
+import tempfile
+
+
+root = Path(__file__).resolve().parents[2]
+source = Path(sys.argv[1]) if len(sys.argv) > 1 else (
+    root / "apps/skills-manager-desktop/src-tauri/target/release/bundle/macos/Skills Manager.app"
+)
+if not source.is_dir():
+    raise SystemExit(f"Build the macOS app bundle first: {source}")
+with (source / "Contents/Info.plist").open("rb") as stream:
+    version = plistlib.load(stream)["CFBundleShortVersionString"]
+expected_version = json.loads((root / "apps/skills-manager-desktop/package.json").read_text())["version"]
+assert version == expected_version, f"Stale app bundle: {version}, expected {expected_version}"
+
+with tempfile.TemporaryDirectory(prefix="skills-manager-bundle-") as temporary:
+    directory = Path(temporary).resolve()
+    app = directory / "Applications/Skills Manager.app"
+    shutil.copytree(source, app, symlinks=True)
+    home = directory / "new-user"
+    home.mkdir()
+    data = home / "app-data"
+    environment = {
+        "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+        "HOME": str(home),
+        "TMPDIR": str(directory),
+        "SKILLS_MANAGER_DATA_DIR": str(data),
+    }
+    executable = app / "Contents/MacOS/skills-manager-desktop"
+
+    def launch():
+        result = subprocess.run(
+            [str(executable), "--verify-installation"],
+            cwd=directory, env=environment, capture_output=True, text=True, timeout=30,
+        )
+        if result.returncode:
+            raise RuntimeError(f"Bundle failed: {result.stderr}")
+        reports = [json.loads(line) for line in result.stdout.splitlines() if line.startswith('{"')]
+        if len(reports) != 1 or not reports[0].get("ok"):
+            raise RuntimeError(f"Missing installation verification result: {result.stdout} {result.stderr}")
+        report = reports[0]
+        assert Path(report["catalogPath"]) == app / "Contents/Resources", report
+        assert Path(report["dataPath"]) == data, report
+        assert len(report["installTargets"]) == 3, report
+        assert all(target["id"].endswith("-global") for target in report["installTargets"]), report
+        assert all(Path(target["skillsDir"]).is_relative_to(home) for target in report["installTargets"]), report
+        return report
+
+    first = launch()
+    assert first["skillCount"] > 0, first
+    fixture = data / "repos/example--portable/demo"
+    fixture.mkdir(parents=True)
+    (fixture / "SKILL.md").write_text("---\nname: portable-demo\ndescription: Portable fixture\n---\n# Demo\n")
+    (data / "library.json").write_text(json.dumps({"version": 1, "repositories": [{
+        "id": "github:example/portable", "url": "https://github.com/example/portable",
+        "path": str(fixture.parent),
+    }]}))
+    second = launch()
+    assert second["skillCount"] == first["skillCount"] + 1, second
+    print(f"Bundle {version} OK: {first['skillCount']} bundled skills; relocated startup, isolated user targets and restart persistence verified")

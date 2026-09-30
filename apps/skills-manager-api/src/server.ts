@@ -7,6 +7,7 @@ export interface SkillsManagerServerOptions {
   manager?: ApiManager;
   repoRoot?: string;
   dataDir?: string;
+  allowedOrigins?: string[];
 }
 
 export function createSkillsManagerServer(options: SkillsManagerServerOptions = {}): Server {
@@ -14,22 +15,55 @@ export function createSkillsManagerServer(options: SkillsManagerServerOptions = 
   const dataDir = options.dataDir ?? process.env.SKILLS_MANAGER_DATA_DIR ?? join(repoRoot, ".skills-manager-data");
   const manager = options.manager ?? new ApiManager({ repoRoot, dataDir });
 
-  return createServer(async (request, response) => {
-    const headers = {
-      "Access-Control-Allow-Origin": "*",
+  const allowedOrigins = new Set(options.allowedOrigins ?? (
+    process.env.SKILLS_MANAGER_ALLOWED_ORIGINS ?? "http://127.0.0.1:5173,http://localhost:5173"
+  ).split(",").map((origin) => origin.trim()).filter(Boolean));
+  for (const origin of allowedOrigins) {
+    const url = new URL(origin);
+    if (url.protocol !== "http:" || !isLoopbackHost(url.hostname) || url.origin !== origin) {
+      throw new Error("Allowed origins must be explicit HTTP loopback origins.");
+    }
+  }
+
+  return createServer({ requestTimeout: 10_000, headersTimeout: 10_000 }, async (request, response) => {
+    const headers: Record<string, string> = {
+      "Vary": "Origin",
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
       "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
       "Content-Type": "application/json"
     };
 
-    if (request.method === "OPTIONS") {
-      response.writeHead(204, headers);
-      response.end();
-      return;
-    }
-
     try {
-      const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "127.0.0.1"}`);
+      const peer = request.socket.remoteAddress;
+      if (!peer || !["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(peer)) {
+        throw new ApiError("Only local clients are allowed.", 403);
+      }
+      const host = request.headers.host;
+      if (!host || !isLoopbackHost(new URL(`http://${host}`).hostname)) {
+        throw new ApiError("Invalid local Host header.", 403);
+      }
+      const origin = request.headers.origin;
+      if (origin && !allowedOrigins.has(origin)) {
+        throw new ApiError("Origin is not allowed.", 403);
+      }
+      if (origin) headers["Access-Control-Allow-Origin"] = origin;
+      if (request.method === "OPTIONS") {
+        response.writeHead(204, headers);
+        response.end();
+        return;
+      }
+      const url = new URL(request.url ?? "/", `http://${host}`);
+      const expectedMethod = routeMethods[url.pathname];
+      if (!expectedMethod) throw new ApiError("Not found.", 404);
+      if (request.method !== expectedMethod) {
+        headers.Allow = expectedMethod;
+        throw new ApiError("Method not allowed.", 405);
+      }
+      if (expectedMethod === "POST" && request.headers["content-type"]?.split(";")[0].trim().toLowerCase() !== "application/json") {
+        throw new ApiError("Content-Type must be application/json.", 415);
+      }
       const body = request.method === "POST" ? await readJsonBody(request) : {};
       const result = await route(url, body, manager);
       response.writeHead(200, headers);
@@ -46,11 +80,34 @@ export function createSkillsManagerServer(options: SkillsManagerServerOptions = 
 export function startSkillsManagerServer(): Server {
   const port = Number(process.env.SKILLS_MANAGER_API_PORT ?? 8787);
   const host = process.env.SKILLS_MANAGER_API_HOST ?? "127.0.0.1";
+  if (!["127.0.0.1", "::1"].includes(host)) {
+    throw new Error("Skills Manager is a local API; SKILLS_MANAGER_API_HOST must be 127.0.0.1 or ::1.");
+  }
   const server = createSkillsManagerServer();
   server.listen(port, host, () => {
     console.log(`Skills Manager API listening on http://${host}:${port}`);
   });
   return server;
+}
+
+const routeMethods: Record<string, "GET" | "POST"> = {
+  "/health": "GET",
+  "/api/library": "GET",
+  "/api/repositories": "POST",
+  "/api/repositories/remove": "POST",
+  "/api/refresh": "POST",
+  "/api/skills/detail": "GET",
+  "/api/translation/providers": "GET",
+  "/api/translation/providers/config": "POST",
+  "/api/translate": "POST",
+  "/api/install/targets": "GET",
+  "/api/install/status": "POST",
+  "/api/install": "POST",
+  "/api/uninstall": "POST"
+};
+
+function isLoopbackHost(host: string): boolean {
+  return ["127.0.0.1", "localhost", "[::1]"].includes(host);
 }
 
 async function route(url: URL, body: unknown, manager: ApiManager): Promise<unknown> {
@@ -101,10 +158,18 @@ async function route(url: URL, body: unknown, manager: ApiManager): Promise<unkn
 }
 
 async function readJsonBody(request: IncomingMessage): Promise<unknown> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of request) {
-    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+  const limit = 64 * 1024;
+  if (Number(request.headers["content-length"] ?? 0) > limit) {
+    throw new ApiError("Request body exceeds 64 KiB.", 413);
   }
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of request) {
+    const buffer = typeof chunk === "string" ? Buffer.from(chunk) : chunk;
+    size += buffer.length;
+    if (size <= limit) chunks.push(buffer);
+  }
+  if (size > limit) throw new ApiError("Request body exceeds 64 KiB.", 413);
   const raw = Buffer.concat(chunks).toString("utf8").trim();
   if (!raw) {
     return {};

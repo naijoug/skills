@@ -30,6 +30,7 @@ import {
 } from "./settings";
 
 export interface SkillsManagerAppProps {
+  appVersion?: string;
   adapter?: SkillsAdapter;
   repositorySources?: RepositorySourceOption[];
 }
@@ -46,7 +47,7 @@ const defaultRepositorySources: RepositorySourceOption[] = [
   { id: "github-api", label: "GitHub API" }
 ];
 
-export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = defaultRepositorySources }: SkillsManagerAppProps) {
+export function SkillsManagerApp({ appVersion, adapter = mockAdapter, repositorySources = defaultRepositorySources }: SkillsManagerAppProps) {
   const [settings, setSettings] = useState<SkillsUserSettings>(() => loadSkillsUserSettings());
   const [primaryView, setPrimaryView] = useState<PrimaryView>(() => initialPrimaryView(settings));
   const [activeSettingsSection, setActiveSettingsSection] = useState<SettingsSectionId>(() => initialSettingsSection());
@@ -366,6 +367,7 @@ export function SkillsManagerApp({ adapter = mockAdapter, repositorySources = de
       style={shellStyle}
     >
       <GroupSidebar
+        appVersion={appVersion}
         groups={library.groups}
         totalSkills={library.skills.length}
         selectedGroupId={selectedGroupId}

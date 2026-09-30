@@ -11,6 +11,7 @@ dist/
 target/
 *.tsbuildinfo
 apps/skills-manager-desktop/src-tauri/gen/
+apps/skills-manager-desktop/src-tauri/resources/
 
 # Python cache (trigger eval scripts)
 __pycache__/

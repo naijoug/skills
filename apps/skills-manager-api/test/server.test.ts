@@ -1,9 +1,10 @@
 import { mkdtemp, rm } from "node:fs/promises";
+import { request } from "node:http";
 import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createSkillsManagerServer } from "../src/server";
+import { createSkillsManagerServer, startSkillsManagerServer } from "../src/server";
 import { readSkillSources } from "../src/apiManager";
 
 const repoRoot = join(import.meta.dirname, "../../..");
@@ -99,12 +100,61 @@ describe("skills-manager-api server", () => {
     const server = createSkillsManagerServer({ repoRoot, dataDir: await tempDataDir() });
     const baseUrl = await listen(server);
     try {
-      const response = await fetch(`${baseUrl}/api/library`, { method: "OPTIONS" });
+      const response = await fetch(`${baseUrl}/api/library`, { method: "OPTIONS", headers: { Origin: "http://127.0.0.1:5173" } });
       expect(response.status).toBe(204);
-      expect(response.headers.get("access-control-allow-origin")).toBe("*");
+      expect(response.headers.get("access-control-allow-origin")).toBe("http://127.0.0.1:5173");
     } finally {
       await close(server);
     }
+  });
+
+  it("rejects hostile origins and DNS rebinding before invoking the manager", async () => {
+    const server = createSkillsManagerServer({ repoRoot, dataDir: await tempDataDir() });
+    const baseUrl = await listen(server);
+    try {
+      for (const origin of ["https://evil.example", "null", "http://127.0.0.1:9999"]) {
+        for (const method of ["GET", "OPTIONS", "POST"]) {
+          const response = await fetch(`${baseUrl}/api/library`, { method, headers: { Origin: origin } });
+          expect(response.status).toBe(403);
+          expect(response.headers.get("access-control-allow-origin")).toBeNull();
+        }
+      }
+      const reboundStatus = await new Promise<number | undefined>((resolve, reject) => {
+        request(`${baseUrl}/api/library`, { headers: { Host: "evil.example" } }, (response) => {
+          response.resume();
+          response.on("end", () => resolve(response.statusCode));
+        }).on("error", reject).end();
+      });
+      expect(reboundStatus).toBe(403);
+    } finally {
+      await close(server);
+    }
+  });
+
+  it("rejects side effects over GET, form posts and oversized bodies", async () => {
+    const server = createSkillsManagerServer({ repoRoot, dataDir: await tempDataDir() });
+    const baseUrl = await listen(server);
+    try {
+      const get = await fetch(`${baseUrl}/api/refresh`);
+      expect(get.status).toBe(405);
+      expect(get.headers.get("allow")).toBe("POST");
+      const form = await fetch(`${baseUrl}/api/refresh`, { method: "POST", body: "{}" });
+      expect(form.status).toBe(415);
+      const large = await fetch(`${baseUrl}/api/repositories`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: "x".repeat(65 * 1024) })
+      });
+      expect(large.status).toBe(413);
+      expect((await fetch(`${baseUrl}/health`)).status).toBe(200);
+    } finally {
+      await close(server);
+    }
+  });
+
+  it("refuses public bind addresses and non-local origin configuration", () => {
+    vi.stubEnv("SKILLS_MANAGER_API_HOST", "0.0.0.0");
+    expect(() => startSkillsManagerServer()).toThrow("local API");
+    expect(() => createSkillsManagerServer({ allowedOrigins: ["https://evil.example"] })).toThrow("loopback origins");
   });
 
   it("returns 400 for invalid JSON and non-object request bodies", async () => {

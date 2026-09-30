@@ -103,9 +103,21 @@ image, and verifies the image checksum. Public certificate metadata and setup
 notes are stored in
 `apps/skills-manager-desktop/src-tauri/certificates/README.md`.
 
-Notarization is automatic when the supported Apple notarization environment
-variables are available. Without those credentials, the output is Developer ID
-signed but not notarized.
+Public packaging requires Apple notarization credentials. The script verifies
+app/DMG signatures, the app's stapled ticket and Gatekeeper acceptance, and writes
+a SHA-256 checksum. Without those credentials, it fails before building.
+
+For a signed test candidate that is not cleared for public distribution:
+
+```bash
+./scripts/package-macos.sh --allow-unnotarized
+./apps/scripts/skills-manager-bundle-smoke
+```
+
+The bundle smoke relocates the app and launches it with an isolated user and data
+directory. Production data lives in the user's Application Support directory;
+the app includes its own skills catalog. See `apps/docs/skills-manager.md` for
+workspace selection, data migration and the local-only Web boundary.
 
 ## Lower-Level Entrypoints
 

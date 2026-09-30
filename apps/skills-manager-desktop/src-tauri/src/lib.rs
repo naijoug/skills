@@ -5,6 +5,16 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output, Stdio};
+use std::sync::OnceLock;
+use tauri::Manager;
+
+struct RuntimePaths {
+    catalog: PathBuf,
+    data: PathBuf,
+    project: Option<PathBuf>,
+}
+
+static RUNTIME_PATHS: OnceLock<RuntimePaths> = OnceLock::new();
 
 const MANIFEST_FILENAME: &str = ".skills-linker-manifest.json";
 const LEGACY_MANIFEST_FILENAME: &str = ".skills-linker-manifest.tsv";
@@ -472,6 +482,40 @@ fn uninstall_skills(input: Value) -> Result<Value, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .setup(|app| {
+            let paths = resolve_runtime_paths(
+                app.path().resource_dir()?,
+                env::var_os("SKILLS_MANAGER_DATA_DIR")
+                    .map(PathBuf::from)
+                    .unwrap_or(app.path().app_data_dir()?),
+                env::var_os("SKILLS_MANAGER_WORKSPACE").map(PathBuf::from),
+                development_workspace(),
+            )
+            .map_err(io::Error::other)?;
+            fs::create_dir_all(&paths.data)?;
+            RUNTIME_PATHS
+                .set(paths)
+                .map_err(|_| io::Error::other("Runtime already initialized"))?;
+            if env::args().any(|arg| arg == "--verify-installation") {
+                let library = build_library().map_err(io::Error::other)?;
+                let count = library["skills"].as_array().map_or(0, Vec::len);
+                if count == 0 {
+                    return Err(io::Error::other("No bundled skills were loaded").into());
+                }
+                println!(
+                    "{}",
+                    json!({
+                        "ok": true,
+                        "skillCount": count,
+                        "catalogPath": repo_root(),
+                        "dataPath": data_dir(),
+                        "installTargets": list_install_targets()
+                    })
+                );
+                app.handle().exit(0);
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             health,
             list_library,
@@ -1121,51 +1165,58 @@ fn run_git(args: &[&str], cwd: Option<&Path>) -> Result<String, String> {
 
 fn install_targets() -> Vec<InstallTargetData> {
     let home = env::var("HOME").unwrap_or_default();
-    let project = repo_root();
-    vec![
+    make_install_targets(Path::new(&home), project_root().as_deref())
+}
+
+fn make_install_targets(home: &Path, project: Option<&Path>) -> Vec<InstallTargetData> {
+    let mut targets = vec![
         InstallTargetData {
             id: "codex-global".to_string(),
             tool_id: "codex".to_string(),
             label: "Codex global".to_string(),
-            skills_dir: PathBuf::from(&home).join(".codex").join("skills"),
-            slash_commands_dir: Some(PathBuf::from(&home).join(".codex").join("prompts")),
+            skills_dir: home.join(".codex").join("skills"),
+            slash_commands_dir: Some(home.join(".codex").join("prompts")),
         },
         InstallTargetData {
             id: "codex-project".to_string(),
             tool_id: "codex".to_string(),
             label: "Codex project".to_string(),
-            skills_dir: project.join(".codex").join("skills"),
-            slash_commands_dir: Some(project.join(".codex").join("prompts")),
+            skills_dir: project.unwrap_or(home).join(".codex").join("skills"),
+            slash_commands_dir: Some(project.unwrap_or(home).join(".codex").join("prompts")),
         },
         InstallTargetData {
             id: "claude-code-global".to_string(),
             tool_id: "claude-code".to_string(),
             label: "Claude Code global".to_string(),
-            skills_dir: PathBuf::from(&home).join(".claude").join("skills"),
-            slash_commands_dir: Some(PathBuf::from(&home).join(".claude").join("commands")),
+            skills_dir: home.join(".claude").join("skills"),
+            slash_commands_dir: Some(home.join(".claude").join("commands")),
         },
         InstallTargetData {
             id: "claude-code-project".to_string(),
             tool_id: "claude-code".to_string(),
             label: "Claude Code project".to_string(),
-            skills_dir: project.join(".claude").join("skills"),
-            slash_commands_dir: Some(project.join(".claude").join("commands")),
+            skills_dir: project.unwrap_or(home).join(".claude").join("skills"),
+            slash_commands_dir: Some(project.unwrap_or(home).join(".claude").join("commands")),
         },
         InstallTargetData {
             id: "amp-global".to_string(),
             tool_id: "amp".to_string(),
             label: "Amp global".to_string(),
-            skills_dir: PathBuf::from(&home).join(".agents").join("skills"),
+            skills_dir: home.join(".agents").join("skills"),
             slash_commands_dir: None,
         },
         InstallTargetData {
             id: "amp-project".to_string(),
             tool_id: "amp".to_string(),
             label: "Amp project".to_string(),
-            skills_dir: project.join(".agents").join("skills"),
+            skills_dir: project.unwrap_or(home).join(".agents").join("skills"),
             slash_commands_dir: None,
         },
-    ]
+    ];
+    if project.is_none() {
+        targets.retain(|target| !target.id.ends_with("-project"));
+    }
+    targets
 }
 
 fn target_to_value(target: InstallTargetData) -> Value {
@@ -1481,19 +1532,7 @@ fn load_library() -> Result<Value, String> {
 }
 
 fn save_library(library: &Value) -> Result<(), String> {
-    let file = library_file();
-    if let Some(parent) = file.parent() {
-        fs::create_dir_all(parent)
-            .map_err(|error| format!("Failed to create {}: {error}", parent.display()))?;
-    }
-    fs::write(
-        &file,
-        format!(
-            "{}\n",
-            serde_json::to_string_pretty(library).map_err(|error| error.to_string())?
-        ),
-    )
-    .map_err(|error| format!("Failed to write {}: {error}", file.display()))
+    write_private_json(&library_file(), library)
 }
 
 fn load_config() -> Result<Value, String> {
@@ -1506,19 +1545,37 @@ fn load_config() -> Result<Value, String> {
 }
 
 fn save_config(config: &Value) -> Result<(), String> {
-    let file = config_file();
+    write_private_json(&config_file(), config)
+}
+
+fn write_private_json(file: &Path, value: &Value) -> Result<(), String> {
+    use std::io::Write;
     if let Some(parent) = file.parent() {
-        fs::create_dir_all(parent)
-            .map_err(|error| format!("Failed to create {}: {error}", parent.display()))?;
+        fs::create_dir_all(parent).map_err(|error| error.to_string())?;
     }
-    fs::write(
-        &file,
-        format!(
-            "{}\n",
-            serde_json::to_string_pretty(config).map_err(|error| error.to_string())?
-        ),
-    )
-    .map_err(|error| format!("Failed to write {}: {error}", file.display()))
+    let nonce = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_err(|error| error.to_string())?
+        .as_nanos();
+    let temporary = file.with_extension(format!("{}.{}.tmp", std::process::id(), nonce));
+    let result = (|| -> io::Result<()> {
+        let mut options = fs::OpenOptions::new();
+        options.write(true).create_new(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            options.mode(0o600);
+        }
+        let mut output = options.open(&temporary)?;
+        serde_json::to_writer_pretty(&mut output, value)?;
+        output.write_all(b"\n")?;
+        output.sync_all()?;
+        fs::rename(&temporary, file)
+    })();
+    if result.is_err() {
+        let _ = fs::remove_file(&temporary);
+    }
+    result.map_err(|error| format!("Failed to save {}: {error}", file.display()))
 }
 
 fn openai_api_key() -> Result<Option<String>, String> {
@@ -1607,17 +1664,72 @@ fn provider_label(provider_id: &str) -> &'static str {
 }
 
 fn repo_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .ancestors()
-        .nth(3)
-        .unwrap_or_else(|| Path::new(env!("CARGO_MANIFEST_DIR")))
-        .to_path_buf()
+    RUNTIME_PATHS
+        .get()
+        .map(|paths| paths.catalog.clone())
+        .or_else(development_workspace)
+        .expect("Runtime paths must be initialized before reading skills")
+}
+
+fn project_root() -> Option<PathBuf> {
+    RUNTIME_PATHS
+        .get()
+        .map(|paths| paths.project.clone())
+        .unwrap_or_else(development_workspace)
+}
+
+fn development_workspace() -> Option<PathBuf> {
+    #[cfg(any(debug_assertions, test))]
+    {
+        Some(
+            PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                .ancestors()
+                .nth(3)
+                .unwrap()
+                .to_path_buf(),
+        )
+    }
+    #[cfg(not(any(debug_assertions, test)))]
+    {
+        None
+    }
+}
+
+fn resolve_runtime_paths(
+    resources: PathBuf,
+    data: PathBuf,
+    workspace: Option<PathBuf>,
+    development: Option<PathBuf>,
+) -> Result<RuntimePaths, String> {
+    if !data.is_absolute() {
+        return Err("SKILLS_MANAGER_DATA_DIR must be an absolute directory.".into());
+    }
+    let project = workspace.or(development);
+    if let Some(path) = &project {
+        if !path.is_absolute() || !path.is_dir() {
+            return Err("SKILLS_MANAGER_WORKSPACE must be an existing absolute directory.".into());
+        }
+    }
+    let catalog = project.clone().unwrap_or(resources);
+    if project.is_none() && !catalog.join("skills").is_dir() {
+        return Err("Bundled skills are missing. Reinstall Skills Manager.".into());
+    }
+    Ok(RuntimePaths {
+        catalog,
+        data,
+        project,
+    })
 }
 
 fn data_dir() -> PathBuf {
     env::var("SKILLS_MANAGER_DATA_DIR")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| repo_root().join(".skills-manager-data"))
+        .unwrap_or_else(|_| {
+            RUNTIME_PATHS
+                .get()
+                .map(|paths| paths.data.clone())
+                .unwrap_or_else(|| repo_root().join(".skills-manager-data"))
+        })
 }
 
 fn repos_dir() -> PathBuf {
@@ -2197,6 +2309,75 @@ mod tests {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     static ENV_LOCK: Mutex<()> = Mutex::new(());
+
+    #[test]
+    fn release_paths_work_without_a_source_checkout() {
+        let root = temp_dir("portable-runtime");
+        let resources = root.join("Installed App/Resources");
+        let data = root.join("new-user/Application Support/Skills Manager");
+        fs::create_dir_all(resources.join("skills/demo")).unwrap();
+        fs::write(
+            resources.join("skills/demo/SKILL.md"),
+            "---\nname: demo\n---\n# Demo",
+        )
+        .unwrap();
+        let paths = resolve_runtime_paths(resources.clone(), data.clone(), None, None).unwrap();
+        assert_eq!(paths.catalog, resources);
+        assert_eq!(
+            read_skill_sources(&paths.catalog.join("skills"))
+                .unwrap()
+                .len(),
+            1
+        );
+        assert!(paths.project.is_none());
+        let targets = make_install_targets(&root.join("new-user"), paths.project.as_deref());
+        assert_eq!(targets.len(), 3);
+        assert!(targets.iter().all(|target| target.id.ends_with("-global")));
+        let state = paths.data.join("library.json");
+        write_private_json(&state, &json!({"repositories": ["persisted"]})).unwrap();
+        let restarted = resolve_runtime_paths(resources, data, None, None).unwrap();
+        let persisted: Value =
+            serde_json::from_str(&fs::read_to_string(restarted.data.join("library.json")).unwrap())
+                .unwrap();
+        assert_eq!(persisted["repositories"][0], "persisted");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            assert_eq!(
+                fs::metadata(state).unwrap().permissions().mode() & 0o777,
+                0o600
+            );
+        }
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn project_targets_require_an_explicit_valid_workspace_in_release() {
+        let root = temp_dir("project-runtime");
+        fs::create_dir_all(&root).unwrap();
+        let paths = resolve_runtime_paths(
+            root.join("resources"),
+            root.join("data"),
+            Some(root.clone()),
+            None,
+        )
+        .unwrap();
+        let targets = make_install_targets(&root.join("home"), paths.project.as_deref());
+        assert!(targets.iter().any(|target| target.id == "codex-project"
+            && target.skills_dir == root.join(".codex/skills")));
+        assert!(resolve_runtime_paths(
+            root.clone(),
+            root.clone(),
+            Some(PathBuf::from("relative")),
+            None
+        )
+        .is_err());
+        assert!(
+            resolve_runtime_paths(root.join("missing-resources"), root.clone(), None, None)
+                .is_err()
+        );
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn encodes_and_decodes_skill_ids() {

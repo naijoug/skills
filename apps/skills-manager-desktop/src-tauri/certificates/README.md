@@ -30,5 +30,7 @@ through the environment or the CI secret store:
 - `APPLE_ID`, `APPLE_PASSWORD`, and `APPLE_TEAM_ID`
 - or `APPLE_API_KEY`, `APPLE_API_ISSUER`, and `APPLE_API_KEY_PATH`
 
-The signing script works without notarization credentials, but that DMG will
-not have an Apple notarization ticket stapled to it.
+The release script refuses to run without notarization credentials by default.
+Use `./scripts/package-macos.sh --allow-unnotarized` only to build a signed test
+candidate. This mode does not certify Gatekeeper acceptance or public readiness.
+The normal release path verifies the app's stapled ticket and Gatekeeper status.
