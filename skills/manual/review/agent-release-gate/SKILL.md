@@ -42,6 +42,8 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
    - Failed case IDs with owner and next action.
    - Safety regression suite version.
    - Safe trace links for representative success, failure, and approval paths.
+   - Decision record refs (`decision_record_refs`) for the ADRs behind this release's model, framework, tool, and rollout choices; a record whose status is not discernible (`accepted` / `trial` / `rejected`) or is `rejected` cannot back this release.
+   - Sample coverage (`eval_sample_coverage`) mapping decision-card fields to Golden Tasks / security samples: `covered_decision_refs`, `covered_fields`, `missing_samples`, and `coverage_decision`.
 
 3. **Collect release-side controls.**
    - Rollout scope: tenant group, traffic percent, allowed tools, blocked tools, read/write mode.
@@ -56,6 +58,7 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
    - `pass`: all hard gates are zero, evidence is traceable, rollout and rollback are scoped.
    - `warn`: read-only or low-risk scope is supported, but some tools, tenants, traffic, or write actions remain disabled.
    - `block`: release object is unreproducible, a forbidden action occurred, sensitive data leaked, approval/audit evidence is missing for enabled write tools, or rollback cannot be executed.
+   - Sample coverage gap rule (two-dimensional, from the source chapters): if `missing_samples` touches write permissions, cross-tenant access, memory writes, approval parameter binding, kill switch, or incident-replay samples, the gate cannot be above `warn`. If the affected capability is still enabled in this rollout, it is `block`; only if it is already disabled in `rollout_scope.blocked_tools` or the disabled scope may the release enter read-only or manual-approval gray release. A missing `eval_sample_coverage` field is never a default pass: treat it as "decision-card fields not yet mapped to samples", which caps the gate at `warn`.
 
 6. **For external publication, apply the project's actual release contract.**
    - Identify the authorized action, release version, destination and applicable project gates. Existing user authorization or an approved project workflow is sufficient within its scope; do not require a second approval or a particular note filename or phrase.
@@ -82,6 +85,8 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 | --- | --- | --- | --- | --- |
 | Workspace boundary | `status_snapshot`, `owned_release_paths`, `avoided_dirty_paths` | clean / owned / unowned-dirty |  |  |
 | Golden Tasks | `golden_tasks_version`, `evaluation_summary` | present / missing / failed |  |  |
+| Decision records | `decision_record_refs` | present / status-unclear / rejected-entry |  |  |
+| Sample coverage | `eval_sample_coverage` (`covered_decision_refs`, `covered_fields`, `missing_samples`, `coverage_decision`) | full / gaps / unmapped |  |  |
 | Failed cases | `evidence.failed_case_ids` | present / none / unresolved |  |  |
 | Safe traces | `evidence.safe_trace_links` | present / missing / redaction needed |  |  |
 | Approval binding | `evidence.approval_binding_cases` | present / missing / partial |  |  |
@@ -116,6 +121,7 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 - The decision names the release object and versions, not just “current agent”
 - The workspace boundary names clean, owned, and avoided dirty release paths before claiming a gate decision
 - Every `pass` has Golden Tasks, safe traces, audit events, and rollback evidence where relevant
+- Every gate above `block` names the `eval_sample_coverage` outcome, and every high-risk sample gap states whether the affected capability is disabled or still enabled
 - Every `warn` has explicit disabled tools, tenants, traffic, or capabilities
 - Every `block` has a concrete re-entry condition and first safe check
 - The report uses relative paths and redacted evidence links; no local absolute paths, secrets, or customer data

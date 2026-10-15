@@ -30,6 +30,8 @@ Do not decide the gate until these versions are named:
 | Evidence | Minimum acceptable form | Consumed by |
 | --- | --- | --- |
 | Golden Tasks | Suite version plus pass/fail count | Release report `evaluation_summary` |
+| Decision records | ADR refs with discernible status (`accepted` / `trial` / `rejected`) | Release report `decision_record_refs`; status-unclear or `rejected` entries cannot back the release |
+| Sample coverage | `eval_sample_coverage` block with `covered_decision_refs`, `covered_fields`, `missing_samples`, `coverage_decision` | Two-dimensional gate rule below |
 | Failed cases | Case IDs, affected intent/tool, owner, next action | Disabled scope or re-entry condition |
 | Safe traces | Redacted success/failure/approval traces | Safety gate and audit review |
 | Approval binding | Trace or test showing human approval is bound to high-risk action parameters | Write-tool gate |
@@ -47,6 +49,7 @@ Default to `block` when any enabled path has one of these signals:
 - Enabled write tool lacks approval binding for exact action parameters.
 - Enabled high-risk tool lacks audit events.
 - Rollback switch is missing, unowned, or untested for the planned scope.
+- `missing_samples` in `eval_sample_coverage` touches write permissions, cross-tenant access, memory writes, approval parameter binding, kill switch, or incident-replay samples while the affected capability is still enabled in this rollout (a missing `eval_sample_coverage` field itself caps the gate at `warn`, never a default pass).
 
 ## 4. External publication and project-specific guards
 
