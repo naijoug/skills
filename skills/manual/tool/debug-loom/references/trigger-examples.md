@@ -27,7 +27,7 @@
 
 - "帮我写一个单元测试" (test authoring, not debug orchestration)
 - "部署到生产" (deployment, not local debug)
-- "搜索一下这个错误" (ng-tool-search)
+- "搜索一下这个错误" (ordinary web research)
 - "解释这段代码" (code reading)
 - "设计 API" (api-design)
 - "做代码 review" (pr review)

@@ -1,0 +1,269 @@
+{
+  "date": "2026-10-15",
+  "entries": [
+    {
+      "id": "ng-tool-search",
+      "original": "skills/manual/tool/search",
+      "archive": "archive/skills/2026-10-15/manual/tool/search",
+      "status": "disabled",
+      "replacement": null,
+      "reference": null,
+      "sha256": {
+        "SKILL.md.disabled": "d51114d7e39ce2f49e7883d1220890e199bc81d44a9a006cbaa7f3826904133a",
+        "skill.yaml.disabled": "b4d75cfd16484c10abe7b1c78f6516f63f27822aa8d2898f0ec1d52e63e118b7",
+        "references/trigger-examples.md": "c5b14f42f7d069b24ee85ca3ca94f7a5b79531be8fdc56bc734045a32035bc63",
+        "agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94",
+        "workspace/evals/evals.json": "880cc55b021c06b26623a95c2ab2252e71db9eb70060b3fe49849edfeaf7696a",
+        "workspace/iteration-1/eval-ai-agent-frameworks/with_skill/outputs/power-web-search-ai-agent-frameworks.md": "134e86c5a2c8054def4b3d1fb9daaef38cdca962a924b62e27915f6e4ba96b33",
+        "workspace/iteration-1/eval-ai-agent-frameworks/without_skill/outputs/ai-agent-frameworks.md": "20bc932811dd9c2c0291b52760d35958432c03fca23b9ce71eaeceb251e26613",
+        "workspace/iteration-1/eval-claude-code-updates/with_skill/outputs/power-web-search-claude-code-updates.md": "57893503895c165a38491c919f64ae80c0ff0f77b1c723840c80939992bbc290",
+        "workspace/iteration-1/eval-claude-code-updates/without_skill/outputs/claude-code-updates.md": "4da4c18100fd4dcc89e7e018139a1cfa25bcaa124fee434cd8e5f9135c8382a7",
+        "workspace/iteration-1/eval-mcp-best-practices/with_skill/outputs/power-web-search-mcp-best-practices.md": "51d11ec7dfb3ef68afead20f13869b5f4fbf43f8c637e684ad98749305c6778c",
+        "workspace/iteration-1/eval-mcp-best-practices/without_skill/outputs/mcp-best-practices.md": "c087fb8b06c09a9ee4a63c0cd1141e84622569eaccebbf376a8e7d1d7f1b7cb8"
+      }
+    },
+    {
+      "id": "ng-meta-example",
+      "original": "skills/manual/meta/example",
+      "archive": "archive/skills/2026-10-15/manual/meta/example",
+      "status": "disabled",
+      "replacement": null,
+      "reference": null,
+      "sha256": {
+        "SKILL.md.disabled": "961c747275d5a3421a143b784beec29b65d12840abbebb93f34be90afa97f687",
+        "skill.yaml.disabled": "cae287fbac1876d26bdecabb11d976b9df326e61e5cf0b35b02dc6e0f6ea931c",
+        "references/trigger-examples.md": "768a746cf37c31b2f120409895a51522d762b49f6ed429ba66272f3acd50ecaf",
+        "agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+      }
+    },
+    {
+      "id": "ng-plan-code-reading",
+      "original": "skills/manual/plan/code-reading",
+      "archive": "archive/skills/2026-10-15/manual/plan/code-reading",
+      "status": "disabled",
+      "replacement": null,
+      "reference": null,
+      "sha256": {
+        "SKILL.md.disabled": "1269a1684b1f20fffad575f1b68783df32869c37b9f4e32e2230add35921250f",
+        "skill.yaml.disabled": "acb7ab998395c38167782aa2360be3a5a1019f79da679151b4a551ef8653e986",
+        "references/trigger-examples.md": "96c852ec72f6f689efa7850a85ccf843156b68c9ccc1cfdac8bd8a4a16dfacc6",
+        "agents/openai.yaml": "e851e16ea2c6c37d804f02391621b6f018e900ff2b32ffd97466f2fffe1d2727"
+      }
+    },
+    {
+      "id": "ng-plan-test-case",
+      "original": "skills/manual/plan/test-case",
+      "archive": "archive/skills/2026-10-15/manual/plan/test-case",
+      "status": "disabled",
+      "replacement": null,
+      "reference": null,
+      "sha256": {
+        "SKILL.md.disabled": "ff0d0c7e77616e33251944759b16976db540bc425acace9d8cba1f3562b9af0c",
+        "skill.yaml.disabled": "9fba3bde96cc7df92476874aacf5b05e3b8a61aacfe8ef4903086a96d9ac0360",
+        "references/trigger-examples.md": "3908d9d10d29675cb6f00297340b1bb2967bed363e76b433b8f968e8463d380b",
+        "agents/openai.yaml": "944f7e6d7b45afe3467f396a2f5b2919d694b2a34fc0b419b18822f65cc3141a"
+      }
+    },
+    {
+      "id": "ng-review-api-design",
+      "original": "skills/manual/review/api-design",
+      "archive": "archive/skills/2026-10-15/manual/review/api-design",
+      "status": "disabled",
+      "replacement": null,
+      "reference": null,
+      "sha256": {
+        "SKILL.md.disabled": "a5234e116599a7ee903d122dbec95afff419d6fe0effa7cb3cfb26103584d360",
+        "skill.yaml.disabled": "af2b02ff1cb5e26ac397879e836c2f328c138b5ecc7a2f4bc8604a105d68f2e7",
+        "references/trigger-examples.md": "6fa572d9e7ad6a2215e169e369c9a30c60235cd0d58c8d37cc5a5495945fbe59",
+        "agents/openai.yaml": "268935619a81e564fc6ff16bda27a6e80371da76a8320c9546fa01bb3d1f2eeb"
+      }
+    },
+    {
+      "id": "ng-review-pr",
+      "original": "skills/manual/review/pr",
+      "archive": "archive/skills/2026-10-15/manual/review/pr",
+      "status": "disabled",
+      "replacement": null,
+      "reference": null,
+      "sha256": {
+        "SKILL.md.disabled": "fdbaea5626a97fba454d9791e4332f8697de235fecb0daef21d2201ee3bbf2f3",
+        "skill.yaml.disabled": "67cbb4a1b9e0d7d8e7eb5b5874e0f7161dc96e87306dc03b88d27d42c2562b53",
+        "references/trigger-examples.md": "05cf3a9875055e375b2276bc897c9bc9762a35384574e8b143d8ad61207e45f1",
+        "agents/openai.yaml": "0ca2e8b5ef2d5c59b90d397b98f39b1af4ec7120bcb6662ae601dd84c5cf38fb"
+      }
+    },
+    {
+      "id": "ng-review-refactor",
+      "original": "skills/manual/review/refactor",
+      "archive": "archive/skills/2026-10-15/manual/review/refactor",
+      "status": "disabled",
+      "replacement": null,
+      "reference": null,
+      "sha256": {
+        "SKILL.md.disabled": "6e0499b6ed597c37604352df623af0556a6fdc5a12b063a7de4b6ec5701e96f6",
+        "skill.yaml.disabled": "43c59cf75152ec02c81fae04aed31f9950e69609ae7c8ec78857ed63305475b1",
+        "references/trigger-examples.md": "9fb462c5f2bb6069f82cecdf3c94f698605da08bc306e1e0678182faa18d7076",
+        "agents/openai.yaml": "2c9f1bd83828eaea7e046e61a7ebc3953b00a6ae906e87a2624d4e195c49aa49"
+      }
+    },
+    {
+      "id": "ng-review-next-safe-command-ladder",
+      "original": "skills/manual/review/next-safe-command-ladder",
+      "archive": "archive/skills/2026-10-15/manual/review/next-safe-command-ladder",
+      "status": "disabled",
+      "replacement": null,
+      "reference": null,
+      "sha256": {
+        "SKILL.md.disabled": "dd0c9e3e1864553cf3681f32be50e9c58f48b2187d337c787e746dbbd086a773",
+        "skill.yaml.disabled": "66f1551d86287d0af1ef9dc413640d216be3378e2170639a401bc61bbcf0fef4",
+        "references/cron-handoff-example.md": "cf81b1395a447dc1fec6fbd13226412acdd38e5dba021ce57022a24a6b5d0698",
+        "references/trigger-examples.md": "6e141231c08b2479814f80623e6bda4d03e69e151da69de2c12133ee8054eff7",
+        "references/ai-coding-audit-example.md": "23790813cb1f36edf4bd6811ec1ba3490b913402e68c557c006dcbd61fcf82e9",
+        "agents/openai.yaml": "2f1259810309b543fe65268aa5bf308d5b1065e00730c5e64bbde5b5bcdc6303"
+      }
+    },
+    {
+      "id": "ng-review-path-scoped-commit-boundary",
+      "original": "skills/manual/review/path-scoped-commit-boundary",
+      "archive": "archive/skills/2026-10-15/manual/review/path-scoped-commit-boundary",
+      "status": "merged",
+      "replacement": "ng-review-handoff-receipt",
+      "reference": "skills/manual/review/handoff-receipt/references/change-ownership.md",
+      "sha256": {
+        "SKILL.md.disabled": "c53aff83a5c524806756f1e013bec7d536397c47b80da38fa43445d55daa859e",
+        "skill.yaml.disabled": "1caa30177464c51dd0e22c254928dfeaa0c79844ccaf1f2931542595af2660b6",
+        "references/trigger-examples.md": "d6780b18ec5dafbce44617a917eb96f94e5297ff8ada9331ff4531c3ccffe277",
+        "agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+      }
+    },
+    {
+      "id": "ng-review-multi-session-control-ledger",
+      "original": "skills/manual/review/multi-session-control-ledger",
+      "archive": "archive/skills/2026-10-15/manual/review/multi-session-control-ledger",
+      "status": "merged",
+      "replacement": "ng-review-handoff-receipt",
+      "reference": "skills/manual/review/handoff-receipt/references/session-ledger.md",
+      "sha256": {
+        "SKILL.md.disabled": "d75e332c717898b3333ec7b917282b66d759b41920313e28602af3fb9f14c153",
+        "skill.yaml.disabled": "609d9d846f2ea60e870c3b029dece4d67daf21b27e561c6adf8576782545b66b",
+        "references/trigger-examples.md": "29548952f75b6f892f9b684c1ce9d082ea25346214c4a8307f9512ddb06636fe",
+        "agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+      }
+    },
+    {
+      "id": "ng-review-test-fixture-failure-semantics",
+      "original": "skills/manual/review/test-fixture-failure-semantics",
+      "archive": "archive/skills/2026-10-15/manual/review/test-fixture-failure-semantics",
+      "status": "merged",
+      "replacement": "ng-review-agent-preflight-script-test",
+      "reference": "skills/manual/review/agent-preflight-script-test/references/fixture-diagnostics.md",
+      "sha256": {
+        "SKILL.md.disabled": "923e0648d8fb8a2061ac4ddf6d88a5df78b355e38c215da9588883b3acdda23d",
+        "skill.yaml.disabled": "5e9ed4dc35008131d6a33f26dddb1f77df2d5decfb8547510513c998952d2a8d",
+        "references/trigger-examples.md": "e5906a62e1417b527b67da730602fd8118ab8bdc53d3a0af13d7999e152ad311",
+        "agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+      }
+    },
+    {
+      "id": "ng-review-bounded-probe-before-workaround",
+      "original": "skills/manual/review/bounded-probe-before-workaround",
+      "archive": "archive/skills/2026-10-15/manual/review/bounded-probe-before-workaround",
+      "status": "reference",
+      "replacement": null,
+      "reference": "docs/diagnostics/bounded-probes.md",
+      "sha256": {
+        "SKILL.md.disabled": "cd2858bf3bdbac37e4652f5f2be2dfc5b34b72a269f576ed76990072c3289580",
+        "skill.yaml.disabled": "804a3f48848371a54550b53be78b1236cb11d5ad32017425a75259e76f3b76cd",
+        "references/trigger-examples.md": "2e1fdfb5dc0fa7fbf9f11d7d4e3fbd5d22fce23e9ba6cc38cef8e83b03c5770d",
+        "agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+      }
+    },
+    {
+      "id": "ng-review-monorepo-test-entrypoint-drift",
+      "original": "skills/manual/review/monorepo-test-entrypoint-drift",
+      "archive": "archive/skills/2026-10-15/manual/review/monorepo-test-entrypoint-drift",
+      "status": "reference",
+      "replacement": null,
+      "reference": "docs/diagnostics/monorepo-entrypoints.md",
+      "sha256": {
+        "SKILL.md.disabled": "df5c526f99a483ef2f01dc37556d2ec6eb1b57636750c176b789a3fa151a0670",
+        "skill.yaml.disabled": "ff2e50e295f4bf29a0b9dad3eb74b73272659ab5b28daa99413ba5477709b1f8",
+        "references/trigger-examples.md": "66672eb686ef31ff4e1e047a48e0da80b63aee1003c9c2fc267f6854bfd1ca42",
+        "agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+      }
+    },
+    {
+      "id": "ng-growth-debugging-kata",
+      "original": "skills/manual/growth/debugging-kata",
+      "archive": "archive/skills/2026-10-15/manual/growth/debugging-kata",
+      "status": "merged",
+      "replacement": "ng-growth-engineering",
+      "reference": "skills/manual/growth/engineering/references/debugging-kata.md",
+      "sha256": {
+        "SKILL.md.disabled": "7288c179050b5e57a6663e91cd73321e94409dea377ac49c9a6d5ef39921ba5b",
+        "skill.yaml.disabled": "157b58fc3ce3a31f846df7b07d9b0969b865112cc070506c1ca1f89a2b505fc5",
+        "references/trigger-examples.md": "f8589a29ec18e9d11494613d4130888fa4ad313951d9c06becfd59beeb82379e",
+        "agents/openai.yaml": "d704fb04289cf84edae8efe239446e6c97b5aad9b00d9547e0023bc1d65379e5"
+      }
+    },
+    {
+      "id": "ng-growth-ai-coding-hypothesis-validation",
+      "original": "skills/manual/growth/ai-coding-hypothesis-validation",
+      "archive": "archive/skills/2026-10-15/manual/growth/ai-coding-hypothesis-validation",
+      "status": "merged",
+      "replacement": "ng-growth-engineering",
+      "reference": "skills/manual/growth/engineering/references/hypothesis-practice.md",
+      "sha256": {
+        "SKILL.md.disabled": "84ad03dd6ba7aa78e2107de10226f111ce0083638f745f798f1d68502e5b3028",
+        "skill.yaml.disabled": "fe7f58de908b0824391abf2b34fa6c35f328d3885cde2858a0f3ffbb6b510d8b",
+        "references/trigger-examples.md": "352c594ccc29ec339acf3e3681579d7bd43a598612a53f272d0f9fb0d8190ad0",
+        "references/hypothesis-validation-card-template.md": "5117004c26610bb4b206aaf5189c79d9d9ad8fd107f22193150b696f8c5083db",
+        "agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+      }
+    },
+    {
+      "id": "ng-growth-weekly-income-experiment",
+      "original": "skills/manual/growth/weekly-income-experiment",
+      "archive": "archive/skills/2026-10-15/manual/growth/weekly-income-experiment",
+      "status": "merged",
+      "replacement": "ng-growth-income-asset-validation",
+      "reference": "skills/manual/growth/income-asset-validation/references/weekly-experiment.md",
+      "sha256": {
+        "SKILL.md.disabled": "e33ccc2b4edc9059b802c74da09afffc7805ca01762238d3ad03b11b14d191e9",
+        "skill.yaml.disabled": "aaa8c0bb0571c1b266694fc45fbbcd894d2a26c8d84264bfee35a475d5eb3f90",
+        "references/trigger-examples.md": "51d030881fb0687df3e97903547dd9eca8250f43d9a4449c6c4511185581b68a",
+        "agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+      }
+    },
+    {
+      "id": "ng-business-single-channel-offer-publish",
+      "original": "skills/manual/business/single-channel-offer-publish",
+      "archive": "archive/skills/2026-10-15/manual/business/single-channel-offer-publish",
+      "status": "merged",
+      "replacement": "ng-growth-income-asset-validation",
+      "reference": "skills/manual/growth/income-asset-validation/references/publish-offer.md",
+      "sha256": {
+        "SKILL.md.disabled": "972703c0d79f14fe9691a521bd2b84998ab1d8aa07d7ec9f62b1decd79d47349",
+        "skill.yaml.disabled": "3afc0fcf32c2de75c471f4b06745aa3a679ab90e550a6b02dc66a8a38a551e46",
+        "references/trigger-examples.md": "083b39ec9d66df4c413efd94c6a295e9237563d058a0c7dd56ce4b9fd0499f2b",
+        "references/single-channel-publish-preflight-template.md": "cf5be2ab597ebf10112b3c9d5b20ba181a77895b785342b4cc367ae21a426bfa",
+        "agents/openai.yaml": "a1499d95abd8447558c535fe5554adcc3c9b988a0a39264a6283d430effe1e94"
+      }
+    },
+    {
+      "id": "ng-plan-review",
+      "original": "skills/manual/plan/review",
+      "archive": "archive/skills/2026-10-15/manual/plan/review",
+      "status": "merged",
+      "replacement": "ng-plan-create",
+      "reference": "skills/manual/plan/create/references/review-plan.md",
+      "sha256": {
+        "SKILL.md.disabled": "304a7b58ae734e357e5946f3b4d3efecd72d01c88afb693e164949c15712441c",
+        "skill.yaml.disabled": "72350ffa2867a3355191ca45c0e7abc59e8677f3d672f55011945e6a0a03539f",
+        "references/trigger-examples.md": "2fd89931ec7f1cf2225c302252012881439bf0efdb6dd6fa2badd7739bb435ed",
+        "references/multi-agent-review.md": "b5cf93d438c03c0e91e4711b5d6fd49bbffc857f79122291f0de9ad7d0b5eded",
+        "agents/openai.yaml": "558f585c00e3ca08ce6c1d605f002e5f3b1f86d813f5e85051251f17b7dc43af"
+      }
+    }
+  ]
+}

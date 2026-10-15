@@ -1,7 +1,7 @@
 id: ng-tool-who-am-i
-version: 1.0.2
+version: 1.0.3
 title: Who Am I
-summary: Generate a local-only personal technical profile from software inventory and AI session history with Markdown and web outputs
+summary: Generate a local personal profile after explicit scan authorization, with evidence limits and Markdown/web outputs
 kind: prompt_only
 tags:
   - profile

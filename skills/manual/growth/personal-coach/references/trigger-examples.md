@@ -35,3 +35,9 @@ Use these prompts to test whether `personal-coach` triggers correctly.
 - What's the difference between Redux and Zustand? (Comparison question, not roadmap planning)
 - Help me set up CI/CD for my project. (DevOps task, not growth coaching)
 - Refactor this code to use the Strategy pattern. (Direct refactoring, not pattern learning)
+
+## Workflow checks (not routing cases)
+
+- No roadmap exists; the user asks for a 15-minute Go practice today. Provide that practice without six-pillar onboarding or creating a state file.
+- The user already supplied goals and time for roadmap setup. Reuse them, ask only for material missing inputs, and do not ask the same questions again.
+- Weekly review has no completion log. Explain the evidence gap; do not fabricate completion percentages or mark recommendations as completed.

@@ -48,14 +48,22 @@ Default to `block` when any enabled path has one of these signals:
 - Enabled high-risk tool lacks audit events.
 - Rollback switch is missing, unowned, or untested for the planned scope.
 
-## 4. External publish push/send/deploy gate
+## 4. External publication and project-specific guards
 
-Use this quick gate before any action that can publish externally, including `push`, deploy, social post, email send, or public artifact upload.
+Check existing authority for the release version, action and destination, plus
+the project's actual gates. Accept explicit user authorization or the project's
+approved workflow; do not ask again solely because a local template is absent.
+Block only the unsupported external action and finish independent local work.
+
+The following is an example for a project that **already uses a review-note
+parser and a publish helper**. Apply it when maintaining that helper. Other
+projects may use CI approvals or different controls; they do not need these
+field names, files, or the full example fixture matrix.
 
 | Layer | Required proof | If missing |
 | --- | --- | --- |
-| Field gate | Explicit canonical review note path; every hard field is `Go`; `Final decision: Publish` is present | `block`; do not auto-pick the latest note |
-| Fixture gate | Checker covers dry-run sample, rehearsal-only pass, missing hard gate, auto-evidence review, wrong-date note, and publish-all-go | `block`; add the smallest missing fixture before wiring publish |
+| Field gate | Explicit review note selection and the fields required by this project's parser | Block this helper's publish path when its actual authorization contract fails |
+| Fixture gate | Relevant allow/deny cases, such as rehearsal-only, missing authority, stale note or authorized publish | Test the changed contract; do not require irrelevant branches |
 | Environment gate | Positive fixture runs with temp repo/output, stubbed tools, no production token, no real remote, no deploy/post/send CLI, no production artifact dir | `block`; isolate the fixture before trusting a green result |
 | Guard helper | Blocking tests assert non-zero exit, actionable guard message, and no build / commit / upload / push log before the guard | `warn` or `block`; a generic non-zero exit only proves “some failure” |
 
@@ -63,10 +71,11 @@ Minimum handoff wording:
 
 ```markdown
 - External publish gate: `pass` / `block`
-- Canonical review note: `path/to/review-note.md`
-- Fixture matrix: dry-run sample / rehearsal-only pass / missing hard gate / auto-evidence review / wrong-date note / publish-all-go
+- Authorization source and scope: user instruction / CI approval / project review note
+- Applicable project gates and results:
+- Guard changed: yes/no; relevant fixture cases if changed:
 - Environment boundary: temp output, stubbed deploy/send tools, no inherited production credentials or remotes
-- First real publish command remains disabled until the three layers are green in the same release run.
+- Missing authority or failed gate, affected action, and re-entry condition:
 ```
 
 ## 5. Decision rules
@@ -99,6 +108,6 @@ Before handing off the gate report, confirm:
 - Every missing proof narrows scope instead of being hand-waved.
 - `warn` and `block` both include a next safe command/check.
 - Paths are relative and traces are redacted.
-- External publish has field, fixture, and environment gates before any real push/send/deploy.
-- Blocking helpers prove the intended guard by checking exit status, concrete reason, and absence of build / commit / upload / push logs.
+- External publication follows existing authority and applicable project controls.
+- When a blocking helper changes, isolated tests prove the intended guard and absence of forbidden side effects.
 - The report can be copied into a release note without adding undocumented claims.

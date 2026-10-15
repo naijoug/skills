@@ -1,6 +1,6 @@
 # AI Coding Audit Sample Report
 
-This sample shows what a fixed-scope AI coding audit can deliver before any production code changes. It is written as a reusable example for the `AI Coding Audit Offer` in `skills/skills/manual/growth/income-asset-validation/SKILL.md`.
+This sample shows what a fixed-scope AI coding audit can deliver before any production code changes. It is written as a reusable example for the `AI Coding Audit Offer` in [the audit-offer mode](audit-offer.md).
 
 ## Context
 
@@ -14,7 +14,7 @@ This sample shows what a fixed-scope AI coding audit can deliver before any prod
 
 The repository is a good candidate for AI-assisted maintenance because its changes are usually small, reviewable, and backed by build commands. The main risk is not model capability; it is boundary control. Agent runs can accidentally mix existing dirty workspace changes, generated artifacts, and documentation edits unless the workflow forces an ownership snapshot before planning and a scoped diff before reporting.
 
-Recommended next move: add a standard audit gate that every agent run must pass before editing, before committing, and before final reporting.
+For this hypothetical repository, consider the smallest ownership and verification checks justified by the observed failures. The example does not establish a universal gate for every agent run.
 
 ## Risk Findings
 

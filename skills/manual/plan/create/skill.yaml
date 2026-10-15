@@ -1,7 +1,7 @@
 id: ng-plan-create
-version: 1.0.0
-title: Plan Create
-summary: Draft a dated implementation plan with goal, scope, milestones, tasks, risks, and verification strategy — produces a plan doc ready for ng-plan-review
+version: 1.1.0
+title: Implementation Plans
+summary: Create, revise or review implementation plans against the relevant code state
 kind: prompt_only
 tags:
   - planning
@@ -11,18 +11,11 @@ tags:
   - design-doc
 triggers:
   keywords:
-    - plan create
-    - create plan
-    - draft plan
     - implementation plan
-    - design plan
-    - write a plan
-    - 写计划
+    - plan review
+    - migration plan
     - 实施计划
-    - 拆任务
-    - 写一份计划
-    - 设计方案
-    - 任务拆解
+    - 计划评审
 compatibility:
   tools:
     - codex

@@ -22,7 +22,7 @@ Core principle: every failure that crosses a service, repository, handler, CLI, 
 
 - The task is only about syntax for a language's exception or result mechanism
 - There is no concrete module, diff, or error-flow design to review
-- The user asks for general API contract review rather than error handling specifically; use `ng-review-api-design` first, then this skill for the error model
+- The user asks for general API contract review rather than error handling specifically; review that contract directly; use this skill only for a requested error-model pass
 
 ## Review Workflow
 

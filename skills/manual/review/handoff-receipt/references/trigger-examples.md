@@ -1,18 +1,21 @@
 # Routing examples
 
-These are candidate-selection fixtures, not authorization to execute their actions.
+Candidate selection does not authorize executing the requested action.
 
 ## Positive (Chinese)
 
-- "把已完成的改动和实际测试结果压缩成接力回执，列清未接管文件与下一条动作。"
-- "接收这份多仓库交接，核对哪些文件和验证结果可以继续使用。"
+- "为这次改动写一份交接，列出我改的文件、验证结果和下一步。"
+- "这个仓库已有别人的修改，帮我确认本次授权提交只包含自己的 hunks。"
+- "两个现有 agent 会话在改同一仓库，整理各自的任务、文件归属和授权边界。"
 
 ## Positive (English)
 
-- "Prepare a compact handoff receipt for these completed changes, verified commands and intentionally excluded paths."
-- "Review this agent's handoff and identify the owned files, evidence limits and first safe continuation."
+- "Prepare a concise handoff with owned changes, actual checks and remaining work."
+- "Check that this authorized commit excludes previously staged changes from another task."
+- "Reconcile ownership between these existing sessions without launching more agents."
 
 ## Negative / Near Miss
 
-- "当前仓库干净，只回答 2 加 2 等于几。" <!-- eval: {"route":"none"} -->
-- "把审查发现整理成可公开报告，分类事实、推断和隐私证据。" <!-- eval: {"route":"select","skills":["ng-review-audit-evidence-boundary"]} -->
+- "修复这个独立函数的 off-by-one 错误并运行测试。"
+- "Explain what git status means."
+- "Write a customer-facing audit report that separates private proof from publishable claims."

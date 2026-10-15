@@ -717,31 +717,41 @@ def analyze_profile(
     mode: str,
 ) -> Dict[str, Any]:
     session_rows = parsed.get("sessions", [])
-    messages = parsed.get("messages", [])
+    messages = [
+        message for message in parsed.get("messages", [])
+        if isinstance(message.get("text"), str) and message["text"].strip()
+    ]
 
     topology = _source_topology(parsed.get("by_source", {}))
-    metrics = _build_metrics(messages, session_rows)
-    capabilities = _detect_domains(messages)
-    portrait_dimensions = _portrait_dimensions(metrics)
-    user_portrait = _user_portrait(topology, metrics, capabilities)
-    agent_skills = _extract_agent_skills(metrics, capabilities, topology)
-    curiosity_map = _build_curiosity_map(capabilities)
-    catchphrases = _extract_catchphrases(messages)
-    skill_radar = _build_skill_radar(metrics, topology)
-    highlights = _build_highlights(topology, capabilities, skill_radar)
-    roast_profile = _build_roast_profile(topology, metrics, skill_radar, catchphrases, messages)
-    sweet_profile = _build_sweet_profile(topology, metrics, skill_radar, catchphrases, messages)
-
-    summary = (
-        f"Local-only profile generated from {topology['total_sessions']} sessions across {len(topology['sources'])} sources. "
-        "Behavioral signals indicate structured execution, verification preference, and cross-tool adaptability."
-    )
+    has_evidence = bool(messages)
+    if has_evidence:
+        metrics = _build_metrics(messages, session_rows)
+        capabilities = _detect_domains(messages)
+        portrait_dimensions = _portrait_dimensions(metrics)
+        user_portrait = _user_portrait(topology, metrics, capabilities)
+        agent_skills = _extract_agent_skills(metrics, capabilities, topology)
+        curiosity_map = _build_curiosity_map(capabilities)
+        catchphrases = _extract_catchphrases(messages)
+        skill_radar = _build_skill_radar(metrics, topology)
+        highlights = _build_highlights(topology, capabilities, skill_radar)
+        roast_profile = _build_roast_profile(topology, metrics, skill_radar, catchphrases, messages)
+        sweet_profile = _build_sweet_profile(topology, metrics, skill_radar, catchphrases, messages)
+        summary = (
+            f"Local-only profile generated from {topology['total_sessions']} sessions across {len(topology['sources'])} sources. "
+            "Scores and interpretations are heuristic indicators of the available text, not validated ability assessments."
+        )
+        summary_zh = (
+            f"本地画像基于 {topology['total_sessions']} 个会话与 {len(topology['sources'])} 个来源生成。"
+            "评分和解读是可用文本的启发式指标，不是经过验证的能力评估。"
+        )
+    else:
+        summary = "Insufficient evidence: no usable transcript messages in this run. No behavioral assessment or scores were generated."
+        summary_zh = "证据不足：本次运行没有可用的会话消息，未生成行为判断或评分。"
+        user_portrait = summary
+        capabilities, agent_skills, catchphrases, skill_radar, highlights = [], [], [], [], []
+        portrait_dimensions, curiosity_map, roast_profile, sweet_profile = {}, {}, {}, {}
 
     active_tools = [x["name"] for x in inventory.get("ai_tools", {}).get("detected", [])]
-    summary_zh = (
-        f"本地画像基于 {topology['total_sessions']} 个会话与 {len(topology['sources'])} 个来源生成，"
-        "行为信号显示出结构化执行、验证优先和跨工具适应能力。"
-    )
 
     evidence_counts: Dict[str, int] = {}
     for row in discovery.get("included_files", []):
@@ -775,6 +785,7 @@ def analyze_profile(
     return {
         "meta": {
             "generated_at": datetime.now(timezone.utc).isoformat(),
+            "assessment_status": "heuristic" if has_evidence else "insufficient_evidence",
             "mode": mode,
             "sources": sorted(list(parsed.get("by_source", {}).keys())),
             "evidence_levels": evidence_counts,
@@ -803,8 +814,8 @@ def analyze_profile(
             ],
             "risks": [
                 {
-                    "en": "Signals are inference-based and depend on transcript coverage quality.",
-                    "zh": "该结果基于推断，受转录覆盖质量影响。",
+                    "en": "Signals are inference-based and depend on transcript coverage quality." if has_evidence else summary,
+                    "zh": "该结果基于推断，受转录覆盖质量影响。" if has_evidence else summary_zh,
                 }
             ],
             "growth_suggestions": [
@@ -816,9 +827,9 @@ def analyze_profile(
                     "en": "Periodically review domain distribution to prevent blind spots in underused areas.",
                     "zh": "定期复盘领域分布，避免低活跃领域形成能力盲区。",
                 },
-            ],
-            "work_style": {"en": "Structured and evidence-oriented", "zh": "结构化且证据导向"},
-            "trajectory": {"en": "Active multi-source trajectory", "zh": "多来源活跃演进"},
+            ] if has_evidence else [],
+            "work_style": {"en": "Structured and evidence-oriented", "zh": "结构化且证据导向"} if has_evidence else {},
+            "trajectory": {"en": "Active multi-source trajectory", "zh": "多来源活跃演进"} if has_evidence else {},
             "user_portrait": user_portrait,
             "portrait_dimensions": portrait_dimensions,
             "capabilities": capabilities,

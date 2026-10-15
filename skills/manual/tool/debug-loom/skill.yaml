@@ -1,5 +1,5 @@
 id: ng-tool-debug-loom
-version: 1.2.0
+version: 1.2.1
 title: Debug Loom
 summary: Create the smallest fitting local debug workflow, from lightweight frontend/backend launchers to a full service-mode orchestrator with logs and diagnostics
 kind: prompt_only

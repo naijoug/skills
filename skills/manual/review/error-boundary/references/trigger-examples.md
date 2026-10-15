@@ -20,5 +20,5 @@ Use these prompts to test whether `error-boundary` triggers correctly.
 
 - Show me how to write try/catch in TypeScript. (Syntax tutorial, no boundary review)
 - Explain Rust Result at a high level. (Concept explanation, no concrete module)
-- Review this entire API design for pagination and idempotency. (Use `ng-review-api-design` first)
+- Review this entire API design for pagination and idempotency. (Use `ordinary API contract review` first)
 - Fix this failing test. (Debugging request unless the failure is specifically about error contracts)

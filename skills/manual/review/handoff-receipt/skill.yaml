@@ -1,7 +1,7 @@
 id: ng-review-handoff-receipt
-version: 1.0.1
-title: Handoff Receipt
-summary: Finish or receive agent work with a compact receipt that separates owned changes from avoided dirty paths, verified facts, open risks, and the next safe command
+version: 1.1.0
+title: Task Handoff
+summary: Task handoff with optional change ownership and existing-session coordination
 kind: prompt_only
 tags:
   - review
@@ -11,16 +11,12 @@ tags:
   - verification
 triggers:
   keywords:
+    - task handoff
     - handoff receipt
-    - agent handoff
-    - dirty workspace handoff
-    - owned changes
-    - avoided dirty paths
-    - next safe command
-    - continuation card
-    - 交接记录
-    - 接力说明
-    - 脏工作区交接
+    - change ownership
+    - scoped commit
+    - session ledger
+    - 任务交接
 compatibility:
   tools:
     - codex

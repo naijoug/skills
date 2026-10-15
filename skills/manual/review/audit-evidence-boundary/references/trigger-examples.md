@@ -26,7 +26,7 @@ Use these examples to decide when `ng-review-audit-evidence-boundary` should run
 
 ## Negative / Near Miss
 
-- "What command should I run next after this failed build?" Use `ng-review-next-safe-command-ladder`.
+- "What command should I run next after this failed build?" Use `project-specific verification guidance`.
 - "Summarize this private debugging session for myself." No public or handoff boundary is present.
 - "Invent a realistic customer case for my landing page." Refuse to present fiction as evidence; offer a hypothetical template instead.
 - "Generate marketing copy from these general benefits." Use an offer or validation skill unless claims need evidence classification.

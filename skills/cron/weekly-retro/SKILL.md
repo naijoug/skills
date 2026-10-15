@@ -39,10 +39,27 @@ Core principle: reflect on repeated patterns, not isolated frustrations.
 
 Auto-collection sources for scheduled mode (past 7 days):
 
-- AI session transcripts: `~/.claude/projects/*/*.jsonl`, `~/.codex/sessions/*.jsonl`
+- AI session transcripts: recursively discover `~/.claude/projects/**/*.jsonl` and `~/.codex/sessions/**/*.jsonl` within the authorized sources and time window.
 - Git activity: `git log --author="$(git config user.email)" --since='7 days ago'` across repo roots from `~/.weekly-retro/config.yaml: repos`
-- PR feedback: `gh pr list --author=@me --state=all --search 'updated:>$(date -v-7d +%F)'` if `gh` is available
+- PR feedback: if `gh` is available and authenticated, use the collection steps below for each configured repository. A PR list locates candidates; it is not the review feedback itself.
 - Output: write to `~/.weekly-retro/<YYYY-MM-DD>.md`
+
+For each configured repository, resolve its GitHub `OWNER/REPO` from the remote,
+then run this portable date-filtered query:
+
+```bash
+retro_since=$(python3 -c 'from datetime import datetime, timedelta, timezone; print((datetime.now(timezone.utc) - timedelta(days=7)).date().isoformat())')
+gh pr list --repo "$retro_repo" --author=@me --state=all \
+  --search "updated:>=$retro_since" --limit 100 --json number,url,title,updatedAt
+```
+
+Read the relevant candidates with `gh pr view <number> --repo "$retro_repo"
+--json title,url,comments,reviews`, and collect inline review comments with
+`gh api --paginate "repos/$retro_repo/pulls/<number>/comments"`. Filter comments
+and reviews by their timestamps within the retrospective window; an updated PR
+can contain older feedback. If the query reaches the limit, page or narrow the
+date range before claiming complete coverage. Report inaccessible sources or
+authentication failures as coverage gaps, and continue with available evidence.
 
 ## Retro Workflow
 

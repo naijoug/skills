@@ -1,18 +1,23 @@
 # Routing examples
 
-These are candidate-selection fixtures, not authorization to execute their actions.
+Candidate selection does not authorize executing the requested action.
 
 ## Positive (Chinese)
 
-- "我有一个自动化脚本想做付费产品，帮我明确买家、价值和最小需求验证方案。"
-- "比较这三个副业点子，按真实买家和可观察需求信号设计验证实验。"
+- "我有三个想法，这周选一个小收入实验，写清证据和停止条件。"
+- "把这个付费模板想法变成有具体买家、交付边界和验证信号的计划。"
+- "只准备这个 offer 的单渠道发布稿，不要发出去。"
+- "按已确认账号和联系入口，在指定渠道发布已批准的付费服务介绍。"
 
 ## Positive (English)
 
-- "Design a small demand-validation experiment for turning this internal tool into a paid template."
-- "Assess whether this technical guide could become a sellable asset, naming a buyer and an observable validation signal."
+- "Choose one bounded income experiment for this week from these ideas."
+- "Define the buyer, offer and evidence for a paid workflow template test."
+- "Prepare a single-channel offer launch without posting or contacting anyone."
+- "Publish this approved offer to the specified account and channel, then record the receipt."
 
 ## Negative / Near Miss
 
-- "只要给我十个天马行空的点子，不需要验证方案。"
-- "分析已上线产品的渠道转化漏斗。"
+- "Implement this specified feature and run its tests."
+- "List ten startup ideas without a validation plan."
+- "只修复本地 README 的拼写。"

@@ -1,5 +1,5 @@
 id: weekly-retro
-version: 1.1.0
+version: 1.1.1
 title: Weekly Coding Retro
 summary: Weekly engineering retrospective to identify recurring mistakes, debugging patterns, and PR themes for next-week improvement
 kind: prompt_only

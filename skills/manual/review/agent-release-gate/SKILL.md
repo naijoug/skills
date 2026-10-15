@@ -57,11 +57,11 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
    - `warn`: read-only or low-risk scope is supported, but some tools, tenants, traffic, or write actions remain disabled.
    - `block`: release object is unreproducible, a forbidden action occurred, sensitive data leaked, approval/audit evidence is missing for enabled write tools, or rollback cannot be executed.
 
-6. **For external publication, split the gate into three layers before any push/send/deploy.**
-   - Field gate: canonical review note path is explicitly selected, hard fields are `Go`, and `Final decision: Publish` is present.
-   - Fixture gate: checker regression fixtures cover dry-run sample, rehearsal-only pass, missing hard gate, auto-evidence review, wrong-date note, and publish-all-go.
-   - Environment gate: positive fixtures run in temporary or stubbed boundaries without production token, real remote, deployment CLI, external post/send, or production artifact directory.
-   - A blocking helper must assert all three signals together: non-zero exit, actionable guard message, and no build / commit / upload / push log before the guard.
+6. **For external publication, apply the project's actual release contract.**
+   - Identify the authorized action, release version, destination and applicable project gates. Existing user authorization or an approved project workflow is sufficient within its scope; do not require a second approval or a particular note filename or phrase.
+   - Missing authority blocks only the affected external action. Complete authorized local preparation and verification while any required decision is pending.
+   - If this task creates or changes an automated publish guard, test the applicable allow/deny cases in an isolated fixture. Assert the intended rejection reason and absence of forbidden side effects, not merely a non-zero exit.
+   - A project-specific note parser or fixture matrix is required only when that project uses it. See the conditional example in [quick reference](references/quick-reference.md); do not introduce a checker solely to satisfy this skill.
 
 7. **Write the restriction, not just the decision.**
    - For `warn`, list exactly what remains disabled and what proof would upgrade it.
@@ -106,8 +106,8 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 | Failed cases are unresolved but not on enabled path | `warn` | restrict affected tenants, tools, or intents |
 | Release object lacks prompt/model/tool versions | `block` | cannot release because result is not reproducible |
 | Release package has unowned dirty prompts, policies, generated artifacts, or handoff files | `block` | production gate cannot rely on mixed-ownership evidence; first write/receive a handoff receipt or narrow to demo/read-only review |
-| External publish path has no canonical review note, checker fixture matrix, or isolated positive fixture | `block` | stop before push/send/deploy; create field gate, run fixtures, and prove no production token/remote/CLI is inherited |
-| Guard test only checks non-zero exit | `warn` or `block` | require non-zero exit, actionable reason, and no build / commit / upload / push log before trusting the guard |
+| External action lacks authority or fails a project-required release gate | `block` for that action | name the missing authority or failed gate; finish independent local work |
+| A publish guard being introduced or changed has no meaningful rejection test | `warn` or `block` for the affected path | test the expected rejection and absence of forbidden side effects in isolation |
 | Forbidden tool call, sensitive trace leak, or missing audit for enabled write tool | `block` | fix, rerun safety suite, then re-enter review |
 | Rollback switch missing or owner unknown | `warn` or `block` | `block` for external traffic or high-risk tools |
 
@@ -120,16 +120,16 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 - Every `block` has a concrete re-entry condition and first safe check
 - The report uses relative paths and redacted evidence links; no local absolute paths, secrets, or customer data
 - The final handoff can be copied into a release report without adding undocumented claims
-- External publish approval is split into field, fixture, and environment gates before any real push/send/deploy
-- Guard helpers prove the intended block, not just “some failure”, by checking exit status, concrete reason, and absence of build / commit / upload / push logs
+- External actions follow existing authorization and applicable project gates; missing template wording alone does not block release
+- Changed guard helpers prove the intended rejection and absence of forbidden side effects using isolated fixtures
 
 ## Quick Reference
 
-- Meeting checklist for mapping versions, evidence, hard gates, and `pass` / `warn` / `block` rules: `skills/skills/manual/review/agent-release-gate/references/quick-reference.md`
+- For a release review meeting or a project with an automated publish guard: [quick reference](references/quick-reference.md).
 
 ## Examples
 
-- Filled `warn` gate for a read-only support-agent canary plus an external publish `block` gate: `skills/skills/manual/review/agent-release-gate/references/filled-example.md`
+- For output calibration: [filled examples](references/filled-example.md).
 
 ## References
 
@@ -137,5 +137,5 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 - Agent 90-minute release review template: `docs/documents/trending/ai/agent-release-90-minute-review-template.md`
 - AI Agent best practices release report chapter: `books/ai-agent-best-practices/chapters/09-deployment-monitoring.md`
 - AI Agent best practices safety gate chapter: `books/ai-agent-best-practices/chapters/10-safety-ethics.md`
-- Related handoff skill: `skills/skills/manual/review/handoff-receipt/` (use its Large Dirty Diff Intake before trusting large pre-existing release diffs)
-- Related evidence boundary skill: `skills/skills/manual/review/audit-evidence-boundary/`
+- Related handoff skill: `ng-review-handoff-receipt` (if installed) (use its Large Dirty Diff Intake before trusting large pre-existing release diffs)
+- Related evidence boundary skill: `ng-review-audit-evidence-boundary` (if installed)

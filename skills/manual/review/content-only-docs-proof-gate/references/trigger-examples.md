@@ -16,3 +16,9 @@ These are candidate-selection fixtures, not authorization to execute their actio
 
 - "我改了 VuePress 主题和侧边栏生成逻辑，运行完整构建验收。"
 - "给我解释 Markdown 的粗体语法。" <!-- eval: {"route":"none"} -->
+
+## Workflow checks (not routing cases)
+
+- A Markdown repository has no custom proof scripts. Discover its documented checks or inspect owned frontmatter, local links/includes and catalog targets; do not invent a required checker.
+- The user requests validation only. Report evidence without staging or committing.
+- A new owned Markdown page is untracked. Include it in validation explicitly rather than relying only on a HEAD diff.

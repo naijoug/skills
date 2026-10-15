@@ -15,4 +15,10 @@ These are candidate-selection fixtures, not authorization to execute their actio
 ## Negative / Near Miss
 
 - "这个页面只有一处文案修改，帮我读一遍。" <!-- eval: {"route":"none"} -->
-- "还没有评估用例，先帮我设计这个函数的测试矩阵。" <!-- eval: {"route":"select","skills":["ng-plan-test-case"]} -->
+- "还没有评估用例，先帮我设计这个函数的测试矩阵。" <!-- eval: {"route":"none","skills":[]} -->
+
+## Workflow checks (not routing cases)
+
+- User already authorized a canary and the project uses CI approval, with sufficient evaluation and rollback evidence. Accept that authority; do not demand a canonical Markdown note or exact `Final decision` wording.
+- A release review lacks deploy authority. Complete the evidence review and local preparation; block only the deploy action.
+- A project publish-note parser is being changed. Test its relevant allow/deny cases in isolation, including an assertion that rejected input causes no forbidden side effect.

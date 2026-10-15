@@ -28,10 +28,16 @@ Core principles:
 - Level 2: sensitive dirs (`Desktop`, `Downloads`, `Library`) confirmation
 - Level 3: per-tool toggles
 
+Use authorization already given for this task; do not ask again. Without saved
+authorization, a non-interactive run fails before scanning. Only after the user
+has authorized the HOME scan may the caller set `WHO_AM_I_AUTO_AUTHORIZE=1` for
+that run. It does not grant access to sensitive directories or enable additional
+sources; keep those within the user's selected scope.
+
 2. Run pipeline (resolve `SKILL_DIR` from the installed skill's location):
 ```bash
-# SKILL_DIR is the directory containing this SKILL.md (resolve symlinks first)
-SKILL_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+# Set SKILL_DIR to the resolved directory containing the installed SKILL.md.
+# Do not derive it from $0: in an agent shell, $0 is the shell, not this skill.
 python3 "$SKILL_DIR/scripts/run_who_am_i.py" --mode full
 ```
 
@@ -56,6 +62,11 @@ python3 "$SKILL_DIR/scripts/run_who_am_i.py" --mode render-only
 - `--strict-official`
 
 ## Outputs
+
+If no usable messages were parsed, return `insufficient_evidence`, observed
+inventory/counts and discovery/parse errors only. Do not infer strengths, grades,
+personality or growth trajectory. With messages available, label heuristic
+scores as unvalidated indicators rather than measured abilities.
 
 Default local outputs:
 - `~/.who-am-i/config.yaml`

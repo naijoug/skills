@@ -63,7 +63,7 @@ Positive cases default to selecting their source skill. Negative cases default t
 `clarify`. Use explicit annotations for redirects or a strict no-skill result:
 
 ```markdown
-- "Review this existing plan" <!-- eval: {"route":"select","skills":["ng-plan-review"]} -->
+- "Review this existing plan" <!-- eval: {"route":"select","skills":["ng-plan-create"]} -->
 - "What is two plus two?" <!-- eval: {"route":"none"} -->
 ```
 
@@ -73,7 +73,7 @@ only the blind export and candidate catalog, not paths, answer annotations or th
 gold dataset. Return one JSONL record per input:
 
 ```json
-{"id":"<opaque input id>","predicted":["ng-plan-review"],"decision":"select"}
+{"id":"<opaque input id>","predicted":["ng-plan-create"],"decision":"select"}
 ```
 
 The scorer rejects unknown or duplicate identities and malformed decisions.
@@ -128,3 +128,16 @@ Codex policy fields are documented in
 [Build skills](https://learn.chatgpt.com/docs/build-skills#optional-metadata).
 These conventions were reviewed on 2026-09-20; model-specific API settings are
 outside this skill-authoring change.
+
+## Active and archived skills
+
+Only `skills/` is the active collection. See
+[the consolidation map](skills-consolidation-2026-10-15.md) for disabled and merged
+IDs. Archived packages keep their original bytes under `archive/skills/` with
+`SKILL.md.disabled` and `skill.yaml.disabled` filenames so recursive importers do
+not rediscover them. Do not add new runtime dependencies on archived packages.
+
+For a suspected command hang, use [bounded probes](diagnostics/bounded-probes.md).
+For cwd/source-vs-dist discrepancies, use
+[monorepo entrypoints](diagnostics/monorepo-entrypoints.md). Read these only when
+that specific verification issue occurs.

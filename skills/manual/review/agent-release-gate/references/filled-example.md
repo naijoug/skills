@@ -43,7 +43,11 @@ The release object is reproducible, audit events exist, rollback is rehearsed, a
 
 ## External publish block example
 
-This second, smaller example covers a public deploy, email send, social post, or repository push. It is intentionally a `block`: the goal is to show that a green rehearsal or working URL is not enough to authorize an external side effect.
+This second example concerns a project whose existing publish helper parses a
+review note with `Go` fields and `Final decision: Publish`. Those names and the
+fixture matrix below belong to this project's contract, not to every release.
+It is intentionally a `block`: a green rehearsal or working URL does not grant
+authority for an external action.
 
 ### Scenario
 

@@ -12,6 +12,11 @@
 2. Level-2 authorization: sensitive folders (`Desktop`, `Downloads`, `Library`).
 3. Level-3 authorization: per-tool source toggles.
 
+Non-interactive execution is not consent. HOME scanning requires saved consent
+or `WHO_AM_I_AUTO_AUTHORIZE=1` explicitly supplied after authorization for the
+current run. The default is refusal; this opt-in does not authorize sensitive
+directories. Use existing scoped consent without asking the user to repeat it.
+
 ## Redaction Rules
 
 Applied before any snippet enters Markdown or HTML output:

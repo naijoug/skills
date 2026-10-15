@@ -170,7 +170,9 @@ def ask_yes_no(prompt: str, default: bool = False) -> bool:
 def ensure_authorization(cfg: Dict[str, Any]) -> Dict[str, Any]:
     auth = cfg.setdefault("authorization", {})
     non_interactive = not sys.stdin.isatty()
-    auto_authorize = os.environ.get("WHO_AM_I_AUTO_AUTHORIZE", "1") == "1"
+    # A non-interactive runner is not evidence of consent. The opt-in may be
+    # supplied only after the caller has obtained authorization for this scan.
+    auto_authorize = os.environ.get("WHO_AM_I_AUTO_AUTHORIZE", "0") == "1"
     if not auth.get("home_scan_authorized", False):
         if non_interactive and auto_authorize:
             granted = True
@@ -181,7 +183,11 @@ def ensure_authorization(cfg: Dict[str, Any]) -> Dict[str, Any]:
             )
         auth["home_scan_authorized"] = granted
         if not granted:
-            raise RuntimeError("Authorization denied: HOME scan not permitted.")
+            raise RuntimeError(
+                "Authorization denied: HOME scan not permitted. Obtain explicit "
+                "consent first; then use saved authorization or set "
+                "WHO_AM_I_AUTO_AUTHORIZE=1 for the authorized run."
+            )
 
     sensitive = auth.setdefault("sensitive_dirs_authorized", {})
     for key in SENSITIVE_DIR_KEYS:

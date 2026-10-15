@@ -1,7 +1,7 @@
 id: ng-growth-personal-coach
-version: 1.0.1
+version: 1.1.0
 title: Personal Growth Coach
-summary: AI-powered growth coach using the Six-Pillar Five-Frequency Growth Matrix for full-stack programmers
+summary: Provide scoped growth recommendations and optional roadmap tracking with mode-specific guidance loaded on demand
 kind: prompt_only
 tags:
   - growth

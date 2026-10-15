@@ -1,7 +1,7 @@
 id: ng-growth-engineering
-version: 1.1.0
-title: Engineering Coach
-summary: Guided algorithm, debugging, design-pattern, or performance practice; excludes ordinary implementation and incident response
+version: 1.2.0
+title: Engineering Practice
+summary: Guided engineering practice, debugging exercises and human-hypothesis validation
 kind: prompt_only
 tags:
   - algorithm
@@ -14,33 +14,11 @@ tags:
   - practice
 triggers:
   keywords:
-    - algorithm practice
-    - interview prep
-    - hints only
-    - kata coach
-    - bug investigation
-    - root cause
-    - flaky test
-    - debug coach
-    - design pattern
-    - overengineering
-    - pattern trade-off
-    - performance analysis
-    - latency
-    - bottleneck
-    - slow code
-    - engineering coach
-    - 算法题训练
-    - 算法面试
-    - 分层提示
-    - 逐步提示
-    - 排查计划
-    - 根因分析
-    - 偶发 bug
-    - 设计模式
-    - 过度设计
-    - 性能分析
-    - 性能瓶颈
+    - engineering practice
+    - guided hints
+    - debugging kata
+    - hypothesis practice
+    - 刻意练习
 compatibility:
   tools:
     - codex

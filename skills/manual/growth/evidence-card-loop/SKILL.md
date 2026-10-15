@@ -217,7 +217,7 @@ Do not clean unknown residual files just to make the run look green. If leftover
 
 - `docs/documents/trending/ai/ai-programmer-evidence-card-loop.md`
 - `docs/documents/trending/ai/delivery-package-output-cleanliness.md`
-- `skills/skills/manual/growth/ai-coding-hypothesis-validation/`
-- `skills/skills/manual/review/audit-evidence-boundary/`
+- `ng-growth-engineering` (if installed)
+- `ng-review-audit-evidence-boundary` (if installed)
 - `books/ai-personal-growth/chapters/10-30-day-action-handbook.md`
 - `books/ai-personal-growth/chapters/08-ai-era-career-planning.md`

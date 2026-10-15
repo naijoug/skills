@@ -1,323 +1,37 @@
 ---
 name: ng-growth-income-asset-validation
-description: Use when turning an AI-era programmer idea, content asset, automation, template, or micro-product into a validated income experiment with a clear buyer, offer, proof, and next action
+description: Choose and evaluate a bounded income experiment, define buyer/offer evidence, or prepare a single-channel launch. Publication requires scoped user authorization.
 ---
 
-# Income Asset Validation
 
-## Overview
+# Income Experiment
 
-Turn vague monetization ideas into small, testable income experiments.
+Turn an idea into one observable demand test. Distinguish producing an artifact,
+verifying its quality, and receiving evidence that someone wants it.
 
-Core principle: do not start by building. Start by proving that a specific audience has a painful problem, trusts the proposed outcome, and can take a measurable next step.
+## Choose the current stage
 
-## When to Use
-
-- Evaluating an indie product, paid guide, template, course, consulting package, or automation service idea
-- Converting existing code, writing, notes, or agent workflows into a sellable asset
-- Choosing between multiple side-project ideas
-- Planning a low-risk validation sprint before implementation
-
-## When Not to Use
-
-- The user only wants brainstorming with no validation criteria
-- The product is already launched and the current task is deep growth analytics
-- The idea requires regulated financial, medical, or legal advice as its main value proposition
-
-## Validation Workflow
-
-### 1. Define the asset hypothesis
-
-Write the idea as a falsifiable sentence:
-
-```text
-For [specific audience], I will provide [asset/service] that helps them achieve [measurable outcome] without [current pain/friction], and they will prove demand by [observable behavior].
-```
-
-Good observable behaviors include:
-
-- Joining a waitlist with a work email
-- Booking a discovery call
-- Paying a deposit or pre-order
-- Replying with a concrete pain story
-- Sharing an existing workaround, budget, or failed solution
-
-Weak signals include:
-
-- Generic likes
-- Polite praise
-- "I would use this someday"
-- Anonymous upvotes without audience context
-
-### 2. Score the idea before building
-
-Use a 1-5 score for each dimension:
-
-| Dimension | Question |
+| Need | Read |
 | --- | --- |
-| Pain intensity | Is the problem frequent, costly, or embarrassing? |
-| Buyer clarity | Can you name the person who decides or pays? |
-| Reach channel | Do you already know where to reach 20-50 matching people? |
-| Proof asset | Can you show a demo, sample, checklist, case note, or before/after? |
-| Delivery leverage | Can the first version be delivered manually or with a thin workflow? |
-| Trust fit | Do your existing skills, writing, code, or credibility support the promise? |
-
-Decision rule:
-
-- 24+ total: run a validation sprint now
-- 18-23 total: narrow the audience or outcome first
-- Under 18: park the idea unless there is strategic learning value
-
-### 3. Pick the smallest proof vehicle
-
-Choose the lightest vehicle that can create credible evidence:
-
-- **Content asset**: article, teardown, benchmark, checklist, email course
-- **Service wrapper**: fixed-scope audit, setup session, migration help, workflow design
-- **Template/toolkit**: prompt pack, spreadsheet, repo scaffold, agent workflow, Notion kit
-- **Thin product**: CLI, web form, local script, browser automation, hosted report
-
-Rule of thumb: if a human can deliver the outcome in 2-4 hours, validate manually before building a product.
-
-### 3.5 Separate publishable assets from validation evidence
-
-Before declaring an asset “ready”, name the next observable behavior it should cause. A polished landing page, article, sample issue, or template is only a proof vehicle until it creates evidence.
-
-Use this evidence ladder:
-
-| Evidence level | Observable behavior | Interpretation | Next action |
-| --- | --- | --- | --- |
-| L0 Attention | impressions, reads, likes, bookmarks | The topic can attract a surface audience | Improve hook and channel fit; do not build more product yet |
-| L1 Problem signal | comments, replies, concrete pain stories, “I had this in my interview/project” | The audience recognizes the problem | Collect exact wording and turn it into offer copy |
-| L2 Intent | email/form submission, sample request, DM asking for details, waitlist join | The audience wants follow-up | Ask one qualifying question and offer the smallest paid step |
-| L3 Payment signal | pre-order, deposit, paid pilot, booked audit call | The offer may support revenue | Deliver manually; document repeatable workflow before automation |
-
-First 48-hour metric rule for content-led launches:
-
-- Choose 1 primary post and 1 backup post, not 5 channels at once.
-- Record source, title/hook, publish URL or draft URL, impressions/reads, saves, comments, sample clicks, replies/DMs, and paid intent.
-- Treat “100 reads + 0 saves/comments/clicks” as a positioning problem, not as proof that the product is bad.
-- Treat “small reach + high problem-signal density” as a reason to narrow the channel or audience before writing more content.
-
-### 3.6 Package one publishable launch kit before distributing
-
-When the proof vehicle is a written asset, do not stop at “the article is done”. Create a small launch kit that makes publishing and measurement repeatable:
-
-```markdown
-## Launch Kit
-
-### Primary asset
-- File or draft:
-- Audience:
-- Observable behavior to trigger:
-
-### Channel fit
-| Channel | Why it fits | Risk | Adaptation needed |
-| --- | --- | --- | --- |
-|  |  |  |  |
-
-### Title / hook options
-1.
-2.
-3.
-
-### Summary
-One short paragraph that can be pasted into the platform excerpt.
-
-### Tags / communities
--
--
--
-
-### Call to action
-- Low-friction next step:
-- Evidence captured:
-
-### 24-hour data log
-| URL/draft | Reads | Saves | Comments | Sample clicks | Replies/DMs | Paid intent | Next decision |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-|  |  |  |  |  |  |  |  |
-```
-
-Quality bar:
-
-- The CTA asks for one behavior, not three.
-- The title names a concrete pain, mistake, or scenario.
-- The summary can stand alone without internal context.
-- The measurement table is ready before publishing.
-- If no real URL is available yet, record a draft URL or `not published` instead of pretending distribution happened.
-
-### 4. Design a 7-day validation sprint
-
-```markdown
-## 7-Day Validation Sprint
-
-### Day 1: Audience and problem
-- Audience:
-- Pain:
-- Existing workaround:
-- Paid alternative:
-- Rejection risk:
-
-### Day 2: Proof asset
-- Artifact to create:
-- What it demonstrates:
-- What it deliberately does not promise:
-
-### Day 3-4: Outreach
-- Channel:
-- 20 target people or communities:
-- Message:
-- Call to action:
-
-### Day 5: Conversation and objection log
-- Repeated pain phrases:
-- Objections:
-- Budget/timing clues:
-- Missing trust signals:
-
-### Feedback evidence log
-| Source | Observable fact | Inference | Confidence | Current grade | Next validation action |
-| --- | --- | --- | --- | --- | --- |
-|  |  |  |  | record / observe / validate / revise |  |
-
-### Day 6: Offer test
-- Offer:
-- Price or deposit:
-- Delivery scope:
-- Refund/guarantee boundary:
-
-### Day 7: Decision
-- Evidence collected:
-- Continue / narrow / stop:
-- Next build step:
-```
-
-### 5. Keep the first offer narrow
-
-A narrow offer is easier to trust and easier to deliver.
-
-Prefer:
-
-- "I will convert your messy AI coding workflow into a documented 5-step agent handoff process in 90 minutes."
-- "I will audit one VuePress documentation repo and return a build/navigation fix list."
-- "I will package your repeated prompt workflow into a reusable skill with trigger examples."
-
-Avoid:
-
-- "AI consulting for everyone"
-- "A productivity platform"
-- "An all-in-one learning system"
-
-### 6. Shape an AI coding audit offer
-
-For AI-era programmer income experiments, a fixed-scope audit is often a better first sale than a tool. It lets you sell judgment, verification discipline, and a concrete report before building automation.
-
-Use this offer builder:
-
-```markdown
-## AI Coding Audit Offer
-
-### Buyer
-- Role:
-- Repo/project type:
-- Current AI coding pain:
-- Why now:
-
-### Scope boundary
-- Included: one repo, one workflow, one 60-90 minute review, one written report
-- Excluded: production code changes, secrets handling, long-running support, broad transformation
-- Access needed: read-only repo sample, existing CI/test command list, recent failed agent run if available
-
-### Audit checklist
-| Area | Evidence to inspect | Output |
-| --- | --- | --- |
-| Dirty workspace safety | `git status`, branch rules, generated files | Boundary risks and isolation recommendation |
-| Verification coverage | scripts, CI, smoke tests, docs build | Minimal verification command ladder |
-| Agent handoff quality | prompts, notebook, PR template, final report | Handoff field gaps and template suggestions |
-| Failure recovery | recent failed run, logs, rollback path | First recovery command and stop rule |
-| Productization fit | repeated pain, team size, budget signal | Continue / narrow / stop recommendation |
-
-### Deliverable
-- 1-page executive summary
-- 5-10 prioritized fixes
-- command ladder for the next safe AI-assisted change
-- one reusable template: checklist, prompt, notebook entry, or report skeleton
-
-### Validation metric
-- Continue if the buyer asks for implementation help, a second repo audit, or a team version.
-- Narrow if they only value one area such as CI command discovery or agent handoff templates.
-- Stop if they only want free tooling advice and will not share a real workflow sample.
-```
-
-Price only after the scope is narrow. A first paid pilot can be inexpensive, but it should still require the buyer to contribute a real repo sample or failed workflow; otherwise the experiment measures curiosity, not demand.
-
-Reference sample: `references/ai-coding-audit-sample-report.md` shows a one-page report structure, risk table, command ladder, and continue/narrow/stop criteria for this offer.
-
-## Output Template
-
-```markdown
-## Income Asset Validation Plan
-
-### Hypothesis
-For ...
-
-### Score
-| Dimension | Score | Notes |
-| --- | ---: | --- |
-| Pain intensity |  |  |
-| Buyer clarity |  |  |
-| Reach channel |  |  |
-| Proof asset |  |  |
-| Delivery leverage |  |  |
-| Trust fit |  |  |
-
-### Smallest Proof Vehicle
-- Vehicle:
-- Artifact:
-- Why this is enough:
-
-### 7-Day Sprint
-- Day 1:
-- Day 2:
-- Day 3-4:
-- Day 5:
-- Day 6:
-- Day 7:
-
-### Feedback Evidence Log
-| Source | Observable fact | Inference | Confidence | Current grade | Next validation action |
-| --- | --- | --- | --- | --- | --- |
-|  |  |  |  | L0 / L1 / L2 / L3 |  |
-
-### First 48-Hour Metrics
-| Post | Channel | Hook | URL/draft | Reads | Saves | Comments | Sample clicks | Replies/DMs | Paid intent | Decision |
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-|  |  |  |  |  |  |  |  |  |  |  |
-
-### Kill / Continue Criteria
-- Continue if:
-- Narrow if:
-- Stop if:
-
-### Next Action
-- One action to take today:
-```
-
-## Quality Checklist
-
-- The audience is specific enough to list real people or communities
-- The desired outcome is measurable
-- The first proof vehicle can be created in one day
-- The sprint collects behavioral evidence, not just opinions
-- Feedback separates observable facts from inferences before changing the offer
-- The offer has a clear scope boundary and delivery promise
-- The plan includes explicit kill or narrow criteria
-
-## Example Triggers
-
-- "Help me validate a paid AI workflow template idea"
-- "Turn my agent notes into a side income experiment"
-- "Should I build this developer tool?"
-- "Create a 7-day validation sprint for an AI consulting offer"
-- "把这个 AI 副业想法变成可验证的小实验"
+| Choose one experiment for the available week/session | [Weekly experiment](references/weekly-experiment.md) |
+| Define audience, offer, proof and a validation sprint | [Validate an offer](references/validate-offer.md) |
+| Prepare or execute an authorized single-channel launch | [Publish an offer](references/publish-offer.md) |
+| Package an AI coding audit specifically | [Audit offer](references/audit-offer.md) |
+
+Use only the relevant stage. A request for advice or a plan does not authorize
+implementation, outreach, publication, payment collection or a commit. Existing
+explicit authorization is sufficient within its scope; do not ask for it again.
+
+Use the real audience, available time, inputs and channels. Separate observed
+facts from assumptions. Never invent customers, testimonials, results or contact
+details. A polished asset alone does not validate demand.
+
+## Deliver and decide
+
+Name the hypothesis, smallest useful artifact, verification/demand signal and
+next evidence needed. Choose continue, narrow, stop or switch from actual evidence;
+when evidence is missing, report an untested hypothesis rather than a positive score.
+Do not add launch assets indefinitely while waiting for a decision. Complete any
+independent preparation already requested.
+
+For routing maintenance, see [trigger examples](references/trigger-examples.md).

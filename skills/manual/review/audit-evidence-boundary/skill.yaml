@@ -1,5 +1,5 @@
 id: ng-review-audit-evidence-boundary
-version: 1.0.0
+version: 1.0.2
 title: Audit Evidence Boundary
 summary: Separate publishable audit claims from private proof, unverified assumptions, and stop conditions before writing reports or anonymous cases
 kind: prompt_only

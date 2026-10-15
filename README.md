@@ -6,63 +6,51 @@ Personal collection of AI coding skills. Skills are classified by directory unde
 
 ```text
 .
-├── scripts/
-│   ├── start-local.sh             # Recommended local startup/lifecycle entrypoint
-│   ├── preview.sh                 # Browser preview lifecycle entrypoint
-│   ├── debug.sh                   # Isolated Tauri debug entrypoint
-│   └── skills-manager-*           # Lower-level Skills Manager startup/debug helpers
-├── apps/
-│   ├── skills-manager-tui/        # Install/uninstall skills CLI, fzf TUI, trigger eval tools
-│   └── scripts/                   # Skills Manager check and smoke verification scripts
+├── scripts/          # Local startup and preview lifecycle
+├── apps/             # Skills Manager and verification tooling
+├── archive/skills/   # Disabled source packages; not installable entries
 └── skills/
-    ├── cron/
-    │   ├── daily-til/
-    │   ├── daily-trending/
-    │   └── weekly-retro/
     ├── auto/
     │   ├── in-english/
     │   └── skill-smith/
+    ├── cron/
+    │   ├── daily-til/
+    │   ├── daily-trending/
+    │   ├── hourly-progress/
+    │   └── weekly-retro/
     └── manual/
+        ├── design/
+        │   ├── inline-command-palette-minimum/
+        │   └── ui-mockup-prompt-brief/
+        ├── growth/
+        │   ├── engineering/
+        │   ├── evidence-card-loop/
+        │   ├── income-asset-validation/
+        │   └── personal-coach/
         ├── plan/
         │   ├── create/
-        │   ├── review/
-        │   ├── teaching/
-        │   ├── code-reading/
-        │   └── test-case/
+        │   └── teaching/
         ├── review/
-        │   ├── pr/
-        │   ├── api-design/
         │   ├── agent-preflight-script-test/
         │   ├── agent-release-gate/
         │   ├── audit-evidence-boundary/
-        │   ├── bounded-probe-before-workaround/
         │   ├── content-only-docs-proof-gate/
         │   ├── deployed-is-not-public-go/
         │   ├── error-boundary/
-        │   ├── handoff-receipt/
-        │   ├── monorepo-test-entrypoint-drift/
-        │   ├── multi-session-control-ledger/
-        │   ├── next-safe-command-ladder/
-        │   ├── path-scoped-commit-boundary/
-        │   ├── test-fixture-failure-semantics/
-        │   └── refactor/
-        ├── growth/
-        │   ├── personal-coach/
-        │   ├── engineering/
-        │   ├── debugging-kata/
-        │   ├── evidence-card-loop/
-        │   └── weekly-income-experiment/
-        ├── design/
-        │   └── ui-mockup-prompt-brief/
-        ├── tool/
-        │   ├── ref/
-        │   ├── search/
-        │   ├── debug-loom/
-        │   ├── openclaw/
-        │   └── who-am-i/
-        └── meta/
-            └── example/
+        │   └── handoff-receipt/
+        └── tool/
+            ├── debug-loom/
+            ├── openclaw/
+            ├── ref/
+            └── who-am-i/
 ```
+
+
+The 2026-10-15 consolidation leaves **25 active skills**: eight generic entries
+are disabled, eight duplicate entries are merged into five existing workflows,
+and two diagnostics are now ordinary reference documents. Original packages are
+preserved in `archive/skills/2026-10-15/` without discoverable entrypoint filenames.
+See the [migration and restore map](docs/skills-consolidation-2026-10-15.md).
 
 ## Skill Categories
 
@@ -142,13 +130,13 @@ Skills selection supports right-side `SKILL.md` preview. Install defaults to sel
 
 # Install to Claude Code global skills
 ./apps/skills-manager-tui/skills-linker install --tool claude --scope global \
-  pr personal-coach
+  error-boundary personal-coach
 
 # Install to project-level
 ./apps/skills-manager-tui/skills-linker install --tool codex --scope project --project-root .
 
 # Uninstall
-./apps/skills-manager-tui/skills-linker uninstall --tool claude --scope global pr
+./apps/skills-manager-tui/skills-linker uninstall --tool claude --scope global error-boundary
 
 # Check status
 ./apps/skills-manager-tui/skills-linker status --tool claude --scope global
@@ -201,7 +189,7 @@ Notes:
 ./apps/skills-manager-tui/ng
 
 # Show how to trigger one specific skill
-./apps/skills-manager-tui/ng pr
+./apps/skills-manager-tui/ng error-boundary
 ```
 
 ## Creating a New Skill

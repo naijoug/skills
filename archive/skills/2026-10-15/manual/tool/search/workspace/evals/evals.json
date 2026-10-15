@@ -1,0 +1,23 @@
+{
+  "skill_name": "ng-tool-search",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "帮我搜一下 Claude Code 最新的更新",
+      "expected_output": "A comprehensive Markdown file covering recent Claude Code updates, with summary + per-tool results + source table",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "Search for the best practices of building MCP servers in 2026",
+      "expected_output": "A comprehensive Markdown file covering MCP server best practices, with summary + per-tool results + source table",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "查一下 AI Agent 框架有哪些，各有什么优缺点",
+      "expected_output": "A comprehensive Markdown file comparing AI Agent frameworks with pros/cons, with summary + per-tool results + source table",
+      "files": []
+    }
+  ]
+}

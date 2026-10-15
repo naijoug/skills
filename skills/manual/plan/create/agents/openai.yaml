@@ -1,7 +1,7 @@
 interface:
-  display_name: "Plan Create"
-  short_description: "Draft a dated implementation plan with milestones, tasks, risks, verification"
-  default_prompt: "Use $ng-plan-create to draft an implementation plan for this work and write it to docs/plans/YYYY-MM-DD-<topic>.md."
+  display_name: "Implementation Plans"
+  short_description: "Create, revise or review implementation plans against the relevant code state"
+  default_prompt: "Use $ng-plan-create for the requested workflow and select only the relevant mode."
 
 policy:
   allow_implicit_invocation: false

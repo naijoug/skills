@@ -81,7 +81,7 @@ When English already needs no improvement, or a skip condition applies, return t
 - Grammar corrections are accurate — wrong corrections are worse than no corrections
 - Annotations are specific (show the exact before → after, explain the rule)
 - Coaching block is compact (under 8 lines total)
-- When input is already good English, acknowledge it briefly rather than manufacturing changes
+- When English needs no useful improvement, skip coaching and answer the task directly
 - The actual response after the coaching block is complete and high-quality
 
 ## Example Triggers

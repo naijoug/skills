@@ -22,7 +22,7 @@ Core principle: never make a report more convincing by inventing clients, metric
 
 ## When Not to Use
 
-- The user only wants a technical verification sequence; use `ng-review-next-safe-command-ladder` first
+- The user only wants a technical verification sequence; use the project's documented verification commands directly
 - The task is a private debugging session with no report, handoff, or public artifact
 - Publication would require legal, compliance, customer, or employer approval you do not have
 - The only available material is fictional; label it as a hypothetical template, not a case
@@ -120,7 +120,5 @@ Core principle: never make a report more convincing by inventing clients, metric
 
 - Trigger examples: `references/trigger-examples.md`
 - Anonymous case evidence example: `references/anonymous-case-evidence-example.md`
-- Related command ladder skill: `skills/skills/manual/review/next-safe-command-ladder/`
-- Related PR self-review skill: `skills/skills/manual/review/pr/`
 - Public anonymous case skeleton: `docs/documents/trending/ai/anonymous-ai-coding-audit-case-skeleton.md`
 - Observation-to-skill checklist: `docs/documents/trending/ai/ai-coding-audit-observation-to-skill-checklist.md`

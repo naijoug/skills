@@ -1,5 +1,5 @@
 id: in-english
-version: 1.2.0
+version: 1.2.1
 title: In English
 summary: Optional English coaching for non-English or imperfect-English prompts, with brief grammar notes before the task response
 kind: prompt_only
