@@ -133,7 +133,7 @@ The next slice is precise, isolated, and directly improves future hourly runs: a
 
 **Observed state**
 
-- The previous handoff names `docs/documents/trending/ai/coding.md` as the likely next content slice.
+- The previous handoff names `docs/documents/trending/ai/coding.md` as the likely next content slice (historical observation; that file was removed from the docs repo in the 2026-06-03 cleanup, commit 347dc5b1c).
 - `git -C docs status --short` shows broad modified, deleted, renamed, and untracked files that were not created by this run.
 - A clean repo such as `skills` has an isolated process-improvement follow-up, or no clean repo has an obviously useful edit.
 
