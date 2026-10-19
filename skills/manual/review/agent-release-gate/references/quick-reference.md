@@ -35,8 +35,11 @@ Do not decide the gate until these versions are named:
 | Failed cases | Case IDs, affected intent/tool, owner, next action | Disabled scope or re-entry condition |
 | Safe traces | Redacted success/failure/approval traces | Safety gate and audit review |
 | Approval binding | Trace or test showing human approval is bound to high-risk action parameters | Write-tool gate |
+| Approval layer scope | `rollout_scope.approval_required_tools` as an explicit array (empty when none); never fold approval tools into `allowed_tools` | Approval gray release is not misread as automatic rollout in handoff |
 | Audit events | Event IDs for tool calls, approvals, denials, and rollback | Observability gate |
 | Rollback proof | Rehearsed version, capability, or traffic switch | Release/rollback decision |
+| Runtime escalation line | `block_conditions`: each condition names who narrows to read-only or rolls back via `rollback`, and where the trigger is backfilled (`block_reasons`) | `warn` scope control; without it a `warn` is indefinite risk acceptance |
+| Next review tasks | `next_review.tasks`: the evidence that upgrades the gate and the suite to rerun | Re-entry condition and next handoff |
 
 ## 3. Hard gates
 
@@ -97,8 +100,11 @@ A useful `warn` decision usually has this shape:
 - Decision: `warn`
 - Allowed scope: [internal/tenant group], [read-only or limited tool set], [traffic percent], [time window].
 - Disabled scope: [write tools], [external tenants], [auto-send], [affected intents], [higher traffic].
+- Approval layer (`approval_required_tools`): [explicit empty array when none; otherwise tool names requiring human approval].
 - Reason: [evidence supports allowed scope] but [specific missing proof or unresolved failures remain].
+- Runtime escalation line (`block_conditions`): [condition] -> [owner] narrows to read-only or rolls back via [rollback path]; trigger backfilled to `block_reasons`.
 - Re-entry condition: [evidence to add] and [suite/check to rerun].
+- Next review tasks (`next_review.tasks`): [upgrading evidence and rerun entries that convert this restriction into the next review].
 - Next safe command/check: `[non-destructive verification command]`
 ```
 

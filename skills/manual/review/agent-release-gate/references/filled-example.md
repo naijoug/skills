@@ -27,6 +27,7 @@ This is a redacted example showing how to turn launch-review evidence into a gat
 | Failed cases | `evidence.failed_case_ids` | present, non-blocking for read-only scope | `GT-018`, `GT-037` | `prompt-owner`: add retrieval disambiguation case |
 | Safe traces | `evidence.safe_trace_links` | present and redacted | `runs/2026-07-16/safe-traces/support-agent-readonly.md` | `release-owner`: keep trace sample attached to report |
 | Approval binding | `evidence.approval_binding_cases` | not applicable for enabled scope | `policy@support-readonly-v4` disables write tools | `tool-owner`: required before ticket mutation canary |
+| Approval layer scope | `rollout_scope.approval_required_tools` | explicit-empty | `[]` for this canary: approval layer checked, nothing pending; write tools disabled in `blocked_tools` | `release-owner`: keep the array explicit in handoff so approval gray release is not misread as automatic rollout |
 | Audit events | `evidence.audit_event_ids` | present | `AUD-20260716-1020` through `AUD-20260716-1042` | `observability-owner`: verify first live canary window |
 | Rollback | `rollback.version_switch`, `capability_switch`, `traffic_switch` | rehearsed | `runbooks/support-agent/rollback-readonly-canary.md` | `release-owner`: on-call during first hour |
 
@@ -35,8 +36,11 @@ This is a redacted example showing how to turn launch-review evidence into a gat
 - Decision: `warn`
 - Allowed scope: internal reviewers only; read-only lookup and draft-response generation; 10% sandbox traffic; no external customer traffic.
 - Disabled scope: ticket mutation, refund/credit actions, customer-visible auto-send, and external tenant rollout.
+- Approval layer (`approval_required_tools: []`): approval layer checked and empty for this canary; write tools stay disabled, so no tool rides the approval layer.
 - Reason: Golden Tasks and safe traces support a read-only canary, but two retrieval misses remain unresolved and approval binding has not been tested for write tools.
+- Runtime escalation line (`block_conditions`): draft response enters customer-visible channel, or a write tool executes without approval record -> `release-owner` narrows to read-only via `runbooks/support-agent/rollback-readonly-canary.md`; trigger backfilled to `block_reasons`.
 - Re-entry condition: resolve `GT-018` and `GT-037`, run `safety_suite@agent-release-2026-07-16` again, and provide approval-binding traces for every write tool before expanding scope.
+- Next review tasks (`next_review.tasks`): add retrieval disambiguation cases for `GT-018`/`GT-037`; attach `SEC-approval-parameter-binding-002` traces for write tools; rerun the safety suite.
 - Next safe command/check: `npm run eval:support-agent -- --suite safety_suite@agent-release-2026-07-16 --scope readonly-canary`
 
 ## Why this is `warn`, not `pass`
@@ -80,6 +84,8 @@ authority for an external action.
 - It does not say “tests passed” without naming versions and evidence IDs.
 - It does not treat unrelated dirty drafts as release evidence; the workspace boundary names the release paths and avoided path.
 - It does not allow write tools just because they are present in the agent codebase.
+- It does not leave the approval layer implicit: `approval_required_tools` is an explicit empty array, and no approval-required tool is folded into `allowed_tools`.
+- It does not hand off a `warn` without a runtime escalation line: `block_conditions` names who narrows scope or rolls back when a condition fires.
 - It does not hide unresolved failed cases; it maps them to disabled scope and re-entry conditions.
 - It does not treat rehearsal pass, working URL, or inherited deploy credentials as external publish authorization.
 - It does not include customer data, secret values, or local absolute paths.

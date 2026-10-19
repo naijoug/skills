@@ -47,6 +47,7 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 
 3. **Collect release-side controls.**
    - Rollout scope: tenant group, traffic percent, allowed tools, blocked tools, read/write mode.
+   - Approval layer inside the rollout scope: `rollout_scope.approval_required_tools`, the tools that may execute only after human approval. Keep it as an explicit empty array when none apply: an empty array declares "approval layer checked, nothing pending", while omitting the field cannot be distinguished from "forgot to check". Never fold an approval-required tool into `allowed_tools` to pass it silently.
    - Rollback switches: version switch, capability switch, traffic switch, and human owner.
    - Monitoring and alert owner for the first rollout window.
 
@@ -68,6 +69,8 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 
 7. **Write the restriction, not just the decision.**
    - For `warn`, list exactly what remains disabled and what proof would upgrade it.
+   - For every `warn`, record the runtime escalation line `block_conditions`: when any listed condition occurs, the on-call first narrows to read-only or rolls back via `rollback`, then backfills the trigger into `block_reasons` before discussing re-review. A `warn` without an escalation line is indefinite risk acceptance, not a gate.
+   - Record `next_review.tasks` so the restriction converts into the next entry point: which evidence upgrades the gate and which suite rerun is required.
    - For `block`, list the re-entry condition and the first safe command/check.
 
 ## Release Gate Template
@@ -90,6 +93,7 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 | Failed cases | `evidence.failed_case_ids` | present / none / unresolved |  |  |
 | Safe traces | `evidence.safe_trace_links` | present / missing / redaction needed |  |  |
 | Approval binding | `evidence.approval_binding_cases` | present / missing / partial |  |  |
+| Approval layer scope | `rollout_scope.approval_required_tools` | explicit-empty / pending-list / omitted |  |  |
 | Audit events | `evidence.audit_event_ids` | present / missing |  |  |
 | Rollback | `rollback.version_switch`, `capability_switch`, `traffic_switch` | rehearsed / documented / missing |  |  |
 
@@ -98,6 +102,8 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 - Allowed scope:
 - Disabled scope:
 - Reason:
+- Runtime escalation line (`block_conditions`, required for `warn`):
+- Next review tasks (`next_review.tasks`):
 - Re-entry condition:
 - Next safe command/check:
 ```
@@ -107,8 +113,9 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 | Signal | Default decision | Scope rule |
 | --- | --- | --- |
 | All hard gates zero, rollback rehearsed, safe traces present | `pass` | allow planned canary only; still monitor |
-| Golden Tasks pass but write-tool approval evidence is partial | `warn` | allow read-only rollout; keep write tools disabled |
-| Failed cases are unresolved but not on enabled path | `warn` | restrict affected tenants, tools, or intents |
+| Golden Tasks pass but write-tool approval evidence is partial | `warn` | allow read-only rollout; keep write tools disabled; keep `approval_required_tools` explicit (empty array when none) so approval gray release is not misread as automatic rollout |
+| Failed cases are unresolved but not on enabled path | `warn` | restrict affected tenants, tools, or intents; write `block_conditions` as the runtime escalation line |
+| `warn` has no runtime escalation line (`block_conditions`) | not a valid `warn` | an escalation-free `warn` is indefinite risk acceptance; add the conditions and the rollback path before handing off |
 | Release object lacks prompt/model/tool versions | `block` | cannot release because result is not reproducible |
 | Release package has unowned dirty prompts, policies, generated artifacts, or handoff files | `block` | production gate cannot rely on mixed-ownership evidence; first write/receive a handoff receipt or narrow to demo/read-only review |
 | External action lacks authority or fails a project-required release gate | `block` for that action | name the missing authority or failed gate; finish independent local work |
@@ -122,7 +129,7 @@ Core principle: a release gate is not a confidence sentence. It is a field-level
 - The workspace boundary names clean, owned, and avoided dirty release paths before claiming a gate decision
 - Every `pass` has Golden Tasks, safe traces, audit events, and rollback evidence where relevant
 - Every gate above `block` names the `eval_sample_coverage` outcome, and every high-risk sample gap states whether the affected capability is disabled or still enabled
-- Every `warn` has explicit disabled tools, tenants, traffic, or capabilities
+- Every `warn` has explicit disabled tools, tenants, traffic, or capabilities, a runtime escalation line (`block_conditions`), and next review tasks that name the upgrading evidence
 - Every `block` has a concrete re-entry condition and first safe check
 - The report uses relative paths and redacted evidence links; no local absolute paths, secrets, or customer data
 - The final handoff can be copied into a release report without adding undocumented claims
