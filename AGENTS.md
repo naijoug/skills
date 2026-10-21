@@ -1,9 +1,11 @@
 # Repository Instructions
 
+外部账号操作前读取 `/Users/guojian/Workspace/naijoug/AGENTS.md`；个人工作区账号路由规则在临时 checkout 中同样适用。
+
 ## Task-specific guidance
 
 - For skill authoring or routing changes, use `docs/skill-authoring.md`; read only the target skill and references governing the changed behavior.
-- For skill/tooling verification, run `bash apps/scripts/skills-quality-check`. It uses disposable local fixtures and needs no network or production access. Run affected checks again after fixing failures caused by the change.
+- For skill/tooling verification, run `bash scripts/skills-quality-check`. It uses disposable local fixtures and needs no network or production access. Run affected checks again after fixing failures caused by the change.
 - For application changes, use `apps/docs/skills-manager.md` for package checks and runtime boundaries. Broaden verification only when the change or observed failures justify it.
 - Complete authorized local edits and validation without an extra confirmation step. If a skill rule causes a pause, cite that rule and identify the missing decision or authority.
 

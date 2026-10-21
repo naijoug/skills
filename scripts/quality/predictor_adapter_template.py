@@ -1,0 +1,133 @@
+#!/usr/bin/env python3
+"""
+Template adapter for skill trigger evaluation.
+
+Reads exported cases JSONL from `trigger_examples_tool.py export`
+and writes predictions JSONL consumable by `trigger_examples_tool.py score`.
+
+Usage:
+  python3 scripts/quality/predictor_adapter_template.py \
+    --input /tmp/cases.jsonl \
+    --output /tmp/predictions.jsonl
+
+Integration point:
+  Replace `predict_case()` with a call into your real trigger engine.
+  Inputs are blind id/prompt records; CATALOG_FILE supplied by the runner has
+  canonical IDs and descriptions. Return decision="clarify" with predicted=[]
+  when clarification is necessary. Never send gold annotations to the model.
+  Keyword-demo is a plumbing example, not evidence of model quality.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
+
+def predict_case(case: dict, mode: str = "keyword-demo") -> list[str]:
+    """
+    Return predicted skill names for one case.
+
+    Replace this function with your actual trigger logic.
+    """
+    prompt = str(case.get("prompt", ""))
+
+    if mode == "none":
+        return []
+
+    if mode != "keyword-demo":
+        raise ValueError(f"Unsupported mode: {mode}")
+
+    p = prompt.lower()
+    out: list[str] = []
+
+    # Minimal keyword demo rules (intentionally simple; replace in real usage)
+    if any(
+        k in p
+        for k in [
+            "flaky", "intermittent", "root cause", "排查", "复现",
+            "performance", "latency", "p95", "性能",
+            "leetcode", "algorithm problem", "刷题", "hints only", "kata",
+            "design pattern", "strategy vs state", "设计模式", "overengineering",
+        ]
+    ):
+        out.append("ng-growth-engineering")
+    if any(k in p for k in ["test matrix", "测试用例", "边界", "regression test"]):
+        out.append("ng-plan-test-case")
+    if any(k in p for k in ["codebase", "读代码", "调用链", "request flow"]):
+        out.append("ng-plan-code-reading")
+    if any(k in p for k in ["refactor", "重构", "behavior-preserving"]):
+        out.append("ng-review-refactor")
+    if any(k in p for k in ["self-review", "自检", "reviewer comments", "pr "]):
+        out.append("ng-review-pr")
+    if any(k in p for k in ["api contract", "接口设计", "idempotency", "幂等"]):
+        out.append("ng-review-api-design")
+    if any(k in p for k in ["retro", "复盘", "this week", "weekly"]):
+        out.append("weekly-retro")
+    if any(k in p for k in ["debugging kata", "incident practice", "调试练习", "drill"]):
+        out.append("ng-growth-debugging-kata")
+    if any(
+        k in p
+        for k in [
+            "搜一下", "查一下", "搜索 transformer", "研究一下", "找几篇", "帮我查查", "帮我了解一下",
+            "search for", "search recent", "research ", "look up", "find out", "find reliable references",
+        ]
+    ):
+        out.append("ng-tool-search")
+
+    # stable de-dup preserving order
+    seen = set()
+    deduped = []
+    for skill in out:
+        if skill not in seen:
+            seen.add(skill)
+            deduped.append(skill)
+    return deduped
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Template adapter for skill trigger evaluation.")
+    parser.add_argument("--input", required=True, help="Input cases JSONL path")
+    parser.add_argument("--output", required=True, help="Output predictions JSONL path")
+    parser.add_argument(
+        "--mode",
+        default="keyword-demo",
+        choices=["keyword-demo", "none"],
+        help="Demo prediction mode (default: keyword-demo)",
+    )
+    args = parser.parse_args()
+
+    in_path = Path(args.input)
+    out_path = Path(args.output)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    count = 0
+    with in_path.open("r", encoding="utf-8") as src, out_path.open("w", encoding="utf-8") as dst:
+        for lineno, raw in enumerate(src, start=1):
+            line = raw.strip()
+            if not line:
+                continue
+            try:
+                case = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"{in_path}:{lineno}: invalid JSON: {exc}") from exc
+            if not isinstance(case, dict):
+                raise ValueError(f"{in_path}:{lineno}: row must be a JSON object")
+            case_id = case.get("id")
+            if not isinstance(case_id, str) or not case_id.strip():
+                raise ValueError(f"{in_path}:{lineno}: missing string field 'id'")
+
+            predicted = predict_case(case, mode=args.mode)
+            decision = "select" if predicted else "none"
+            dst.write(
+                json.dumps({"id": case_id, "predicted": predicted, "decision": decision}, ensure_ascii=False) + "\n"
+            )
+            count += 1
+
+    print(f"Wrote {count} DEMO predictions to {out_path}; no model was evaluated")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

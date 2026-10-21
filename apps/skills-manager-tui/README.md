@@ -17,14 +17,14 @@ Run commands from the repository root:
 ./apps/skills-manager-tui/tui
 ./apps/skills-manager-tui/skills-linker list
 ./apps/skills-manager-tui/ng list
-./apps/skills-manager-tui/run_trigger_eval.sh --mode perfect --no-details
+./scripts/quality/run_trigger_eval.sh --mode perfect --no-details
 ```
 
 For a real predictor, the runner exports opaque `id`/`prompt` cases and a
 candidate catalog. The predictor writes `id`, `predicted`, and `decision`
 (`select`, `none`, or `clarify`) to the predictions JSONL file.
 
-Run `bash apps/scripts/skills-quality-check` for isolated regression tests and
+Run `bash scripts/skills-quality-check` for isolated regression tests and
 full routing coverage. The [authoring guide](../../docs/skill-authoring.md) defines
 the case labels, blind-input contract and limits of deterministic smoke tests.
 

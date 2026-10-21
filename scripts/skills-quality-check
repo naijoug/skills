@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR"
+python3 scripts/quality/check-skill-metadata.py --category all
+python3 -m unittest discover -s tests/quality
+python3 skills/manual/review/error-boundary/scripts/validate_error_boundary_skill.py
+python3 skills/manual/review/error-boundary/scripts/dry_run_routing_cases.py
+python3 scripts/quality/trigger_examples_tool.py --include-non-manual --require-coverage summary
+./scripts/quality/run_trigger_eval.sh --include-non-manual --mode perfect --no-details --fail-on-miss

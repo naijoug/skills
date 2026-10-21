@@ -146,7 +146,8 @@ VITE_SKILLS_MANAGER_API_URL=http://127.0.0.1:8787 ./scripts/skills-manager-web
 
 | 改动 | 验证入口 |
 | --- | --- |
-| 技能、元数据、路由样例或 CLI/TUI 工具 | 仓库根目录 `bash apps/scripts/skills-quality-check` |
+| 技能、元数据或路由样例 | 仓库根目录 `bash scripts/skills-quality-check` |
+| CLI/TUI 安装与注入工具 | 仓库根目录 `bash apps/scripts/skills-quality-check`（过渡期含管理测试） |
 | 纯说明文案 | 读回修改、检查实际链接及 `git diff --check` |
 | 某个应用包 | `cd apps` 后运行对应包的测试与 typecheck |
 | 跨包或桌面运行时 | 仓库根目录 `./apps/scripts/skills-manager-check` |

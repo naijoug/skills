@@ -2,12 +2,17 @@
 
 Personal collection of AI coding skills. Skills are classified by directory under `skills/`.
 
+Skills Manager is being migrated to Loom. Content checks now run independently
+with `bash scripts/skills-quality-check`; existing application and CLI entrypoints
+remain available until Loom passes replacement acceptance. See
+[the migration record](docs/skills-manager-migration.md).
+
 ## Project Structure
 
 ```text
 .
-├── scripts/          # Local startup and preview lifecycle
-├── apps/             # Skills Manager and verification tooling
+├── scripts/          # Content quality tools and transitional local startup
+├── apps/             # Skills Manager (migration to Loom in progress)
 ├── archive/skills/   # Disabled source packages; not installable entries
 └── skills/
     ├── auto/
@@ -250,7 +255,7 @@ metadata-only skills cannot silently pass. Metadata needs non-empty `id`, `versi
 `summary`, `kind`, `tags`, `triggers.keywords`, and `compatibility.tools`:
 
 ```bash
-python3 apps/scripts/check-skill-metadata.py
+python3 scripts/quality/check-skill-metadata.py
 ```
 
 The checker also requires manual skills to declare the explicit-only invocation
@@ -261,7 +266,7 @@ lists); this lightweight checker is not a general YAML parser.
 
 Use [skill authoring guidance](docs/skill-authoring.md) for scope, completion criteria,
 conditional references and routing fixtures. Run the full local skill check with
-`bash apps/scripts/skills-quality-check`; it does not start the application.
+`bash scripts/skills-quality-check`; it does not start the application.
 
 Use `--category all` when intentionally auditing auto and cron skills too.
 
@@ -272,23 +277,23 @@ candidates. Host activation policy and end-to-end model task quality are separat
 checks. See [the evaluation contract](docs/skill-authoring.md#routing-evaluation).
 
 - Per-skill examples: `skills/**/references/trigger-examples.md`
-- Export + scoring: `apps/skills-manager-tui/trigger_examples_tool.py`
-- Runner: `apps/skills-manager-tui/run_trigger_eval.sh`
-- HTML report: `apps/skills-manager-tui/trigger_eval_report.py`
+- Export + scoring: `scripts/quality/trigger_examples_tool.py`
+- Runner: `scripts/quality/run_trigger_eval.sh`
+- HTML report: `scripts/quality/trigger_eval_report.py`
 
 ```bash
 # Smoke test (perfect predictor)
-./apps/skills-manager-tui/run_trigger_eval.sh --mode perfect --no-details
+./scripts/quality/run_trigger_eval.sh --mode perfect --no-details
 
 # Include non-manual skills in dataset when needed
-python3 ./apps/skills-manager-tui/trigger_examples_tool.py --include-non-manual summary
+python3 ./scripts/quality/trigger_examples_tool.py --include-non-manual summary
 
 # Fail if a skill has no routing examples
-python3 ./apps/skills-manager-tui/trigger_examples_tool.py --include-non-manual --require-coverage summary
+python3 ./scripts/quality/trigger_examples_tool.py --include-non-manual --require-coverage summary
 
 # Custom predictor
-./apps/skills-manager-tui/run_trigger_eval.sh --mode custom \
-  --predict-cmd 'python3 "$ROOT_DIR/apps/skills-manager-tui/predictor_adapter_template.py" --input "$CASES_FILE" --output "$PREDS_FILE"'
+./scripts/quality/run_trigger_eval.sh --mode custom \
+  --predict-cmd 'python3 "$ROOT_DIR/scripts/quality/predictor_adapter_template.py" --input "$CASES_FILE" --output "$PREDS_FILE"'
 ```
 
 `perfect` reads the answer labels to test the scorer. The supplied custom adapter

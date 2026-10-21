@@ -85,7 +85,7 @@ use an explicit `select`, `none` or `clarify` label for stronger assertions.
 ## Verification
 
 ```bash
-bash apps/scripts/skills-quality-check
+bash scripts/skills-quality-check
 ```
 
 The metadata checker discovers directories containing either `SKILL.md` or

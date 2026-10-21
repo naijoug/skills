@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from support import TUI, make_skill
+from support import QUALITY, make_skill
 import trigger_examples_tool as routing
 import trigger_eval_report as report
 
@@ -94,7 +94,7 @@ class RoutingTests(unittest.TestCase):
 
     def test_failed_runner_keeps_report_and_returns_failure(self):
         output = Path(self.temp.name) / "report.html"
-        result = subprocess.run([str(TUI / "run_trigger_eval.sh"), "--skills-dir", str(self.root), "--mode", "noop", "--no-details", "--fail-on-miss", "--html-report", str(output)], capture_output=True, text=True)
+        result = subprocess.run([str(QUALITY / "run_trigger_eval.sh"), "--skills-dir", str(self.root), "--mode", "noop", "--no-details", "--fail-on-miss", "--html-report", str(output)], capture_output=True, text=True)
         self.assertEqual(result.returncode, 2, result.stderr)
         self.assertIn("Clarification", output.read_text())
 
