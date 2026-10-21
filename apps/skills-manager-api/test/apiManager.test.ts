@@ -60,7 +60,8 @@ describe("apiManager", () => {
     expect(library.groups).toHaveLength(1);
     expect(library.groups[0]).toMatchObject({ id: "local:workspace", skillCount: expectedLocalSkillCount });
     expect(library.skills).toHaveLength(expectedLocalSkillCount);
-    expect(library.skills.map((skill) => skill.title)).toEqual(expect.arrayContaining(["API Design Review", "In English"]));
+    expect(new Set(library.skills.map((skill) => skill.id)).size).toBe(expectedLocalSkillCount);
+    expect(library.skills.every((skill) => skill.groupId === "local:workspace" && skill.title.trim())).toBe(true);
   });
 
   it("imports GitHub repositories through the read-only GitHub API path", async () => {

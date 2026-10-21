@@ -84,8 +84,12 @@ describe("skills-core", () => {
 
     expect(library.groups).toEqual([{ ...group, skillCount: sources.length }]);
     expect(library.skills).toHaveLength(sources.length);
-    expect(library.skills.map((skill) => skill.title)).toEqual(
-      expect.arrayContaining(["API Design Review", "Ref Pack Builder", "In English"])
+    // Content is independently versioned: retired titles must not break the app.
+    expect(sources.length).toBeGreaterThan(0);
+    expect(new Set(library.skills.map((skill) => skill.id)).size).toBe(sources.length);
+    expect(library.skills.every((skill) => skill.title.trim().length > 0)).toBe(true);
+    expect(library.skills.map((skill) => decodeSkillId(skill.id).relativePath).sort()).toEqual(
+      sources.map((source) => source.relativePath).sort()
     );
   });
 

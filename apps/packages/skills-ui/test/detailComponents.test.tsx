@@ -72,7 +72,7 @@ describe("detail component rendering", () => {
         detail={detail}
         installPanel={<section>Install target chooser</section>}
         platformLabel="Desktop"
-        updatedAt="2026-08-24T00:00:00.000Z"
+        updatedAt={new Date(2026, 7, 24, 12).toISOString()}
         onActiveTabChange={() => undefined}
       />
     );
