@@ -31,6 +31,16 @@ Loom 已实现 Settings → Skills 中的目标选择、copy/symlink 安装、�
 
 该保护不会更新已安装的历史二进制，也不让旧客户端参加 Loom 的跨进程事务锁。切换前仍须停止旧 Manager 写入；回退旧版本前恢复兼容清单和路径，不让旧程序直接接管 Loom v2。这里未删除旧应用、个人 app data 或技能内容。
 
+## Loom 共享指令切片（2ee7705）
+
+Loom 已把 auto/global 注入、manual 显式 slash wrapper 和只读诊断接入设置 Skills 安装流程。共享指令归属用安装 ID 集合保存，正文/ledger/清单共用同一事务；两个工具共用项目 AGENTS.md 时，部分卸载保块，最后一个已核实使用者移除才删块。旧 marker 缺少归属、用户改动和其他安装仍依赖的内容冲突均阻止覆盖。cron 不注入。
+
+Loom 最终 `pnpm check` 前端 108/Rust 206、release 构建通过；原生临时项目两目标安装、部分卸载与最后卸载已验证，原用户指令精确恢复。独立进程并发、跨 dataDir 恢复、CRLF/权限、受限 symlink、未知 wrapper（含空文件）和诊断只读均有回归。
+
+源 `test_managed_instructions.py` 的同步/保全/异常 marker/CRLF/链接及安装冲突规则，已在 Loom `instructions_tests.rs`、`installers_tests.rs` 和前端安装面板测试建立对应覆盖。源测试仍保留，等 CLI/TUI 兼容和完整替代验收后再移除。Loom 对符号链接增加授权范围校验，wrapper 指向实际安装目录；旧管理器不能绕过 v2 清单保护。
+
+多使用者共享内容的一致更新尚待补齐，当前明确报冲突；CLI/TUI、GitHub API、翻译和旧数据接管继续实施。G1/G2 尚未整体关闭，本记录不是移除旧应用或数据的授权。
+
 ## 退役前提
 
 Loom 的完整替代门槛 G2（来源、安装、CLI/TUI、翻译、旧数据导入与回滚）通过后，才移除本仓库的管理应用、转发入口及专属依赖。此处不删除已安装技能、私人 app data、缓存、凭据或归档。
