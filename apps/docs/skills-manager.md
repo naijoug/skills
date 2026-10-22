@@ -1,5 +1,6 @@
 # Skills Manager 运行说明
 
+> 迁移进行中：Loom 的 CLI/TUI/ng 与桌面共享服务已完成阶段验收；本页继续作为旧应用使用/兼容对照。切换边界与证据见 [迁移记录](../../docs/skills-manager-migration.md)，旧数据接管和 G2 前不并行写同一目标。
 ## 当前形态
 
 - `apps/skills-manager-api/`：Web 端本地 API，负责扫描本仓库 skills、服务端 clone/cache、GitHub API 只读读取、删除导入仓库和翻译代理。
