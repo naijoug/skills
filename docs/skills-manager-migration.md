@@ -79,6 +79,14 @@ Loom 新增 GitHub API 来源模式：默认分支解析固定 commit，完整�
 
 M5 内容独立出口通过，源管理测试/旧实现/转发入口仍保留到 G2 后的 M7；不再让 M5 等待 M7 删除。Loom 本轮完整检查前端 111/Rust 246、release app bundle 通过，翻译、旧数据迁移、G1/G2 剩余验收和最终退役继续实施。
 
+## 翻译配置切片（Loom 0ea881c）
+
+Loom Settings → Skills 已接入四个翻译 provider 的独立设置：保留原 ID、环境 key 优先级和远程默认模型；密钥 keep/set/clear 明确，返回状态不含密钥，版本冲突拒绝覆盖，文件权限 0600。旧配置自动导入仍待 M4，不迁移或清除真实用户密钥。
+
+完整检查前端 115/Rust 251 通过；修正配置刷新文案与保留其他 provider 草稿后，前端 116 和最终 release app bundle 通过。原生全新临时 profile/data 用假 key 完成保存、重启读取、清除和重新加载，未调用模型。细节见 Loom `docs/dogfood/2026-10-22-skills-migration-review.md`。
+
+该提交只关闭 M3-01 配置切片。四个 provider 的实际翻译、取消/超时与结果归属仍未迁完，不能据此退役本仓库翻译实现或通过 G2。
+
 ## 退役前提
 
 Loom 的完整替代门槛 G2（来源、安装、CLI/TUI、翻译、旧数据导入与回滚）通过后，才移除本仓库的管理应用、转发入口及专属依赖。此处不删除已安装技能、私人 app data、缓存、凭据或归档。
