@@ -69,6 +69,16 @@ Loom 完整检查前端 109/Rust 230、应用 bundle 构建通过；实际 fzf �
 
 实施计划已澄清顺序：M2c 要求 Loom 内只有共用 Rust 服务和薄入口，本仓库旧实现保持 v2 写保护用于过渡/对照，统一在 G2 后的 M7 删除。GitHub API、翻译、旧数据接管及整体 G1/G2 仍未完成，不提前断开旧入口或删除用户数据。
 
+## API 来源、测试等价与内容出口（Loom 2649372，2026-10-22）
+
+Loom 新增 GitHub API 来源模式：默认分支解析固定 commit，完整物化技能包及二进制资源；失败保留上一快照，Git/API 来源身份分开。真实公开匿名 API 读取及原生临时项目安装、移除来源后的孤立卸载已验；用户 SSH 命令/配置保留，仅未配置时补 BatchMode。真实私有认证与外网 Git clone/SSH 的剩余验收仍需单列。
+
+`apps/scripts/tests/test_managed_instructions.py` 的 8 项行为已在 Loom `docs/dogfood/2026-10-22-skills-migration-review.md` 逐项列出目标测试名、断言与安全差异。doctor 检查已安装版本：copy 来源有新版时可仍为 current，`update_available` 独立表示更新，`source_available` 表示可读取来源；自动化不能再用 doctor 退出码判断来源更新。未托管冲突、坏 marker、未来/损坏/链接清单仍拒绝写入；合法指令链接增加授权边界。
+
+根 `scripts/skills-quality-check` 不执行管理测试，隔离内容副本不含 apps/Loom、禁用 node/pnpm/cargo/tauri 后仍通过 32 个内容单测与 326 个 perfect routing 管道用例，未调用模型。271 个受管技能/归档文件哈希与迁移前一致；早期 272 计数含未受管的 skills/.DS_Store，现明确计数口径。README 的新/v2 安装及 TUI/ng 操作示例指向 Loom 随包 CLI；旧 v1/TSV 仍需显式接管。
+
+M5 内容独立出口通过，源管理测试/旧实现/转发入口仍保留到 G2 后的 M7；不再让 M5 等待 M7 删除。Loom 本轮完整检查前端 111/Rust 246、release app bundle 通过，翻译、旧数据迁移、G1/G2 剩余验收和最终退役继续实施。
+
 ## 退役前提
 
 Loom 的完整替代门槛 G2（来源、安装、CLI/TUI、翻译、旧数据导入与回滚）通过后，才移除本仓库的管理应用、转发入口及专属依赖。此处不删除已安装技能、私人 app data、缓存、凭据或归档。

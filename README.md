@@ -71,14 +71,17 @@ Behavior:
 
 - `auto` skills are auto-injected by `skills-linker` when they provide `inject.md` (writes into `~/.claude/CLAUDE.md` / `~/.codex/AGENTS.md`)
 - `cron` skills are installed normally but intentionally not auto-injected; fire from `/cron`, `launchd`, or system `cron`
-- `manual` skills are the ones exposed by `./apps/skills-manager-tui/ng` and `--with-slash-commands`
+- `manual` skills are the ones exposed by Loom’s `ng` entrypoint and `--with-slash-commands`
 - manual subgroup comes from the second directory level under `skills/manual/`
 
 Manual skills are explicit-only in Codex: each one carries
 `agents/openai.yaml` with `policy.allow_implicit_invocation: false`. Invoke them
 with `$skill-id` or a generated slash-command wrapper. Auto skills may be
-injected only when they provide `inject.md`; `skills-linker doctor` reports stale
-or malformed managed blocks.
+injected only when they provide `inject.md`; Loom CLI `doctor` reports stale
+or malformed managed blocks. It checks the installed version: an unchanged copy
+can remain healthy while its source has updates. Read `update_available` and
+`source_available` from status/doctor JSON to distinguish updates and missing
+sources; do not use the doctor exit code as an update detector.
 
 > Note: the `global/` category was deprecated and merged into `auto/`. The script still recognizes `global` for backward compatibility, but new skills should use `auto/`.
 
@@ -101,50 +104,63 @@ Recommended manual subdirectories:
 | Claude Code | `~/.claude/skills` | `{project}/.claude/skills` |
 | Amp | `~/.agents/skills` | `{project}/.agents/skills` |
 
+### Loom management entrypoint
+
+Use the Loom application or its bundled CLI for new/v2-managed installations.
+Run the following from this content repository. Point the variable at the installed
+binary (or an explicitly built Loom binary); content checks do not need Loom.
+Existing v1/TSV installations remain protected until explicit data migration.
+Legacy application instructions and the current cutover boundary remain in
+[the migration record](docs/skills-manager-migration.md).
+
+```bash
+LOOM_SKILLS_CLI="/Applications/Loom.app/Contents/MacOS/loom-skills"
+```
+
 ### Interactive TUI (recommended)
 
 Requires [fzf](https://github.com/junegunn/fzf).
 
 ```bash
-./apps/skills-manager-tui/tui
+"$LOOM_SKILLS_CLI" tui --skills-root "$PWD/skills"
 # Or allow auto-install via Homebrew when fzf is missing
-./apps/skills-manager-tui/tui --auto-install-fzf
+"$LOOM_SKILLS_CLI" tui --skills-root "$PWD/skills" --auto-install-fzf
 ```
 
 TUI flow:
 
 1. Enter a unified control panel (persistent, does not exit after one action)
 2. Adjust: `action`, `target`, `policy`, `skills`
-3. Select `execute now` to run
+3. Select `execute now`, review the saved plan, then choose `Apply reviewed changes`
 4. After execution, stay in the panel for further operations
 5. Select `quit` to exit
 
-Skills selection supports right-side `SKILL.md` preview. Install defaults to selecting all skills.
+Use `preview selected skills` to read `SKILL.md` without executing it. Install starts with all matching skills selected; cancel/back never applies a preview.
 
 ### CLI
 
 ```bash
 # List supported tools
-./apps/skills-manager-tui/skills-linker tools
+"$LOOM_SKILLS_CLI" tools --skills-root "$PWD/skills"
 
 # List available skills
-./apps/skills-manager-tui/skills-linker list
+"$LOOM_SKILLS_CLI" list --skills-root "$PWD/skills"
 
 # List only manual skills
-./apps/skills-manager-tui/skills-linker list --category manual
+"$LOOM_SKILLS_CLI" list --skills-root "$PWD/skills" --category manual
 
 # Install to Claude Code global skills
-./apps/skills-manager-tui/skills-linker install --tool claude --scope global \
+"$LOOM_SKILLS_CLI" install --skills-root "$PWD/skills" --tool claude --scope global \
   error-boundary personal-coach
 
 # Install to project-level
-./apps/skills-manager-tui/skills-linker install --tool codex --scope project --project-root .
+"$LOOM_SKILLS_CLI" install --skills-root "$PWD/skills" --tool codex --scope project --project-root .
 
 # Uninstall
-./apps/skills-manager-tui/skills-linker uninstall --tool claude --scope global error-boundary
+"$LOOM_SKILLS_CLI" uninstall --skills-root "$PWD/skills" --tool claude --scope global error-boundary
 
 # Check status
-./apps/skills-manager-tui/skills-linker status --tool claude --scope global
+"$LOOM_SKILLS_CLI" status --skills-root "$PWD/skills" --tool claude --scope global
 ```
 
 Options:
@@ -153,7 +169,7 @@ Options:
 - `--scope SCOPE` — global | project (default: global)
 - `--mode MODE` — symlink | copy (default: symlink)
 - `--auto-install-fzf` — allow `tui` to install fzf via Homebrew when missing
-- `--force` — replace conflicting targets
+- `--force` — explicitly replace verified managed installations; unowned content and user-modified uninstalls remain protected
 - `--with-slash-commands` — also install slash command wrappers for manual skills using the skill id
 - `--json` — JSON output
 
@@ -168,10 +184,10 @@ the skill id, for example `/ng-plan-create` or `/ng-tool-ref`, in the chat:
 | Claude Code | `~/.claude/commands/<skill-id>.md` | `{project}/.claude/commands/<skill-id>.md` |
 | Codex / ChatGPT | `~/.codex/prompts/<skill-id>.md` | `{project}/.codex/prompts/<skill-id>.md` |
 
-Each wrapper file contains a marker comment so the linker can refresh or
-remove only the files it created — pre-existing files with the same name are
-left alone unless `--force` is passed. Uninstall cleans up matching managed
-wrappers, including legacy `/<skill-name>` wrappers from older installs.
+Loom records wrapper ownership and fingerprints in the installation manifest.
+Unowned files and user edits are preserved even when replacement is requested.
+Shared instruction blocks remain while another verified installation needs them.
+Legacy wrappers and v1 manifests are adopted only through explicit migration.
 
 Notes:
 
@@ -185,16 +201,16 @@ Notes:
 
 ```bash
 # Show the category plan
-./apps/skills-manager-tui/ng plan
+"$LOOM_SKILLS_CLI" ng --skills-root "$PWD/skills" plan
 
 # List manual skills
-./apps/skills-manager-tui/ng list
+"$LOOM_SKILLS_CLI" ng --skills-root "$PWD/skills" list
 
 # Pick a manual skill interactively (fzf if installed)
-./apps/skills-manager-tui/ng
+"$LOOM_SKILLS_CLI" ng --skills-root "$PWD/skills"
 
 # Show how to trigger one specific skill
-./apps/skills-manager-tui/ng error-boundary
+"$LOOM_SKILLS_CLI" ng --skills-root "$PWD/skills" error-boundary
 ```
 
 ## Creating a New Skill
