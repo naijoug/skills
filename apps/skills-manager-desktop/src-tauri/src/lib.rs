@@ -421,10 +421,12 @@ fn selected_install_targets(target_ids: &[String]) -> Result<Vec<InstallTargetDa
     if !unknown.is_empty() {
         return Err(format!("Unknown install target id: {}", unknown.join(", ")));
     }
-    Ok(targets
+    let selected = targets
         .into_iter()
         .filter(|target| target_ids.contains(&target.id))
-        .collect())
+        .collect::<Vec<_>>();
+    validate_install_manifests(&selected)?;
+    Ok(selected)
 }
 
 #[tauri::command]
@@ -1319,6 +1321,44 @@ fn legacy_manifest_file(target: &InstallTargetData) -> PathBuf {
     target.skills_dir.join(LEGACY_MANIFEST_FILENAME)
 }
 
+// Preflight every selected target before copying, deleting, or updating wrappers.
+// This protects sequential cutover; old clients still must be stopped during migration.
+fn validate_install_manifests(targets: &[InstallTargetData]) -> Result<(), String> {
+    for target in targets {
+        ensure_supported_install_manifest(target)?;
+    }
+    Ok(())
+}
+
+fn ensure_supported_install_manifest(target: &InstallTargetData) -> Result<(), String> {
+    let path = manifest_file(target);
+    let metadata = match fs::symlink_metadata(&path) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => return Err(format!("Cannot inspect install manifest: {error}")),
+    };
+    if !metadata.is_file() || metadata.len() > 8 * 1024 * 1024 {
+        return Err("Unsafe install manifest; refusing to modify this target.".into());
+    }
+    let content = fs::read_to_string(&path)
+        .map_err(|error| format!("Cannot read install manifest: {error}"))?;
+    let value: Value = serde_json::from_str(&content)
+        .map_err(|_| "Invalid install manifest; refusing to modify this target.".to_string())?;
+    let object = value
+        .as_object()
+        .ok_or("Invalid install manifest; refusing to modify this target.")?;
+    if object
+        .get("version")
+        .is_some_and(|version| version.as_u64() != Some(1))
+    {
+        return Err("Unsupported install manifest version; use Loom to manage this target.".into());
+    }
+    if !object.get("skills").is_some_and(Value::is_object) {
+        return Err("Invalid install manifest skills; refusing to modify this target.".into());
+    }
+    Ok(())
+}
+
 fn read_manifest_skills(target: &InstallTargetData) -> Map<String, Value> {
     let manifest = manifest_file(target);
     if manifest.exists() {
@@ -1367,6 +1407,7 @@ fn write_manifest_skills(
     target: &InstallTargetData,
     skills: Map<String, Value>,
 ) -> Result<(), String> {
+    ensure_supported_install_manifest(target)?;
     let manifest = manifest_file(target);
     let legacy_manifest = legacy_manifest_file(target);
     if skills.is_empty() {
@@ -2309,6 +2350,47 @@ mod tests {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     static ENV_LOCK: Mutex<()> = Mutex::new(());
+
+    #[test]
+    fn unsupported_manifests_cannot_be_downgraded_or_deleted() {
+        let root = temp_dir("manifest-fence");
+        let targets = make_install_targets(&root, None);
+        let target = &targets[0];
+        fs::create_dir_all(target.skills_dir.join("demo")).unwrap();
+        let sentinel = target.skills_dir.join("demo/SKILL.md");
+        fs::write(&sentinel, "Keep installed content").unwrap();
+        let manifest = manifest_file(target);
+        for content in [
+            r#"{"version":2,"skills":{}}"#,
+            "broken JSON",
+            "null",
+            r#"{"version":1,"skills":[]}"#,
+        ] {
+            fs::write(&manifest, content).unwrap();
+            assert!(validate_install_manifests(&targets).is_err());
+            assert!(write_manifest_skills(target, Map::new()).is_err());
+            assert_eq!(fs::read_to_string(&manifest).unwrap(), content);
+            assert_eq!(
+                fs::read_to_string(&sentinel).unwrap(),
+                "Keep installed content"
+            );
+        }
+        #[cfg(unix)]
+        {
+            fs::remove_file(&manifest).unwrap();
+            std::os::unix::fs::symlink(root.join("missing-manifest"), &manifest).unwrap();
+            assert!(validate_install_manifests(&targets).is_err());
+            assert!(write_manifest_skills(target, Map::new()).is_err());
+            assert!(fs::symlink_metadata(&manifest)
+                .unwrap()
+                .file_type()
+                .is_symlink());
+            fs::remove_file(&manifest).unwrap();
+        }
+        fs::write(&manifest, r#"{"version":1,"skills":{}}"#).unwrap();
+        validate_install_manifests(&targets).unwrap();
+        fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn release_paths_work_without_a_source_checkout() {

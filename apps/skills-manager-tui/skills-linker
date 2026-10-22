@@ -302,20 +302,24 @@ function readLegacySkills() {
 }
 
 function readManifest() {
-  if (fs.existsSync(jsonPath)) {
-    try {
-      const parsed = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
-      return {
-        version: parsed && Number.isInteger(parsed.version) ? parsed.version : 1,
-        skills: parsed && parsed.skills && typeof parsed.skills === "object" && !Array.isArray(parsed.skills)
-          ? parsed.skills
-          : {},
-      };
-    } catch {
-      return { version: 1, skills: {} };
-    }
+  let metadata;
+  try { metadata = fs.lstatSync(jsonPath); }
+  catch (error) { if (error.code !== "ENOENT") throw error; }
+  if (!metadata) return { version: 1, skills: readLegacySkills() };
+  if (!metadata.isFile() || metadata.size > 8 * 1024 * 1024) {
+    throw new Error("Unsafe install manifest; refusing to modify this target.");
   }
-  return { version: 1, skills: readLegacySkills() };
+  const parsed = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("Invalid install manifest; refusing to modify this target.");
+  }
+  if (parsed.version !== undefined && parsed.version !== 1) {
+    throw new Error("Unsupported install manifest version; use Loom to manage this target.");
+  }
+  if (!parsed.skills || typeof parsed.skills !== "object" || Array.isArray(parsed.skills)) {
+    throw new Error("Invalid install manifest skills; refusing to modify this target.");
+  }
+  return { version: 1, skills: parsed.skills };
 }
 
 function writeManifest(manifest) {
@@ -330,8 +334,15 @@ function writeManifest(manifest) {
   fs.rmSync(legacyPath, { force: true });
 }
 
-const manifest = readManifest();
-if (action === "get-mode") {
+let manifest;
+try { manifest = readManifest(); }
+catch (error) {
+  console.error(`Cannot read install manifest: ${error.message}`);
+  process.exit(1);
+}
+if (action === "validate") {
+  process.exit(0);
+} else if (action === "get-mode") {
   const entry = manifest.skills[skillId];
   if (entry && typeof entry.mode === "string") {
     process.stdout.write(entry.mode);
@@ -818,6 +829,7 @@ run_install() {
   shift 5
   local selected=("$@")
 
+  manifest_json validate "$target_dir" || die "Install target manifest is not supported; no files changed."
   mkdir -p "$target_dir"
   local out=()
   local skill source dest legacy_id legacy_dest
@@ -885,6 +897,7 @@ run_uninstall() {
   shift 4
   local selected=("$@")
 
+  manifest_json validate "$target_dir" || die "Install target manifest is not supported; no files changed."
   local out=()
   local skill source dest mode_from_manifest
   for skill in "${selected[@]}"; do

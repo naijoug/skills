@@ -72,6 +72,32 @@ class LinkerIntegrationTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
         return result
 
+    def test_unsupported_manifest_blocks_force_install_and_uninstall(self):
+        self.destination.mkdir(parents=True)
+        sentinel = self.destination / "SKILL.md"
+        sentinel.write_text("Keep installed content")
+        manifest = self.destination.parent / ".skills-linker-manifest.json"
+        for kind in ("v2", "malformed", "symlink"):
+            with self.subTest(kind=kind):
+                manifest.unlink(missing_ok=True)
+                if kind == "symlink":
+                    manifest.symlink_to(self.root / "missing-manifest")
+                    original = None
+                else:
+                    original = '{"version":2,"skills":{}}' if kind == "v2" else "broken JSON"
+                    manifest.write_text(original)
+                for action in ("install", "uninstall"):
+                    result = self.run_linker(action, "--force", success=False)
+                    self.assertNotEqual(result.returncode, 0, result.stdout)
+                    self.assertIn("manifest", result.stderr)
+                    self.assertEqual(sentinel.read_text(), "Keep installed content")
+                    self.assertEqual((self.project / "AGENTS.md").read_text(), "User instruction\n")
+                    if kind == "symlink":
+                        self.assertTrue(manifest.is_symlink())
+                        self.assertFalse((self.root / "missing-manifest").exists())
+                    else:
+                        self.assertEqual(manifest.read_text(), original)
+
     def test_copy_refresh_requires_force_and_preserves_local_edits(self):
         self.run_linker("install", "--mode", "copy")
         (self.destination / "local-notes.md").write_text("User's edits\n")

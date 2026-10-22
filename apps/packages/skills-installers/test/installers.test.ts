@@ -1,4 +1,4 @@
-import { lstat, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { lstat, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -19,6 +19,37 @@ afterEach(async () => {
 });
 
 describe("agent installers", () => {
+  it.each(["v2", "malformed", "symlink"])("refuses %s manifests before any selected target changes", async (kind) => {
+    const home = await tempHome();
+    const targets = await new CodexInstaller(home, join(home, "project")).detectTargets();
+    const sourceDir = join(home, "source");
+    await mkdir(sourceDir);
+    await writeFile(join(sourceDir, "SKILL.md"), "New source");
+    const skill: ResolvedSkillSource = { skillId: "demo", installName: "demo", sourceDir };
+    for (const target of targets) {
+      await mkdir(join(target.skillsDir, "demo"), { recursive: true });
+      await writeFile(join(target.skillsDir, "demo", "SKILL.md"), "Keep installed content");
+      await writeFile(join(target.skillsDir, ".skills-linker-manifest.json"), JSON.stringify({ version: 1, skills: { demo: { mode: "copy", source: sourceDir } } }));
+    }
+    const blockedManifest = join(targets[1].skillsDir, ".skills-linker-manifest.json");
+    if (kind === "symlink") {
+      await rm(blockedManifest);
+      await symlink(join(home, "missing-manifest"), blockedManifest);
+    } else {
+      await writeFile(blockedManifest, kind === "v2" ? JSON.stringify({ version: 2, skills: {} }) : "broken JSON");
+    }
+    const firstManifest = await readFile(join(targets[0].skillsDir, ".skills-linker-manifest.json"), "utf8");
+    const blockedBytes = kind === "symlink" ? null : await readFile(blockedManifest, "utf8");
+    await expect(installSkillSources({ skills: [skill], targets, mode: "copy", conflictPolicy: "overwrite", withSlashCommands: true })).rejects.toThrow();
+    await expect(uninstallSkillSources({ skills: [skill], targets, withSlashCommands: true })).rejects.toThrow();
+    for (const target of targets) {
+      expect(await readFile(join(target.skillsDir, "demo", "SKILL.md"), "utf8")).toBe("Keep installed content");
+    }
+    expect(await readFile(join(targets[0].skillsDir, ".skills-linker-manifest.json"), "utf8")).toBe(firstManifest);
+    if (kind === "symlink") expect((await lstat(blockedManifest)).isSymbolicLink()).toBe(true);
+    else expect(await readFile(blockedManifest, "utf8")).toBe(blockedBytes);
+  });
+
   it("detects whether supported agent target directories exist", async () => {
     const home = await tempHome();
     const projectRoot = join(home, "project");

@@ -60,6 +60,7 @@ export async function installSkillSources(input: {
 }): Promise<InstallResult> {
   validateInstallMode(input.mode);
   validateConflictPolicy(input.conflictPolicy);
+  for (const target of input.targets) await readManifest(target);
   const items: InstallResultItem[] = [];
 
   for (const target of input.targets) {
@@ -131,6 +132,7 @@ export async function uninstallSkillSources(input: {
   targets: InstallTarget[];
   withSlashCommands?: boolean;
 }): Promise<InstallResult> {
+  for (const target of input.targets) await readManifest(target);
   const items: InstallResultItem[] = [];
 
   for (const target of input.targets) {
@@ -202,15 +204,25 @@ async function hasManifestEntry(target: InstallTarget, skill: ResolvedSkillSourc
 async function readManifest(target: InstallTarget): Promise<SkillManifest> {
   const manifestPath = join(target.skillsDir, MANIFEST_FILENAME);
   const legacyManifestPath = join(target.skillsDir, LEGACY_MANIFEST_FILENAME);
-  try {
-    const parsed = JSON.parse(await readFile(manifestPath, "utf8")) as Partial<SkillManifest>;
-    return {
-      version: 1,
-      skills: parsed.skills && typeof parsed.skills === "object" && !Array.isArray(parsed.skills) ? parsed.skills : {}
-    };
-  } catch {
-    return { version: 1, skills: await readLegacyManifest(legacyManifestPath) };
+  const metadata = await lstat(manifestPath).catch((error: NodeJS.ErrnoException) => {
+    if (error.code === "ENOENT") return undefined;
+    throw error;
+  });
+  if (!metadata) return { version: 1, skills: await readLegacyManifest(legacyManifestPath) };
+  if (!metadata.isFile() || metadata.size > 8 * 1024 * 1024) {
+    throw new Error("Unsafe install manifest; refusing to modify this target.");
   }
+  const parsed = JSON.parse(await readFile(manifestPath, "utf8")) as Partial<SkillManifest> | null;
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("Invalid install manifest; refusing to modify this target.");
+  }
+  if (parsed.version !== undefined && parsed.version !== 1) {
+    throw new Error("Unsupported install manifest version; use Loom to manage this target.");
+  }
+  if (!parsed.skills || typeof parsed.skills !== "object" || Array.isArray(parsed.skills)) {
+    throw new Error("Invalid install manifest skills; refusing to modify this target.");
+  }
+  return { version: 1, skills: parsed.skills };
 }
 
 async function writeManifest(target: InstallTarget, manifest: SkillManifest): Promise<void> {
