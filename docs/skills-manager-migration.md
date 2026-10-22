@@ -49,6 +49,16 @@ Loom `pnpm check` 前端 109/Rust 211、release 与 debug app bundle 构建通�
 
 本仓库旧管理实现保持 v2 写入保护，源测试继续作为迁移对照；实际 CLI 接线、旧数据归属重建与退役仍按 M2c/M4/G2/M7 执行。没有删除个人数据或旧管理应用。
 
+## 无窗口 CLI 核心（Loom b93c1b9）
+
+Loom 新增 `loom-skills`，通过同一 Rust 服务提供 tools/list/detail/install/uninstall/status/doctor/pending/recover；开发兼容入口为 Loom 的 `tools/skills-cli/skills-linker`，应用包内为 `Contents/MacOS/loom-skills`。它不启动桌面窗口，默认读取 Loom 来源库，也支持显式 `--skills-root`。默认 symlink、工具别名、分类、项目与显式自定义目标、force/slash/JSON 已接通。
+
+源 CLI 与新 CLI 在同一合成来源逐字段对照了 list 的旧核心 JSON 字段；实际新 CLI 完成双工具 symlink 安装、doctor、指令 A → B 重装及卸载，源包保全。移动后的应用包 CLI 可从独立 cwd 运行，Info.plist 桌面主入口仍是 loom。实际 OS 锁验收确认 data-dir 覆盖不隔离协调域，更新独占准入拒绝新 CLI，CLI 输出未结束时仍阻止更新，退出后锁释放。
+
+Loom 完整 check 前端 109/Rust 220、桌面打包通过；最终 JSON 字段修正另经 CLI 9 项、Clippy 和随包进程检查。用户手改安装与未托管内容不被 force 卸载，部分失败返回非零；旧 v1/TSV 仍等待显式迁移。用法和明确差异见 Loom `docs/skills-cli.md`。
+
+M2c 仍未结束：TUI/ng/fzf 和更广兼容样本继续迁移。这里不把旧应用默认入口切到尚未完成全部交互能力的新 CLI，也不删除旧管理实现；退役继续以 G2 为前提。
+
 ## 退役前提
 
 Loom 的完整替代门槛 G2（来源、安装、CLI/TUI、翻译、旧数据导入与回滚）通过后，才移除本仓库的管理应用、转发入口及专属依赖。此处不删除已安装技能、私人 app data、缓存、凭据或归档。
