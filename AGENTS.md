@@ -10,3 +10,8 @@
 - Preserve skill content, archives, private caches, credentials and installed skills. Old Manager data import/adoption is outside scope.
 - Complete authorized local edits and validation without an extra confirmation step. Cite any constraint that actually blocks requested work.
 - Do not recreate a Manager application or forwarding launcher here. Use Loom's Settings → Skills or its bundled CLI; usage is described in README and `docs/skills-manager-migration.md`.
+
+## Documentation and code discrepancies
+
+- When repository documentation conflicts with the existing code, follow the conventions in the code. Explicit changes requested by the user take precedence.
+- In the final response, report every documentation/code discrepancy found during the task individually, including the documentation location, corresponding code location, specific difference, and how it was handled. Report only verified differences; do not claim unchecked areas are consistent.
