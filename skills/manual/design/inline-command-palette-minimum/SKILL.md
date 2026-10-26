@@ -267,4 +267,4 @@ Review rule: if more time is spent explaining excluded commands than included co
 
 ## Related Assets
 
-- `skills/apps/docs/plans/2026-08-25-skills-manager-command-palette-minimum.md`
+- [Manager retirement and Loom ownership](../../../../docs/skills-manager-migration.md)

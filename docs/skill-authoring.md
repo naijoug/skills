@@ -95,8 +95,9 @@ silently omitted.
 
 The full check runs metadata checks, disposable-fixture regression tests, the error-boundary
 package checks, coverage checks, and the perfect-predictor scorer smoke. It does
-not access production, require an API key, or start a preview. App changes should
-use the appropriate checks in [Skills Manager operations](../apps/docs/skills-manager.md).
+not access production, require an API key, or start a preview. Manager application
+changes and their tests belong to Loom; this repository only checks content and
+quality tooling. See the [retirement record](skills-manager-migration.md).
 
 For model comparisons, keep the model, reasoning settings, inputs, tools and
 mandatory host constraints fixed. Compare no optional skill, the current skill,

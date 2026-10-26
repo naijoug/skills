@@ -2,17 +2,16 @@
 
 Personal collection of AI coding skills. Skills are classified by directory under `skills/`.
 
-Skills Manager is being migrated to Loom. Content checks now run independently
-with `bash scripts/skills-quality-check`; existing application and CLI entrypoints
-remain available until Loom passes replacement acceptance. See
-[the migration record](docs/skills-manager-migration.md).
+Skills management is now maintained in Loom. This repository contains skill content,
+archives, and standalone quality tools only. The old Manager applications and
+launchers have been removed; see [the retirement record](docs/skills-manager-migration.md).
+Old Manager data import and rollback are outside the current scope.
 
 ## Project Structure
 
 ```text
 .
-├── scripts/          # Content quality tools and transitional local startup
-├── apps/             # Skills Manager (migration to Loom in progress)
+├── scripts/          # Standalone content quality tools
 ├── archive/skills/   # Disabled source packages; not installable entries
 └── skills/
     ├── auto/
@@ -69,7 +68,7 @@ Category comes from the directory path, not `skill.yaml`:
 
 Behavior:
 
-- `auto` skills are auto-injected by `skills-linker` when they provide `inject.md` (writes into `~/.claude/CLAUDE.md` / `~/.codex/AGENTS.md`)
+- `auto` skills are auto-injected by the Loom CLI when they provide `inject.md` (writes into `~/.claude/CLAUDE.md` / `~/.codex/AGENTS.md`)
 - `cron` skills are installed normally but intentionally not auto-injected; fire from `/cron`, `launchd`, or system `cron`
 - `manual` skills are the ones exposed by Loom’s `ng` entrypoint and `--with-slash-commands`
 - manual subgroup comes from the second directory level under `skills/manual/`
@@ -109,8 +108,8 @@ Recommended manual subdirectories:
 Use the Loom application or its bundled CLI for new/v2-managed installations.
 Run the following from this content repository. Point the variable at the installed
 binary (or an explicitly built Loom binary); content checks do not need Loom.
-Existing v1/TSV installations remain protected until explicit data migration.
-Legacy application instructions and the current cutover boundary remain in
+Existing v1/TSV installations remain protected; Loom does not adopt old Manager data.
+Use a fresh target for new managed installations. The scope and retired entrypoints are in
 [the migration record](docs/skills-manager-migration.md).
 
 ```bash
@@ -264,7 +263,7 @@ policy:
 ```
 
 Before publishing or committing a new manual skill, run the lightweight metadata
-check so `skills-linker list` and slash-command installation do not fall back to
+check so Loom CLI `list` and slash-command installation do not fall back to
 blank titles or incomplete summaries. The check discovers directories containing
 either `SKILL.md` or `skill.yaml` and requires both files, so unfinished
 metadata-only skills cannot silently pass. Metadata needs non-empty `id`, `version`, `title`,

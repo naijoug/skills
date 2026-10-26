@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-# Transitional application gate: content checks no longer depend on apps/.
-set -euo pipefail
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-cd "$ROOT_DIR"
-bash scripts/skills-quality-check
-python3 -m unittest discover -s apps/scripts/tests -p test_managed_instructions.py

@@ -200,7 +200,7 @@
 ## Recommended Directions
 
 - Keep this repo's current `skills/manual/<group>/<name>` structure.
-  - It is already cleaner than the heavier marketplace/plugin trees and works well with `skills-linker`.
+  - It is already cleaner than the heavier marketplace/plugin trees and works well with the Loom Skills CLI.
 - Add provenance metadata when importing or adapting upstream skills.
   - At minimum: upstream URL, imported commit/date, and whether the local copy is forked or mirrored.
 - Add a repo validation script once the skill count grows further.

@@ -10,8 +10,6 @@ node_modules/
 dist/
 target/
 *.tsbuildinfo
-apps/skills-manager-desktop/src-tauri/gen/
-apps/skills-manager-desktop/src-tauri/resources/
 
 # Python cache (trigger eval scripts)
 __pycache__/
@@ -41,11 +39,10 @@ skills/manual/tool/search/workspace/
 .uploads/
 .qa/
 
-# Local macOS signing secrets (public .cer files remain trackable)
-apps/skills-manager-desktop/src-tauri/certificates/*.p12
-apps/skills-manager-desktop/src-tauri/certificates/*.pfx
-apps/skills-manager-desktop/src-tauri/certificates/*.p8
-apps/skills-manager-desktop/src-tauri/certificates/*.key
-apps/skills-manager-desktop/src-tauri/certificates/*.mobileprovision
-apps/skills-manager-desktop/src-tauri/certificates/*.provisionprofile
-apps/skills-manager-desktop/src-tauri/certificates/.env*
+# Local signing secrets (never commit private credentials)
+*.p12
+*.pfx
+*.p8
+*.key
+*.mobileprovision
+*.provisionprofile
