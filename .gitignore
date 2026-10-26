@@ -30,9 +30,6 @@ skills/manual/tool/search/workspace/
 
 .ref/
 
-# Local Skills Manager imports/cache
-.skills-manager-data/
-
 # Local design/uploads workspaces
 .design/
 .output/
